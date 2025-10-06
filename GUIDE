@@ -1,0 +1,39 @@
+folder asset để chứa ảnh
+
+folder api 
+có axiosInstance.js để setup base URL
+có endpoints.js để định nghĩa các context path
+
+folder context
+có authcontext để Quản lý user info, token, và trạng thái đăng nhập (AuthProvider)
+
+folder hooks dùng để chứa hook chung để gọi api ở nhiều module 
+có useAuth.js để gọi api để lấy user info, token, và trạng thái đăng nhập
+có useFetch.js để gọi api để lấy dữ liệu
+có useLocalStorage.js để lưu dữ liệu vào local storage
+có usePermission.js để kiểm tra quyền của user
+
+folder features
+có folder auth, dealer-manager. dealer-staff, evm-staff, admin
+trong các folder này có 
+components chứa các form ví dụ như login form, register form, ...
+pages chứa các trang ví dụ như login page, register page, ...
+hooks chứa các hook riêng cửa từng role, gọi hook chung cùng với kết hợp zodResolver của @hookform/resolvers/zod và useForm của react-hook-form để validate form
+schemas chứa các schema của zod để validate form
+services chứa các service để gọi api, gọi các endpoint từ endpoints.js và sử dụng axiosInstance.js để gọi api để lấy dữ liệu
+
+folder layouts
+có 3 folder footer, header, sidebar
+có các trang layout của từng role để làm giao diện chung cho từng role và sau đó Sau đó trong route, bạn sẽ wrap các trang lại với các trang layout tương ứng
+
+folder router
+có appRouter.js để 
+🗺️ Định nghĩa route path → Mỗi đường dẫn tương ứng một trang.
+🧱 Gắn layout phù hợp → DealerLayout, AdminLayout, v.v.
+🔐 Bảo vệ route (PrivateRoute) → Chỉ cho phép người đã đăng nhập truy cập.
+🧩 Phân quyền theo vai trò (RoleBasedRoute).
+🧭 Điều hướng fallback → Ví dụ: nếu truy cập route sai, chuyển sang /404.
+có privateRoute.js để bảo vệ route (PrivateRoute) → Chỉ cho phép người đã đăng nhập truy cập.
+có publicRoute.js để định nghĩa các route công cộng (PublicRoute) → Cho phép truy cập mà không cần đăng nhập.
+
+folder utils để format dữ liệu ví dụ như ngày, tiền tệ,...
