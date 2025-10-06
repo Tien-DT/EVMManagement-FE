@@ -35,5 +35,6 @@ có appRouter.js để
 🧭 Điều hướng fallback → Ví dụ: nếu truy cập route sai, chuyển sang /404.
 có privateRoute.js để bảo vệ route (PrivateRoute) → Chỉ cho phép người đã đăng nhập truy cập.
 có publicRoute.js để định nghĩa các route công cộng (PublicRoute) → Cho phép truy cập mà không cần đăng nhập.
+có roleBasedRoute.js để kiểm tra user.role từ authContext để phân quyền theo vai trò (RoleBasedRoute).
 
 folder utils để format dữ liệu ví dụ như ngày, tiền tệ,...
