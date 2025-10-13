@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import {
   DesktopOutlined,
   FileOutlined,
+  HomeOutlined,
+  HourglassOutlined,
   PieChartOutlined,
   TeamOutlined,
   UserOutlined,
@@ -17,13 +19,9 @@ function getItem(label, key, icon, children) {
   };
 }
 const items = [
-  getItem('Option 1', '1', <PieChartOutlined />),
+  getItem('Dashboard', '1', <HomeOutlined />),
   getItem('Option 2', '2', <DesktopOutlined />),
-  getItem('User', 'sub1', <UserOutlined />, [
-    getItem('Tom', '3'),
-    getItem('Bill', '4'),
-    getItem('Alex', '5'),
-  ]),
+  getItem('User', 'sub1', <UserOutlined />),
   getItem('Team', 'sub2', <TeamOutlined />, [getItem('Team 1', '6'), getItem('Team 2', '8')]),
   getItem('Files', '9', <FileOutlined />),
 ];
@@ -50,11 +48,11 @@ const Dashboard = () => {
               borderRadius: borderRadiusLG,
             }}
           >
-            Bill is a cat.
+            SWP391
           </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
-          Ant Design ©{new Date().getFullYear()} Created by Ant UED
+           Design ©{new Date().getFullYear()} Created by Group 7
         </Footer>
       </Layout>
     </Layout>
