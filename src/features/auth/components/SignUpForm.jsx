@@ -12,15 +12,15 @@ const SignUpForm = () => {
       <div className="relative w-full">
         {/* Hero Section với Background Image */}
         <div
-          className="relative overflow-hidden bg-cover bg-center rounded-3xl"
+          className="relative overflow-hidden bg-cover bg-center rounded-2xl sm:rounded-3xl"
           style={{
             backgroundImage: `url(${signupBg})`,
-            minHeight: "350px",
+            minHeight: "280px",
           }}
         >
           {/* Welcome Text */}
-          <div className="relative z-10 text-center py-16 px-4">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+          <div className="relative z-10 text-center py-12 sm:py-16 px-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3">
               Welcome!
             </h1>
             <p className="text-white text-opacity-90 text-sm md:text-base max-w-md mx-auto">
@@ -30,9 +30,9 @@ const SignUpForm = () => {
         </div>
 
         {/* Form Card - overlap với hero section */}
-        <div className="relative -mt-20 mx-4 md:mx-auto max-w-md pb-12">
-          <div className="bg-white rounded-2xl shadow-2xl p-8">
-            <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">
+        <div className="relative -mt-16 sm:-mt-20 mx-2 sm:mx-4 md:mx-auto max-w-md pb-8 sm:pb-12">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 text-center mb-4 sm:mb-6">
               Register an Account
             </h2>
             {/* Error Message */}
@@ -66,7 +66,7 @@ const SignUpForm = () => {
             )}
 
             {/* Sign Up Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
               {/* Full Name Field */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -238,7 +238,7 @@ const SignUpForm = () => {
             </form>
 
             {/* Sign In Link */}
-            <p className="text-center text-sm text-gray-600 mt-6">
+            <p className="text-center text-sm text-gray-600 mt-4 sm:mt-6">
               Already have an account?{" "}
               <Link to="/login" className="text-teal-500 font-semibold hover:text-teal-600">
                 Sign In

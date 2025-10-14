@@ -8,7 +8,7 @@ const LoginForm = () => {
   const { register, handleSubmit, formState: { errors } } = form;
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Side - Background Image */}
       <div 
         className="hidden lg:flex lg:w-1/2 bg-cover bg-center relative"
@@ -18,35 +18,35 @@ const LoginForm = () => {
       >
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         <div className="relative z-10 flex flex-col justify-center items-center text-white p-12">
-          <h1 className="text-5xl font-bold mb-6 text-center">
+          <h1 className="text-4xl xl:text-5xl font-bold mb-6 text-center">
             Welcome Back!
           </h1>
-          <p className="text-xl text-center max-w-md">
+          <p className="text-lg xl:text-xl text-center max-w-md">
             Sign in to continue your journey with us
           </p>
         </div>
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-md">
           {/* Mobile Background */}
           <div 
-            className="lg:hidden w-full h-48 bg-cover bg-center rounded-t-2xl mb-8"
+            className="lg:hidden w-full h-40 sm:h-48 bg-cover bg-center rounded-t-2xl mb-6 relative"
             style={{
               backgroundImage: `url(${loginBg})`,
             }}
           >
             <div className="absolute inset-0 bg-black bg-opacity-40 rounded-t-2xl"></div>
-            <div className="relative z-10 flex flex-col justify-center items-center text-white h-full">
-              <h1 className="text-3xl font-bold mb-2">Welcome Back!</h1>
+            <div className="relative z-10 flex flex-col justify-center items-center text-white h-full px-4">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-center">Welcome Back!</h1>
               <p className="text-sm text-center">Sign in to continue</p>
             </div>
           </div>
 
-          <div className="bg-white lg:bg-transparent p-8 lg:p-0">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign in</h2>
-            <p className="text-gray-600 mb-8">Enter your credentials to access your account</p>
+          <div className="bg-white lg:bg-transparent p-4 sm:p-6 lg:p-0">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Sign in</h2>
+            <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Enter your credentials to access your account</p>
 
             {/* Error Message */}
             {error && (
@@ -79,7 +79,7 @@ const LoginForm = () => {
             )}
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -117,15 +117,15 @@ const LoginForm = () => {
               </div>
 
               {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <label className="flex items-center">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
                   />
                   <span className="ml-2 text-sm text-gray-600">Remember me</span>
                 </label>
-                <a href="#" className="text-teal-600 font-semibold hover:text-blue-500">
+                <a href="#" className="text-teal-600 font-semibold hover:text-teal-700 text-sm">
                   Forgot password?
                 </a>
               </div>
@@ -154,7 +154,7 @@ const LoginForm = () => {
               </button>
             </form>
             {/* Sign Up Link */}
-            <p className="text-center text-sm text-gray-600 mt-8">
+            <p className="text-center text-sm text-gray-600 mt-6 sm:mt-8">
               Don't have an account?{" "}
               <Link to="/signup" className="text-teal-600 font-semibold hover:text-teal-700">
                 Sign up here
