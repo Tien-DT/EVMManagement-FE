@@ -6,4 +6,12 @@ export const authService = {
       setTimeout(() => resolve({ success: true }), 1000)
     );
   },
+  
+  login: async (data) => {
+    console.log("Gọi API đăng nhập:", data);
+    // Giả lập API call
+    return new Promise((resolve) =>
+      setTimeout(() => resolve({ success: true, token: "mock-token" }), 1000)
+    );
+  },
 };
