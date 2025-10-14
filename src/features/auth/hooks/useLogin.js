@@ -25,7 +25,7 @@ export const useLogin = () => {
     setError(null);
     
     try {
-      console.log("🔐 Login data:", data);
+      console.log(" Login data:", data);
       
       // Call API with the exact structure you provided
       const response = await authService.login({
@@ -33,7 +33,7 @@ export const useLogin = () => {
         password: data.password
       });
       
-      console.log("✅ Login successful:", response);
+      console.log(" Login successful:", response);
       
       // Store token if provided
       if (response.token) {
@@ -49,7 +49,7 @@ export const useLogin = () => {
       navigate("/dashboard");
       
     } catch (err) {
-      console.error("❌ Login error:", err);
+      console.error("Login error:", err);
       setError(err.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
