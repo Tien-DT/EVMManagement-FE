@@ -15,6 +15,7 @@ import DashboardPage from "../features/admin/pages/DashboardPage";
 
 //Auth Pages
 import SignUpPage from "../features/auth/pages/SignUpPage";
+import LoginPage from "../features/auth/pages/LoginPage";
 
 
 
@@ -24,6 +25,14 @@ const AppRouter = () => (
   <Router>
     <Routes>
       {/* Public */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
+      />
       <Route
         path="/signup"
         element={

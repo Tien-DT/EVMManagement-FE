@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://api.example.com", // đổi khi có backend
+  baseURL: "https://evm-management-be.onrender.com/api/", // đổi khi có backend
   headers: {
     "Content-Type": "application/json",
   },
