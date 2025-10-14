@@ -46,13 +46,13 @@ export const useSignUp = () => {
         role: apiData.role
       });
       
-      console.log("✅ Signup successful:", response);
+      console.log("Signup successful:", response);
       
       // Navigate to login page after successful signup
       navigate("/login");
       
     } catch (err) {
-      console.error("❌ Signup error:", err);
+      console.error(" Signup error:", err);
       setError(err.message || "Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
