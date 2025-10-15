@@ -160,12 +160,9 @@ const LoginForm = () => {
                     Remember me
                   </span>
                 </label>
-                <a
-                  href="#"
-                  className="text-teal-600 font-semibold hover:text-teal-700 text-sm"
-                >
+                <Link to="/forgot-password" className="text-teal-600 font-semibold hover:text-teal-700 text-sm">
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* Submit Button */}

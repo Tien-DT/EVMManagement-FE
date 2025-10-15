@@ -21,6 +21,7 @@ import SignUpForm from "../features/auth/components/SignUpForm";
 // Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
+import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
 
 const AppRouter = () => (
   <Router>
@@ -31,6 +32,14 @@ const AppRouter = () => (
         element={
           <PublicRoute>
             <LoginPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPasswordPage />
           </PublicRoute>
         }
       />
