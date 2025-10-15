@@ -5,7 +5,8 @@ import {
   UserPlus, 
   ChevronRight,
   Menu,
-  X
+  X,
+  User
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -22,6 +23,11 @@ const AdminSidebar = () => {
       path: '/admin/register',
       icon: UserPlus,
       label: 'Register'
+    },
+    {
+      path: '/admin/profile',
+      icon: User,
+      label: 'Profile'
     }
   ];
 
