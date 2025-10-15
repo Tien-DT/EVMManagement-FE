@@ -1,12 +1,12 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import AdminSidebar from './sidebar/AdminSidebar';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import AdminSidebar from "./Sidebar/AdminSidebar";
 
 const AdminLayout = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
-      
+
       {/* Main Content */}
       <div className="flex-1 lg:ml-64">
         {/* Header */}
@@ -19,7 +19,7 @@ const AdminLayout = () => {
                 className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <button className="text-gray-600 hover:text-gray-900">
                 <span className="text-sm">🔔</span>

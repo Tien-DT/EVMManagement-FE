@@ -1,31 +1,31 @@
 // src/router/AppRouter.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import PublicRoute from "./PublicRoute";
 import PrivateRoute from "./PrivateRoute";
 import RoleBasedRoute from "./RoleBasedRoute";
 
 // Layouts
-import AdminLayout from '../layouts/AdminLayout';
-import DealerLayout from '../layouts/DealerLayout';
-
+import AdminLayout from "../layouts/AdminLayout";
+import DealerLayout from "../layouts/DealerLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
+import SignUpForm from "../features/auth/components/SignUpForm";
 
-//Auth Pages
-import SignUpPage from "../features/auth/pages/SignUpPage";
+// Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
-
-
-
-// import pages theo cấu trúc features
 
 const AppRouter = () => (
   <Router>
     <Routes>
-      {/* Public */}
+      {/* Public Routes */}
       <Route
         path="/login"
         element={
@@ -34,26 +34,36 @@ const AppRouter = () => (
           </PublicRoute>
         }
       />
-      <Route
-        path="/signup"
-        element={
-          <PublicRoute>
-            <SignUpPage />
-          </PublicRoute>
-        }
-      />
 
-      {/* Admin Routes */}
+      {/* Admin Routes - ✅ Support EVM_ADMIN role */}
       <Route element={<PrivateRoute />}>
-        {/* <Route element={<RoleBasedRoute allowedRoles={['admin']} />}> */}
+        <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
-            {/* Thêm các route admin khác ở đây */}
+            <Route path="/admin/register" element={<SignUpForm />} />
           </Route>
-        {/* </Route> */}
+        </Route>
       </Route>
 
+      {/* Dealer Routes - nếu cần */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<RoleBasedRoute allowedRoles={["dealer"]} />}>
+          <Route element={<DealerLayout />}>
+            {/* Add dealer routes here */}
+            <Route
+              path="/dealer/dashboard"
+              element={<div>Dealer Dashboard</div>}
+            />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      {/* Catch all - redirect to login */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   </Router>
 );
