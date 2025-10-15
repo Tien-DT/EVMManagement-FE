@@ -9,6 +9,7 @@ import DealerLayout from '../layouts/DealerLayout';
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
+import ProfilePage from "../features/auth/pages/ProfilePage";
 
 // Auth Pages
 import SignUpPage from "../features/auth/pages/SignUpPage";
@@ -22,6 +23,7 @@ const DevRouter = () => (
       {/* Admin Routes - KHÔNG CÓ PHÂN QUYỀN */}
       <Route element={<AdminLayout />}>
         <Route path="/admin/dashboard" element={<DashboardPage />} />
+        <Route path="/admin/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Redirects & Fallbacks */}

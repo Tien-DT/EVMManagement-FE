@@ -16,6 +16,7 @@ import DashboardPage from "../features/admin/pages/DashboardPage";
 //Auth Pages
 import SignUpPage from "../features/auth/pages/SignUpPage";
 import LoginPage from "../features/auth/pages/LoginPage";
+import ProfilePage from "../features/auth/pages/ProfilePage";
 
 
 
@@ -47,6 +48,7 @@ const AppRouter = () => (
         {/* <Route element={<RoleBasedRoute allowedRoles={['admin']} />}> */}
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<DashboardPage />} />
+            <Route path="/admin/profile" element={<ProfilePage />} />
             {/* Thêm các route admin khác ở đây */}
           </Route>
         {/* </Route> */}
