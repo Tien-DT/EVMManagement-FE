@@ -15,9 +15,9 @@ import DealerLayout from "../layouts/DealerLayout";
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
+import SignUpForm from "../features/auth/components/SignUpForm";
 
 // Auth Pages
-import SignUpPage from "../features/auth/pages/SignUpPage";
 import LoginPage from "../features/auth/pages/LoginPage";
 import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
 
@@ -25,7 +25,6 @@ const DevRouter = () => (
   <Router>
     <Routes>
       {/* Public Routes */}
-      <Route path="/signup" element={<SignUpPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
@@ -33,6 +32,7 @@ const DevRouter = () => (
       <Route element={<AdminLayout />}>
         <Route path="/admin/dashboard" element={<DashboardPage />} />
         <Route path="/admin/profile" element={<ProfilePage />} />
+        <Route path="/admin/register" element={<SignUpForm />} />
       </Route>
 
       {/* Redirects & Fallbacks */}

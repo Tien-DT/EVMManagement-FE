@@ -16,12 +16,11 @@ export const useSignUp = () => {
     defaultValues: {
       email: "",
       fullName: "",
-      dealerId: "",
       phone: "",
       cardId: "",
       role: "EVM_ADMIN",
       password: "",
-      confirmPassword: "",
+      // confirmPassword: "",
     },
   });
 
@@ -29,28 +28,23 @@ export const useSignUp = () => {
   const onSubmit = async (data) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       console.log("📝 Signup data:", data);
-      
-      // Prepare data for API (exclude confirmPassword)
-      const { confirmPassword, ...apiData } = data;
-      
       // Call API with the exact structure you provided
       const response = await authService.signup({
-        email: apiData.email,
-        fullName: apiData.fullName,
-        dealerId: apiData.dealerId,
-        phone: apiData.phone,
-        cardId: apiData.cardId,
-        role: apiData.role
+        email: data.email,
+        password: data.password,
+        role: data.role,
+        fullName: data.fullName,
+        phone: data.phone,
+        cardId: data.cardId,
       });
-      
+
       console.log("Signup successful:", response);
-      
+
       // Navigate to login page after successful signup
-      navigate("/login");
-      
+      navigate("/admin/dashboard");
     } catch (err) {
       console.error(" Signup error:", err);
       setError(err.message || "Signup failed. Please try again.");
@@ -59,11 +53,11 @@ export const useSignUp = () => {
     }
   };
 
-  return { 
-    form, 
-    onSubmit, 
-    isLoading, 
-    error, 
-    setError 
+  return {
+    form,
+    onSubmit,
+    isLoading,
+    error,
+    setError,
   };
 };

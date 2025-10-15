@@ -5,7 +5,11 @@ import { useSignUp } from "../hooks/useSignUp";
 
 const SignUpForm = () => {
   const { form, onSubmit, isLoading, error, setError } = useSignUp();
-  const { register, handleSubmit, formState: { errors } } = form;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form;
 
   return (
     <div className="min-h-screen bg-white p-4">
@@ -40,8 +44,16 @@ const SignUpForm = () => {
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5 text-red-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
@@ -55,8 +67,16 @@ const SignUpForm = () => {
                         className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
                       >
                         <span className="sr-only">Dismiss</span>
-                        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        <svg
+                          className="h-3 w-3"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -66,7 +86,10 @@ const SignUpForm = () => {
             )}
 
             {/* Sign Up Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-3 sm:space-y-4"
+            >
               {/* Full Name Field */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -81,7 +104,9 @@ const SignUpForm = () => {
                   placeholder="Your full name"
                 />
                 {errors.fullName && (
-                  <p className="mt-1 text-xs text-red-600">{errors.fullName.message}</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.fullName.message}
+                  </p>
                 )}
               </div>
 
@@ -99,7 +124,9 @@ const SignUpForm = () => {
                   placeholder="Your email address"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -117,7 +144,9 @@ const SignUpForm = () => {
                   placeholder="Your phone number"
                 />
                 {errors.phone && (
-                  <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.phone.message}
+                  </p>
                 )}
               </div>
 
@@ -135,25 +164,9 @@ const SignUpForm = () => {
                   placeholder="Your card ID"
                 />
                 {errors.cardId && (
-                  <p className="mt-1 text-xs text-red-600">{errors.cardId.message}</p>
-                )}
-              </div>
-
-              {/* Dealer ID Field */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Dealer ID
-                </label>
-                <input
-                  type="text"
-                  {...register("dealerId")}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
-                    errors.dealerId ? "border-red-300" : "border-gray-300"
-                  }`}
-                  placeholder="Dealer UUID (e.g., 3fa85f64-5717-4562-b3fc-2c963f66afa6)"
-                />
-                {errors.dealerId && (
-                  <p className="mt-1 text-xs text-red-600">{errors.dealerId.message}</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.cardId.message}
+                  </p>
                 )}
               </div>
 
@@ -169,11 +182,14 @@ const SignUpForm = () => {
                   }`}
                 >
                   <option value="EVM_ADMIN">EVM Admin</option>
-                  <option value="DEALER">Dealer</option>
-                  <option value="USER">User</option>
+                  <option value="EVM_STAFF">EVM Staff</option>
+                  <option value="DEALER_MANAGER">Dealer Manager</option>
+                  <option value="DEALER_STAFF">Dealer Staff</option>
                 </select>
                 {errors.role && (
-                  <p className="mt-1 text-xs text-red-600">{errors.role.message}</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.role.message}
+                  </p>
                 )}
               </div>
 
@@ -191,12 +207,14 @@ const SignUpForm = () => {
                   placeholder="Your password"
                 />
                 {errors.password && (
-                  <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
               {/* Confirm Password Field */}
-              <div>
+              {/* <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Confirm Password
                 </label>
@@ -204,14 +222,18 @@ const SignUpForm = () => {
                   type="password"
                   {...register("confirmPassword")}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
-                    errors.confirmPassword ? "border-red-300" : "border-gray-300"
+                    errors.confirmPassword
+                      ? "border-red-300"
+                      : "border-gray-300"
                   }`}
                   placeholder="Confirm your password"
                 />
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.confirmPassword.message}
+                  </p>
                 )}
-              </div>
+              </div> */}
 
               {/* Submit Button */}
               <button
@@ -225,9 +247,25 @@ const SignUpForm = () => {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Creating Account...
                   </div>
@@ -240,7 +278,10 @@ const SignUpForm = () => {
             {/* Sign In Link */}
             <p className="text-center text-sm text-gray-600 mt-4 sm:mt-6">
               Already have an account?{" "}
-              <Link to="/login" className="text-teal-500 font-semibold hover:text-teal-600">
+              <Link
+                to="/login"
+                className="text-teal-500 font-semibold hover:text-teal-600"
+              >
                 Sign In
               </Link>
             </p>
