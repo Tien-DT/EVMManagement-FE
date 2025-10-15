@@ -1,11 +1,16 @@
 // src/router/DevRouter.jsx
 // ROUTER ĐỂ TEST - KHÔNG CÓ PHÂN QUYỀN
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 // Layouts
-import AdminLayout from '../layouts/AdminLayout';
-import DealerLayout from '../layouts/DealerLayout';
+import AdminLayout from "../layouts/AdminLayout";
+import DealerLayout from "../layouts/DealerLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -13,12 +18,14 @@ import ProfilePage from "../features/auth/pages/ProfilePage";
 
 // Auth Pages
 import SignUpPage from "../features/auth/pages/SignUpPage";
+import LoginPage from "../features/auth/pages/LoginPage";
 
 const DevRouter = () => (
   <Router>
     <Routes>
       {/* Public Routes */}
       <Route path="/signup" element={<SignUpPage />} />
+      <Route path="/login" element={<LoginPage />} />
 
       {/* Admin Routes - KHÔNG CÓ PHÂN QUYỀN */}
       <Route element={<AdminLayout />}>
