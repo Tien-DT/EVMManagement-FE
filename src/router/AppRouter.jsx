@@ -17,6 +17,7 @@ import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpPage from "../features/auth/pages/SignUpPage";
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
+import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
 
 
 
@@ -39,6 +40,14 @@ const AppRouter = () => (
         element={
           <PublicRoute>
             <SignUpPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPasswordPage />
           </PublicRoute>
         }
       />
