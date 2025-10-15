@@ -19,6 +19,7 @@ import ProfilePage from "../features/auth/pages/ProfilePage";
 // Auth Pages
 import SignUpPage from "../features/auth/pages/SignUpPage";
 import LoginPage from "../features/auth/pages/LoginPage";
+import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
 
 const DevRouter = () => (
   <Router>
@@ -26,6 +27,7 @@ const DevRouter = () => (
       {/* Public Routes */}
       <Route path="/signup" element={<SignUpPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       {/* Admin Routes - KHÔNG CÓ PHÂN QUYỀN */}
       <Route element={<AdminLayout />}>
