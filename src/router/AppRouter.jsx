@@ -14,9 +14,9 @@ import DealerLayout from '../layouts/DealerLayout';
 import DashboardPage from "../features/admin/pages/DashboardPage";
 
 //Auth Pages
-import SignUpPage from "../features/auth/pages/SignUpPage";
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
+import SignUpForm from "../features/auth/components/SignUpForm";
 
 
 
@@ -34,24 +34,19 @@ const AppRouter = () => (
           </PublicRoute>
         }
       />
-      <Route
-        path="/signup"
-        element={
-          <PublicRoute>
-            <SignUpPage />
-          </PublicRoute>
-        }
-      />
+      {/* Signup route removed: signup now admin-only inside dashboard */
+      }
 
       {/* Admin Routes */}
       <Route element={<PrivateRoute />}>
-        {/* <Route element={<RoleBasedRoute allowedRoles={['admin']} />}> */}
+        <Route element={<RoleBasedRoute allowedRoles={['admin']} />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
+            <Route path="/admin/register" element={<SignUpForm />} />
             {/* Thêm các route admin khác ở đây */}
           </Route>
-        {/* </Route> */}
+        </Route>
       </Route>
 
     </Routes>

@@ -153,13 +153,7 @@ const LoginForm = () => {
                 )}
               </button>
             </form>
-            {/* Sign Up Link */}
-            <p className="text-center text-sm text-gray-600 mt-6 sm:mt-8">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-teal-600 font-semibold hover:text-teal-700">
-                Sign up here
-              </Link>
-            </p>
+            {/* Sign up removed from public access */}
           </div>
         </div>
       </div>

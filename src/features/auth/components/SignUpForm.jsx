@@ -65,7 +65,7 @@ const SignUpForm = () => {
               </div>
             )}
 
-            {/* Sign Up Form */}
+            {/* Sign Up Form - admin-only */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
               {/* Full Name Field */}
               <div>
@@ -139,24 +139,6 @@ const SignUpForm = () => {
                 )}
               </div>
 
-              {/* Dealer ID Field */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Dealer ID
-                </label>
-                <input
-                  type="text"
-                  {...register("dealerId")}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
-                    errors.dealerId ? "border-red-300" : "border-gray-300"
-                  }`}
-                  placeholder="Dealer UUID (e.g., 3fa85f64-5717-4562-b3fc-2c963f66afa6)"
-                />
-                {errors.dealerId && (
-                  <p className="mt-1 text-xs text-red-600">{errors.dealerId.message}</p>
-                )}
-              </div>
-
               {/* Role Field */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -169,8 +151,9 @@ const SignUpForm = () => {
                   }`}
                 >
                   <option value="EVM_ADMIN">EVM Admin</option>
-                  <option value="DEALER">Dealer</option>
-                  <option value="USER">User</option>
+                  <option value="EVM_STAFF">EVM Staff</option>
+                  <option value="DEALER_MANAGER">Dealer Manager</option>
+                  <option value="DEALER_STAFF">Dealer Staff</option>
                 </select>
                 {errors.role && (
                   <p className="mt-1 text-xs text-red-600">{errors.role.message}</p>
@@ -192,24 +175,6 @@ const SignUpForm = () => {
                 />
                 {errors.password && (
                   <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
-                )}
-              </div>
-
-              {/* Confirm Password Field */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  {...register("confirmPassword")}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
-                    errors.confirmPassword ? "border-red-300" : "border-gray-300"
-                  }`}
-                  placeholder="Confirm your password"
-                />
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>
                 )}
               </div>
 

@@ -22,7 +22,7 @@ const AdminSidebar = () => {
     {
       path: '/admin/register',
       icon: UserPlus,
-      label: 'Register'
+      label: 'Sign up'
     },
     {
       path: '/admin/profile',

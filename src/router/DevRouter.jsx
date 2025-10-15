@@ -12,18 +12,18 @@ import DashboardPage from "../features/admin/pages/DashboardPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
 
 // Auth Pages
-import SignUpPage from "../features/auth/pages/SignUpPage";
+import SignUpForm from "../features/auth/components/SignUpForm";
 
 const DevRouter = () => (
   <Router>
     <Routes>
-      {/* Public Routes */}
-      <Route path="/signup" element={<SignUpPage />} />
+      {/* Signup removed from public routes in dev router */}
 
       {/* Admin Routes - KHÔNG CÓ PHÂN QUYỀN */}
       <Route element={<AdminLayout />}>
         <Route path="/admin/dashboard" element={<DashboardPage />} />
         <Route path="/admin/profile" element={<ProfilePage />} />
+        <Route path="/admin/register" element={<SignUpForm />} />
       </Route>
 
       {/* Redirects & Fallbacks */}

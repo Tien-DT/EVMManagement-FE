@@ -18,7 +18,7 @@ const RoleBasedRoute = ({ allowedRoles }) => {
   }
 
   if (!user) {
-    return <Navigate to="/signup" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   const hasRequiredRole = allowedRoles.includes(user.role);
