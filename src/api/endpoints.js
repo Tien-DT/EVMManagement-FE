@@ -5,7 +5,7 @@ const endpoints = {
     login: "/v1/Auth/login",
     me: "/auth/me",
     refresh: "/auth/refresh",
-    forgotPassword: "/auth/forgot-password",
+    forgotPassword: "/v1/Auth/forgot-password",
   },
   // thêm các nhóm endpoint khác ở đây
 };
