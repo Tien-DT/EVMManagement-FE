@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { authService } from "../../auth/services/authService";
 import { useAuth } from "../../../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const ProfilePage = () => {
   const { user, setUser, loading } = useAuth();
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -12,31 +12,15 @@ const ProfilePage = () => {
     const maybeFetch = async () => {
       if (!loading && !user) {
         try {
-          setIsRefreshing(true);
           const me = await authService.getMe();
           setUser(me);
         } catch (err) {
           setError(typeof err === "string" ? err : err?.message || "Failed to load profile");
-        } finally {
-          setIsRefreshing(false);
         }
       }
     };
     maybeFetch();
   }, [loading, user, setUser]);
-
-  const handleRefresh = async () => {
-    try {
-      setError(null);
-      setIsRefreshing(true);
-      const me = await authService.getMe();
-      setUser(me);
-    } catch (err) {
-      setError(typeof err === "string" ? err : err?.message || "Failed to refresh profile");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -50,13 +34,12 @@ const ProfilePage = () => {
     <div className="max-w-3xl mx-auto">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-800">My Profile</h1>
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="px-4 py-2 rounded-md bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50"
+        <Link
+          to="/admin/change-password"
+          className="px-4 py-2 rounded-md bg-teal-600 text-white hover:bg-teal-700"
         >
-          {isRefreshing ? "Refreshing..." : "Refresh"}
-        </button>
+          Change Password
+        </Link>
       </div>
 
       {error && (
