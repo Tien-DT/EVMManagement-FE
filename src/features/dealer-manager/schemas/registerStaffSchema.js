@@ -1,3 +1,4 @@
+import { z } from "zod";
 export const registerStaffSchema = z.object({
   email: z.string().email("Email không hợp lệ").min(1, "Email là bắt buộc"),
   fullName: z
