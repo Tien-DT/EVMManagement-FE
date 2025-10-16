@@ -18,9 +18,18 @@ import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
 
+// Dealer Pages
+import DealerListPage from "../features/dealer/pages/DealerListPage";
+import DealerFormPage from "../features/dealer/pages/DealerFormPage";
+
+// Vehicle Pages
+import VehicleListPage from "../features/vehicle/pages/VehicleListPage";
+import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
+
 // Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
+import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
 
 // Dealer Manager Pages
 import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerManagerDashboardPage";
@@ -40,6 +49,14 @@ const AppRouter = () => (
           </PublicRoute>
         }
       />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPasswordPage />
+          </PublicRoute>
+        }
+      />
 
       {/* Admin Routes - ✅ Support EVM_ADMIN role */}
       <Route element={<PrivateRoute />}>
@@ -48,6 +65,12 @@ const AppRouter = () => (
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
+            <Route path="/admin/dealers" element={<DealerListPage />} />
+            <Route path="/admin/dealers/new" element={<DealerFormPage />} />
+            <Route path="/admin/dealers/:id/edit" element={<DealerFormPage />} />
+            <Route path="/admin/vehicles" element={<VehicleListPage />} />
+            <Route path="/admin/vehicles/new" element={<VehicleFormPage />} />
+            <Route path="/admin/vehicles/:id/edit" element={<VehicleFormPage />} />
           </Route>
         </Route>
       </Route>

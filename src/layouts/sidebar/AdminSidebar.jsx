@@ -6,7 +6,9 @@ import {
   ChevronRight,
   Menu,
   X,
-  User
+  User,
+  Building2,
+  Car
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -18,6 +20,16 @@ const AdminSidebar = () => {
       path: '/admin/dashboard',
       icon: LayoutDashboard,
       label: 'Dashboard'
+    },
+    {
+      path: '/admin/dealers',
+      icon: Building2,
+      label: 'Dealers'
+    },
+    {
+      path: '/admin/vehicles',
+      icon: Car,
+      label: 'Vehicles'
     },
     {
       path: '/admin/register',

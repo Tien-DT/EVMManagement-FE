@@ -8,7 +8,9 @@ const endpoints = {
   },
   admin: {
     dashboard: "/v1/Admin/dashboard",
-    users: "/v1/Admin/users",
+    users: "/v1/UserProfile",
+    dealers: "/v1/Dealers",
+    vehicles: "/v1/VehicleModels",
   },
   dealer: {
     vehicles: "/v1/Dealer/vehicles",
