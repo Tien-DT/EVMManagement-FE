@@ -29,9 +29,10 @@ export const authService = {
     }
   },
 
-  refreshToken: async () => {
+  changePassword: async (payload) => {
     try {
-      const response = await axiosInstance.post(endpoints.auth.refresh);
+      // payload: { oldPassword, newPassword }
+      const response = await axiosInstance.post(endpoints.auth.changePassword, payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
