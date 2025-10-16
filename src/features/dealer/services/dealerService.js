@@ -1,27 +1,48 @@
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 
-// Dealer CRUD for admin scope
 const basePath = endpoints.admin.dealers;
 
 export const dealerService = {
   list: async (params = {}) => {
-    return axiosInstance.get(basePath, { params });
+    try {
+      return await axiosInstance.get(basePath, { params });
+    } catch (error) {
+      throw error;
+    }
   },
+
   getById: async (id) => {
-    return axiosInstance.get(`${basePath}/${id}`);
+    try {
+      return await axiosInstance.get(`${basePath}/${id}`);
+    } catch (error) {
+      throw error;
+    }
   },
+
   create: async (payload) => {
-    return axiosInstance.post(basePath, payload);
+    try {
+      return await axiosInstance.post(basePath, payload);
+    } catch (error) {
+      throw error;
+    }
   },
+
   update: async (id, payload) => {
-    return axiosInstance.put(`${basePath}/${id}`, payload);
+    try {
+      return await axiosInstance.put(`${basePath}/${id}`, payload);
+    } catch (error) {
+      throw error;
+    }
   },
+
   remove: async (id) => {
-    return axiosInstance.delete(`${basePath}/${id}`);
+    try {
+      return await axiosInstance.delete(`${basePath}/${id}`);
+    } catch (error) {
+      throw error;
+    }
   },
 };
 
 export default dealerService;
-
-
