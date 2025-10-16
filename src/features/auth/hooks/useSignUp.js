@@ -8,9 +8,9 @@ import { authService } from "../services/authService";
 export const useSignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const navigate = useNavigate();
 
-  // setup react-hook-form + zod validation
   const form = useForm({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -20,18 +20,18 @@ export const useSignUp = () => {
       cardId: "",
       role: "EVM_ADMIN",
       password: "",
-      // confirmPassword: "",
     },
   });
 
-  // API submit handler
   const onSubmit = async (data) => {
     setIsLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       console.log("📝 Signup data:", data);
-      // Call API with the exact structure you provided
+
+      // ✅ Call API với đúng structure
       const response = await authService.signup({
         email: data.email,
         password: data.password,
@@ -41,13 +41,25 @@ export const useSignUp = () => {
         cardId: data.cardId,
       });
 
-      console.log("Signup successful:", response);
+      console.log("✅ Signup successful:", response);
 
-      // Navigate to login page after successful signup
-      navigate("/admin/dashboard");
+      // ✅ Kiểm tra response
+      if (response.success) {
+        setSuccessMessage(response.message || "Tạo tài khoản thành công!");
+
+        // Reset form
+        form.reset();
+
+        // ✅ Hiện thông báo rồi quay về dashboard sau 2s
+        setTimeout(() => {
+          navigate("/admin/dashboard");
+        }, 2000);
+      } else {
+        throw new Error(response.message || "Đăng ký thất bại");
+      }
     } catch (err) {
-      console.error(" Signup error:", err);
-      setError(err.message || "Signup failed. Please try again.");
+      console.error("❌ Signup error:", err);
+      setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
     }
@@ -59,5 +71,6 @@ export const useSignUp = () => {
     isLoading,
     error,
     setError,
+    successMessage,
   };
 };

@@ -51,9 +51,9 @@ export const useLogin = () => {
         password: data.password,
       });
 
-      console.log("✅ Login response received");
+      console.log("✅ Login response received:", response);
 
-      // Lấy token từ response
+      // ✅ authService đã unwrap response.data rồi
       const accessToken = response.accessToken;
 
       if (!accessToken) {
