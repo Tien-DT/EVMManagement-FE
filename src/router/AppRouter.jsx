@@ -13,7 +13,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
 import DealerLayout from "../layouts/DealerLayout";
-
+import DealerManagerLayout from "../layouts/DealerManagerLayout";
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
@@ -21,6 +21,12 @@ import SignUpForm from "../features/auth/components/SignUpForm";
 // Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
+
+// Dealer Manager Pages
+import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerManagerDashboardPage";
+import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
+import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
+import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
 
 const AppRouter = () => (
   <Router>
@@ -46,14 +52,22 @@ const AppRouter = () => (
         </Route>
       </Route>
 
-      {/* Dealer Routes - nếu cần */}
+      {/* Dealer Manager Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["dealer"]} />}>
-          <Route element={<DealerLayout />}>
-            {/* Add dealer routes here */}
+          <Route element={<DealerManagerLayout />}>
             <Route
               path="/dealer/dashboard"
-              element={<div>Dealer Dashboard</div>}
+              element={<DealerManagerDashboardPage />}
+            />
+            <Route path="/dealer/warehouses" element={<WarehousesPage />} />
+            <Route
+              path="/dealer/warehouses/create"
+              element={<CreateWarehousePage />}
+            />
+            <Route
+              path="/dealer/register-staff"
+              element={<RegisterStaffPage />}
             />
           </Route>
         </Route>
