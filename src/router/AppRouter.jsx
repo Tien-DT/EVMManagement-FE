@@ -22,6 +22,7 @@ import SignUpForm from "../features/auth/components/SignUpForm";
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
 import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
+import ChangePasswordPage from "../features/auth/pages/ChangePasswordPage";
 
 const AppRouter = () => (
   <Router>
@@ -50,6 +51,7 @@ const AppRouter = () => (
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
+            <Route path="/admin/change-password" element={<ChangePasswordPage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
           </Route>
         </Route>
