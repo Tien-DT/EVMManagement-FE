@@ -13,6 +13,7 @@ export function useVehicles(initialQuery = {}) {
     setError(null);
     try {
       const res = await vehicleService.list({ ...query, ...params });
+      // Support both array or paginated { items, total }
       if (Array.isArray(res)) {
         setVehicles(res);
         setTotal(res.length);
@@ -36,7 +37,15 @@ export function useVehicles(initialQuery = {}) {
 
   const reload = useCallback(() => fetchVehicles(), [fetchVehicles]);
 
-  return useMemo(() => ({ vehicles, total, loading, error, setQuery, fetchVehicles, reload }), [vehicles, total, loading, error, setQuery, fetchVehicles, reload]);
+  return useMemo(() => ({ 
+    vehicles, 
+    total, 
+    loading, 
+    error, 
+    setQuery, 
+    fetchVehicles, 
+    reload 
+  }), [vehicles, total, loading, error, setQuery, fetchVehicles, reload]);
 }
 
 export function useVehicleMutations() {
@@ -82,7 +91,11 @@ export function useVehicleMutations() {
     }
   }, []);
 
-  return { createVehicle, updateVehicle, deleteVehicle, loading, error };
+  return { 
+    createVehicle, 
+    updateVehicle, 
+    deleteVehicle, 
+    loading, 
+    error 
+  };
 }
-
-
