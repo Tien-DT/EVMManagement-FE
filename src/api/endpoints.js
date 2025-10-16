@@ -3,8 +3,9 @@ const endpoints = {
   auth: {
     signup: "/v1/Auth/accounts",
     login: "/v1/Auth/login",
-    refresh: "/v1/Auth/refresh",
+    changePassword: "/v1/Auth/change-password",
     forgotPassword: "/v1/Auth/forgot-password",
+    me: "/v1/Auth/me",
   },
   // thêm các nhóm endpoint khác ở đây
   admin: {
