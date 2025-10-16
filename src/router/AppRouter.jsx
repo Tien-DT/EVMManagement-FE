@@ -12,13 +12,12 @@ import RoleBasedRoute from "./RoleBasedRoute";
 
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
-import DealerLayout from "../layouts/DealerLayout";
+// DealerLayout removed
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
-import DealerListPage from "../features/dealer/pages/DealerListPage";
-import DealerFormPage from "../features/dealer/pages/DealerFormPage";
+// Dealer pages removed
 
 // Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
@@ -53,25 +52,12 @@ const AppRouter = () => (
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
-            <Route path="/admin/dealers" element={<DealerListPage />} />
-            <Route path="/admin/dealers/new" element={<DealerFormPage />} />
-            <Route path="/admin/dealers/:id/edit" element={<DealerFormPage />} />
+            {/* Dealer & Vehicle routes removed */}
           </Route>
         </Route>
       </Route>
 
-      {/* Dealer Routes - nếu cần */}
-      <Route element={<PrivateRoute />}>
-        <Route element={<RoleBasedRoute allowedRoles={["dealer"]} />}>
-          <Route element={<DealerLayout />}>
-            {/* Add dealer routes here */}
-            <Route
-              path="/dealer/dashboard"
-              element={<div>Dealer Dashboard</div>}
-            />
-          </Route>
-        </Route>
-      </Route>
+      {/* Dealer section removed */}
 
       {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
       <Route path="/" element={<Navigate to="/login" replace />} />
