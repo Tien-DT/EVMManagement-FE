@@ -37,7 +37,15 @@ export function useDealers(initialQuery = {}) {
 
   const reload = useCallback(() => fetchDealers(), [fetchDealers]);
 
-  return useMemo(() => ({ dealers, total, loading, error, setQuery, fetchDealers, reload }), [dealers, total, loading, error, setQuery, fetchDealers, reload]);
+  return useMemo(() => ({ 
+    dealers, 
+    total, 
+    loading, 
+    error, 
+    setQuery, 
+    fetchDealers, 
+    reload 
+  }), [dealers, total, loading, error, setQuery, fetchDealers, reload]);
 }
 
 export function useDealerMutations() {
@@ -83,7 +91,11 @@ export function useDealerMutations() {
     }
   }, []);
 
-  return { createDealer, updateDealer, deleteDealer, loading, error };
+  return { 
+    createDealer, 
+    updateDealer, 
+    deleteDealer, 
+    loading, 
+    error 
+  };
 }
-
-
