@@ -9,7 +9,7 @@ const endpoints = {
   // thêm các nhóm endpoint khác ở đây
   admin: {
     dashboard: "/v1/Admin/dashboard",
-    users: "/v1/Admin/users",
+    users: "/v1/UserProfile",
     dealers: "/v1/dealers",
   },
   dealer: {
