@@ -4,10 +4,11 @@ import { Modal, Form, Input, DatePicker, Switch, Select, Button, message } from 
 import dayjs from "dayjs";
 import { vehicleModelService } from "../services/vehicleModelService";
 
+// Map UI values to backend enum (nullable int): 0=Standard,1=Premium,2=Luxury
 const rankingOptions = [
-  { label: "Standard", value: "Standard" },
-  { label: "Premium", value: "Premium" },
-  { label: "Luxury", value: "Luxury" },
+  { label: "Standard", value: 0 },
+  { label: "Premium", value: 1 },
+  { label: "Luxury", value: 2 },
 ];
 
 const emptyModel = {
@@ -16,7 +17,7 @@ const emptyModel = {
   launchDate: undefined,
   description: "",
   status: true,
-  ranking: "Standard",
+  ranking: 0,
 };
 
 const VehicleModelsPage = () => {
