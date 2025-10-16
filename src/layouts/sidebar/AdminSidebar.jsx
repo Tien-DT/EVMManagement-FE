@@ -7,7 +7,8 @@ import {
   Menu,
   X,
   User,
-  Building2
+  Building2,
+  Car
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -24,6 +25,11 @@ const AdminSidebar = () => {
       path: '/admin/dealers',
       icon: Building2,
       label: 'Dealers'
+    },
+    {
+      path: '/admin/vehicles',
+      icon: Car,
+      label: 'Vehicles'
     },
     {
       path: '/admin/register',
