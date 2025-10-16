@@ -3,7 +3,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-export default function PublicRoute({ children }) {
+const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   // Show loading spinner while checking auth
@@ -39,4 +39,7 @@ export default function PublicRoute({ children }) {
 
   // If not authenticated, show the login page
   return children;
-}
+};
+
+// ✅ FIX: Export default đúng cách
+export default PublicRoute;

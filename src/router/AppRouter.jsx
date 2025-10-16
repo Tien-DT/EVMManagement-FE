@@ -12,8 +12,8 @@ import RoleBasedRoute from "./RoleBasedRoute";
 
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
-// DealerLayout removed
-
+import DealerLayout from "../layouts/DealerLayout";
+import DealerManagerLayout from "../layouts/DealerManagerLayout";
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
@@ -30,6 +30,12 @@ import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
 import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
+
+// Dealer Manager Pages
+import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerManagerDashboardPage";
+import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
+import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
+import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
 
 const AppRouter = () => (
   <Router>
@@ -69,7 +75,26 @@ const AppRouter = () => (
         </Route>
       </Route>
 
-      {/* Dealer section removed */}
+      {/* Dealer Manager Routes */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<RoleBasedRoute allowedRoles={["dealer"]} />}>
+          <Route element={<DealerManagerLayout />}>
+            <Route
+              path="/dealer/dashboard"
+              element={<DealerManagerDashboardPage />}
+            />
+            <Route path="/dealer/warehouses" element={<WarehousesPage />} />
+            <Route
+              path="/dealer/warehouses/create"
+              element={<CreateWarehousePage />}
+            />
+            <Route
+              path="/dealer/register-staff"
+              element={<RegisterStaffPage />}
+            />
+          </Route>
+        </Route>
+      </Route>
 
       {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
       <Route path="/" element={<Navigate to="/login" replace />} />

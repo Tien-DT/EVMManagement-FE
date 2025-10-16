@@ -51,19 +51,24 @@ export const useLogin = () => {
         password: data.password,
       });
 
-      console.log("✅ Login response received");
+      console.log("✅ Login response received:", response);
 
-      // Lấy token từ response
-      const accessToken = response.accessToken;
+      // ✅ FIX: Access token từ response.data.accessToken
+      const accessToken = response.data?.accessToken;
 
       if (!accessToken) {
-        console.error("❌ No access token in response");
+        console.error("❌ No access token in response.data");
         throw new Error("No access token received");
       }
 
+      console.log(
+        "🔑 Access token found:",
+        accessToken.substring(0, 20) + "..."
+      );
+
       // Decode token để lấy user info
       const decodedToken = decodeToken(accessToken);
-      console.log("🔓 Token decoded successfully");
+      console.log("🔓 Token decoded successfully:", decodedToken);
 
       if (!decodedToken) {
         throw new Error("Invalid token format");
@@ -97,17 +102,17 @@ export const useLogin = () => {
 
       console.log("💾 Login data saved to context");
 
-      // ✅ FIX: Navigate với role normalization
+      // ✅ Navigate với role normalization
       const role = userInfo.role?.toLowerCase() || "";
 
       if (role.includes("admin")) {
-        console.log("🔄 Navigating to admin dashboard");
+        console.log("📄 Navigating to admin dashboard");
         navigate("/admin/dashboard", { replace: true });
       } else if (role.includes("dealer")) {
-        console.log("🔄 Navigating to dealer dashboard");
+        console.log("📄 Navigating to dealer dashboard");
         navigate("/dealer/dashboard", { replace: true });
       } else {
-        console.log("🔄 Navigating to admin dashboard (default)");
+        console.log("📄 Navigating to admin dashboard (default)");
         navigate("/admin/dashboard", { replace: true });
       }
     } catch (err) {
