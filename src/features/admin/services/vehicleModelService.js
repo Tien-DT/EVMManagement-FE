@@ -19,11 +19,13 @@ export const vehicleModelService = {
   },
 
   create: async (payload) => {
-    return await axiosInstance.post(endpoints.admin.vehicleModels, payload);
+    // Backend expects { dto: { ... } }
+    return await axiosInstance.post(endpoints.admin.vehicleModels, { dto: payload });
   },
 
   update: async (id, payload) => {
-    return await axiosInstance.put(`${endpoints.admin.vehicleModels}/${id}`, payload);
+    // Backend expects { dto: { ... } }
+    return await axiosInstance.put(`${endpoints.admin.vehicleModels}/${id}`, { dto: payload });
   },
 
   remove: async (id) => {
