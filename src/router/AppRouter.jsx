@@ -17,7 +17,14 @@ import AdminLayout from "../layouts/AdminLayout";
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
+<<<<<<< Updated upstream
 // Dealer pages removed
+=======
+import DealerListPage from "../features/dealer/pages/DealerListPage";
+import DealerFormPage from "../features/dealer/pages/DealerFormPage";
+import VehicleListPage from "../features/vehicle/pages/VehicleListPage";
+import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
+>>>>>>> Stashed changes
 
 // Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
@@ -52,7 +59,16 @@ const AppRouter = () => (
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
+<<<<<<< Updated upstream
             {/* Dealer & Vehicle routes removed */}
+=======
+            <Route path="/admin/dealers" element={<DealerListPage />} />
+            <Route path="/admin/dealers/new" element={<DealerFormPage />} />
+            <Route path="/admin/dealers/:id/edit" element={<DealerFormPage />} />
+            <Route path="/admin/vehicles" element={<VehicleListPage />} />
+            <Route path="/admin/vehicles/new" element={<VehicleFormPage />} />
+            <Route path="/admin/vehicles/:id/edit" element={<VehicleFormPage />} />
+>>>>>>> Stashed changes
           </Route>
         </Route>
       </Route>
