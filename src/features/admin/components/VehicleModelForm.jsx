@@ -3,9 +3,9 @@ import { Form, Input, DatePicker, Switch, Select } from "antd";
 import dayjs from "dayjs";
 
 const rankingOptions = [
-  { label: "Standard", value: "Standard" },
-  { label: "Premium", value: "Premium" },
-  { label: "Luxury", value: "Luxury" },
+  { label: "Standard", value: 0 },
+  { label: "Premium", value: 1 },
+  { label: "Luxury", value: 2 },
 ];
 
 const VehicleModelForm = ({ form, initialValues }) => {
@@ -19,7 +19,7 @@ const VehicleModelForm = ({ form, initialValues }) => {
         launchDate: initialValues?.launchDate ? dayjs(initialValues.launchDate) : undefined,
         description: "",
         status: true,
-        ranking: "Standard",
+        ranking: 0,
         ...initialValues,
       }}
     >
