@@ -1,56 +1,48 @@
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 
-const dealerPath = endpoints.dealer.vehicles; // e.g. /v1/Dealer/vehicles
-const adminPath = endpoints.admin.vehicles;   // e.g. /v1/vehicles
-
-async function tryBoth(makeCallDealer, makeCallAdmin) {
-  try {
-    return await makeCallDealer();
-  } catch (e1) {
-    if (adminPath) {
-      try {
-        return await makeCallAdmin();
-      } catch (e2) {
-        throw e2 || e1;
-      }
-    }
-    throw e1;
-  }
-}
+const basePath = endpoints.admin.vehicles;
 
 export const vehicleService = {
-  list: async (params = {}) =>
-    tryBoth(
-      () => axiosInstance.get(dealerPath, { params }),
-      () => axiosInstance.get(adminPath, { params })
-    ),
+  list: async (params = {}) => {
+    try {
+      return await axiosInstance.get(basePath, { params });
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  getById: async (id) =>
-    tryBoth(
-      () => axiosInstance.get(`${dealerPath}/${id}`),
-      () => axiosInstance.get(`${adminPath}/${id}`)
-    ),
+  getById: async (id) => {
+    try {
+      return await axiosInstance.get(`${basePath}/${id}`);
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  create: async (payload) =>
-    tryBoth(
-      () => axiosInstance.post(dealerPath, payload),
-      () => axiosInstance.post(adminPath, payload)
-    ),
+  create: async (payload) => {
+    try {
+      return await axiosInstance.post(basePath, payload);
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  update: async (id, payload) =>
-    tryBoth(
-      () => axiosInstance.put(`${dealerPath}/${id}`, payload),
-      () => axiosInstance.put(`${adminPath}/${id}`, payload)
-    ),
+  update: async (id, payload) => {
+    try {
+      return await axiosInstance.put(`${basePath}/${id}`, payload);
+    } catch (error) {
+      throw error;
+    }
+  },
 
-  remove: async (id) =>
-    tryBoth(
-      () => axiosInstance.delete(`${dealerPath}/${id}`),
-      () => axiosInstance.delete(`${adminPath}/${id}`)
-    ),
+  remove: async (id) => {
+    try {
+      return await axiosInstance.delete(`${basePath}/${id}`);
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default vehicleService;
-
-
