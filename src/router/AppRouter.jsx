@@ -22,6 +22,10 @@ import SignUpForm from "../features/auth/components/SignUpForm";
 import DealerListPage from "../features/dealer/pages/DealerListPage";
 import DealerFormPage from "../features/dealer/pages/DealerFormPage";
 
+// Vehicle Pages
+import VehicleListPage from "../features/vehicle/pages/VehicleListPage";
+import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
+
 // Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
@@ -58,6 +62,9 @@ const AppRouter = () => (
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
             <Route path="/admin/dealers/:id/edit" element={<DealerFormPage />} />
+            <Route path="/admin/vehicles" element={<VehicleListPage />} />
+            <Route path="/admin/vehicles/new" element={<VehicleFormPage />} />
+            <Route path="/admin/vehicles/:id/edit" element={<VehicleFormPage />} />
           </Route>
         </Route>
       </Route>
