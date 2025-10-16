@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useDealers, useDealerMutations } from "../hooks/useDealers";
 
 const columns = [
@@ -16,20 +17,24 @@ export default function DealerListPage() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this dealer?")) return;
-    await deleteDealer(id);
-    reload();
+    try {
+      await deleteDealer(id);
+      reload();
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
   };
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Dealers</h1>
-        <a
-          href="/admin/dealers/new"
+        <Link
+          to="/admin/dealers/new"
           className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
         >
           New Dealer
-        </a>
+        </Link>
       </div>
 
       {error && (
@@ -68,12 +73,12 @@ export default function DealerListPage() {
                   </span>
                 </td>
                 <td className="px-4 py-2 text-right space-x-2 whitespace-nowrap">
-                  <a
-                    href={`/admin/dealers/${d.id}/edit`}
+                  <Link
+                    to={`/admin/dealers/${d.id}/edit`}
                     className="px-3 py-1 bg-slate-700 text-white rounded hover:bg-slate-800"
                   >
                     Edit
-                  </a>
+                  </Link>
                   <button
                     onClick={() => handleDelete(d.id)}
                     className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
@@ -96,5 +101,3 @@ export default function DealerListPage() {
     </div>
   );
 }
-
-
