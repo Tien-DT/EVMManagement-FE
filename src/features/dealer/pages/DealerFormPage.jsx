@@ -77,37 +77,80 @@ export default function DealerFormPage() {
       <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow">
         <div>
           <label className="block text-sm mb-1">Name</label>
-          <input name="name" value={form.name} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+          <input 
+            name="name" 
+            value={form.name} 
+            onChange={handleChange} 
+            className="w-full border rounded px-3 py-2" 
+            required 
+          />
         </div>
         <div>
           <label className="block text-sm mb-1">Address</label>
-          <input name="address" value={form.address} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+          <input 
+            name="address" 
+            value={form.address} 
+            onChange={handleChange} 
+            className="w-full border rounded px-3 py-2" 
+          />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-1">Phone</label>
-            <input name="phone" value={form.phone} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+            <input 
+              name="phone" 
+              value={form.phone} 
+              onChange={handleChange} 
+              className="w-full border rounded px-3 py-2" 
+            />
           </div>
           <div>
             <label className="block text-sm mb-1">Email</label>
-            <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+            <input 
+              type="email" 
+              name="email" 
+              value={form.email} 
+              onChange={handleChange} 
+              className="w-full border rounded px-3 py-2" 
+            />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-1">Established Date</label>
-            <input type="date" name="establishedAt" value={form.establishedAt} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+            <input 
+              type="date" 
+              name="establishedAt" 
+              value={form.establishedAt} 
+              onChange={handleChange} 
+              className="w-full border rounded px-3 py-2" 
+            />
           </div>
           <div className="flex items-center mt-6">
-            <input id="isActive" type="checkbox" name="isActive" checked={form.isActive} onChange={handleChange} className="mr-2" />
+            <input 
+              id="isActive" 
+              type="checkbox" 
+              name="isActive" 
+              checked={form.isActive} 
+              onChange={handleChange} 
+              className="mr-2" 
+            />
             <label htmlFor="isActive">Active</label>
           </div>
         </div>
         <div className="flex gap-2">
-          <button type="submit" disabled={loading} className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50">
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50"
+          >
             {loading ? "Saving..." : "Save"}
           </button>
-          <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300">
+          <button 
+            type="button" 
+            onClick={() => navigate(-1)} 
+            className="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300"
+          >
             Cancel
           </button>
         </div>
@@ -115,5 +158,3 @@ export default function DealerFormPage() {
     </div>
   );
 }
-
-
