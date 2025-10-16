@@ -6,7 +6,13 @@ import {
   ChevronRight,
   Menu,
   X,
+<<<<<<< Updated upstream
   User
+=======
+  User,
+  Building2,
+  Car
+>>>>>>> Stashed changes
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -20,6 +26,19 @@ const AdminSidebar = () => {
       label: 'Dashboard'
     },
     {
+<<<<<<< Updated upstream
+=======
+      path: '/admin/dealers',
+      icon: Building2,
+      label: 'Dealers'
+    },
+    {
+      path: '/admin/vehicles',
+      icon: Car,
+      label: 'Vehicles'
+    },
+    {
+>>>>>>> Stashed changes
       path: '/admin/register',
       icon: UserPlus,
       label: 'Register'
