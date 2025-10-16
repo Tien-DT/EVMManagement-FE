@@ -1,8 +1,19 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
-import AdminSidebar from "./Sidebar/AdminSidebar";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import AdminSidebar from "./sidebar/AdminSidebar";
 
 const AdminLayout = () => {
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
@@ -24,11 +35,11 @@ const AdminLayout = () => {
               <button className="text-gray-600 hover:text-gray-900">
                 <span className="text-sm">🔔</span>
               </button>
-              <button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
-                <span className="text-sm font-medium">Sign In</span>
-                <span className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                  👤
-                </span>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 text-white bg-teal-600 hover:bg-teal-700 px-3 py-2 rounded-md"
+              >
+                <span className="text-sm font-medium">Logout</span>
               </button>
             </div>
           </div>
