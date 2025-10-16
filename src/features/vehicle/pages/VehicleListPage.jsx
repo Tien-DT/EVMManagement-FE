@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useVehicles, useVehicleMutations } from "../hooks/useVehicles";
 
 const columns = [
@@ -16,20 +17,24 @@ export default function VehicleListPage() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this vehicle?")) return;
-    await deleteVehicle(id);
-    reload();
+    try {
+      await deleteVehicle(id);
+      reload();
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
   };
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Vehicles</h1>
-        <a
-          href="/admin/vehicles/new"
+        <Link
+          to="/admin/vehicles/new"
           className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
         >
           New Vehicle
-        </a>
+        </Link>
       </div>
 
       {error && (
@@ -55,8 +60,12 @@ export default function VehicleListPage() {
               <tr key={v.id} className="border-b">
                 <td className="px-4 py-2">{v.code}</td>
                 <td className="px-4 py-2">{v.name}</td>
-                <td className="px-4 py-2">{v.launchDate ? new Date(v.launchDate).toLocaleDateString() : "-"}</td>
-                <td className="px-4 py-2 max-w-[320px] truncate" title={v.description}>{v.description}</td>
+                <td className="px-4 py-2">
+                  {v.launchDate ? new Date(v.launchDate).toLocaleDateString() : "-"}
+                </td>
+                <td className="px-4 py-2 max-w-[320px] truncate" title={v.description}>
+                  {v.description}
+                </td>
                 <td className="px-4 py-2">
                   <span className={`px-2 py-1 rounded text-xs ${v.status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                     {v.status ? "Active" : "Inactive"}
@@ -64,12 +73,12 @@ export default function VehicleListPage() {
                 </td>
                 <td className="px-4 py-2">{v.ranking}</td>
                 <td className="px-4 py-2 text-right space-x-2 whitespace-nowrap">
-                  <a
-                    href={`/admin/vehicles/${v.id}/edit`}
+                  <Link
+                    to={`/admin/vehicles/${v.id}/edit`}
                     className="px-3 py-1 bg-slate-700 text-white rounded hover:bg-slate-800"
                   >
                     Edit
-                  </a>
+                  </Link>
                   <button
                     onClick={() => handleDelete(v.id)}
                     className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
@@ -92,5 +101,3 @@ export default function VehicleListPage() {
     </div>
   );
 }
-
-
