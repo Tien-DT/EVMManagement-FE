@@ -17,6 +17,8 @@ import DealerLayout from "../layouts/DealerLayout";
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
+import DealerListPage from "../features/dealer/pages/DealerListPage";
+import DealerFormPage from "../features/dealer/pages/DealerFormPage";
 
 // Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
@@ -51,6 +53,9 @@ const AppRouter = () => (
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
+            <Route path="/admin/dealers" element={<DealerListPage />} />
+            <Route path="/admin/dealers/new" element={<DealerFormPage />} />
+            <Route path="/admin/dealers/:id/edit" element={<DealerFormPage />} />
           </Route>
         </Route>
       </Route>
