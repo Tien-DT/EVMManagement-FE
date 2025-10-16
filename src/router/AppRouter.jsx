@@ -16,6 +16,7 @@ import DealerLayout from "../layouts/DealerLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
+import VehicleModelsPage from "../features/admin/pages/VehicleModelsPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
 
 // Auth Pages
@@ -50,6 +51,7 @@ const AppRouter = () => (
         <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<DashboardPage />} />
+            <Route path="/admin/vehicle-models" element={<VehicleModelsPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/change-password" element={<ChangePasswordPage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
