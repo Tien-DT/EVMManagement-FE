@@ -11,6 +11,8 @@ const emptyForm = {
   ranking: "Premium",
 };
 
+const rankingOptions = ["Premium", "Standard", "Economy"];
+
 export default function VehicleFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -75,41 +77,91 @@ export default function VehicleFormPage() {
       <h1 className="text-xl font-semibold mb-4">{isEdit ? "Edit Vehicle" : "New Vehicle"}</h1>
       {error && <div className="mb-4 text-red-600">{String(error.message || error)}</div>}
       <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow">
-        <div>
-          <label className="block text-sm mb-1">Code</label>
-          <input name="code" value={form.code} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Name</label>
-          <input name="name" value={form.name} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
-        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm mb-1">Launch Date</label>
-            <input type="date" name="launchDate" value={form.launchDate} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+            <label className="block text-sm mb-1">Code</label>
+            <input 
+              name="code" 
+              value={form.code} 
+              onChange={handleChange} 
+              className="w-full border rounded px-3 py-2" 
+              required 
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Name</label>
+            <input 
+              name="name" 
+              value={form.name} 
+              onChange={handleChange} 
+              className="w-full border rounded px-3 py-2" 
+              required 
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm mb-1">Launch Date</label>
+          <input 
+            type="date" 
+            name="launchDate" 
+            value={form.launchDate} 
+            onChange={handleChange} 
+            className="w-full border rounded px-3 py-2" 
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-1">Description</label>
+          <textarea 
+            name="description" 
+            value={form.description} 
+            onChange={handleChange} 
+            className="w-full border rounded px-3 py-2" 
+            rows={4} 
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm mb-1">Ranking</label>
+            <select 
+              name="ranking" 
+              value={form.ranking} 
+              onChange={handleChange} 
+              className="w-full border rounded px-3 py-2"
+            >
+              {rankingOptions.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
           </div>
           <div className="flex items-center mt-6">
-            <input id="status" type="checkbox" name="status" checked={form.status} onChange={handleChange} className="mr-2" />
+            <input 
+              id="status" 
+              type="checkbox" 
+              name="status" 
+              checked={form.status} 
+              onChange={handleChange} 
+              className="mr-2" 
+            />
             <label htmlFor="status">Active</label>
           </div>
         </div>
-        <div>
-          <label className="block text-sm mb-1">Description</label>
-          <textarea name="description" value={form.description} onChange={handleChange} className="w-full border rounded px-3 py-2" rows={4} />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Ranking</label>
-          <select name="ranking" value={form.ranking} onChange={handleChange} className="w-full border rounded px-3 py-2">
-            <option value="Premium">Premium</option>
-            <option value="Standard">Standard</option>
-            <option value="Economy">Economy</option>
-          </select>
-        </div>
+
         <div className="flex gap-2">
-          <button type="submit" disabled={loading} className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50">
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50"
+          >
             {loading ? "Saving..." : "Save"}
           </button>
-          <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300">
+          <button 
+            type="button" 
+            onClick={() => navigate(-1)} 
+            className="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300"
+          >
             Cancel
           </button>
         </div>
@@ -117,5 +169,3 @@ export default function VehicleFormPage() {
     </div>
   );
 }
-
-
