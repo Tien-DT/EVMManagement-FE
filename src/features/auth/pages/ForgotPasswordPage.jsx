@@ -146,11 +146,11 @@ const ForgotPasswordPage = () => {
               <input
                 type="text"
                 {...otpForm.register("otp")}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-center text-lg tracking-widest ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-center text-lg tracking-widest uppercase ${
                   otpForm.formState.errors.otp ? "border-red-300" : "border-gray-300"
                 }`}
-                placeholder="000000"
-                maxLength="10"
+                placeholder=""
+                maxLength="6"
                 disabled={isLoading}
               />
               {otpForm.formState.errors.otp && (
