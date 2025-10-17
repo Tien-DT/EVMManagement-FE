@@ -28,7 +28,7 @@ export const useResetPassword = () => {
     try {
       const response = await authService.resetPassword({
         email: data.email,
-        resetToken: data.resetToken,
+        resetToken: data.resetToken.toUpperCase(), // Convert to uppercase for consistency
         newPassword: data.newPassword,
       });
       setSuccessMessage(response?.message || "Password reset successfully!");
