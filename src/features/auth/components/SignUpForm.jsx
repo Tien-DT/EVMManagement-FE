@@ -184,7 +184,6 @@ const SignUpForm = () => {
                   <option value="EVM_ADMIN">EVM Admin</option>
                   <option value="EVM_STAFF">EVM Staff</option>
                   <option value="DEALER_MANAGER">Dealer Manager</option>
-                  <option value="DEALER_STAFF">Dealer Staff</option>
                 </select>
                 {errors.role && (
                   <p className="mt-1 text-xs text-red-600">
