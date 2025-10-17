@@ -8,7 +8,11 @@ import { z } from "zod";
 
 // Schema for OTP verification
 const otpSchema = z.object({
-  otp: z.string().min(6, "OTP must be at least 6 characters"),
+  otp: z
+    .string()
+    .min(1, "OTP is required")
+    .length(6, "OTP must be exactly 6 characters")
+    .regex(/^[A-Za-z0-9]{6}$/, "OTP must be 6 alphanumeric characters"),
 });
 
 // Schema for password reset
@@ -76,20 +80,26 @@ export const useForgotPassword = () => {
     }
   };
 
-  // Step 2: Verify OTP (just store it and move to next step)
+  // Step 2: Store OTP and move to password reset (verification happens during reset)
   const onOtpSubmit = async (data) => {
     setIsLoading(true);
     setError(null);
+    setSuccessMessage("");
     try {
-      // Store the OTP and move to password reset
-      setVerifiedCode(data.otp);
-      setSuccessMessage("Code verified! Please set your new password.");
+      // Convert OTP to uppercase for consistency
+      const otpCode = data.otp.toUpperCase();
+      
+      // Store the OTP code (will be verified during password reset)
+      setVerifiedCode(otpCode);
+      setSuccessMessage("Code accepted! Please set your new password.");
+      
+      // Move to password reset step
       setTimeout(() => {
         setStep(3);
         setSuccessMessage("");
-      }, 1000);
+      }, 500);
     } catch (err) {
-      setError(err?.message || "Invalid code. Please try again.");
+      setError(err?.message || "Failed to proceed. Please try again.");
     } finally {
       setIsLoading(false);
     }
