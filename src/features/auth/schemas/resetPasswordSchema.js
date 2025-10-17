@@ -8,7 +8,8 @@ export const resetPasswordSchema = z.object({
   resetToken: z
     .string()
     .min(1, "Verification code is required")
-    .min(6, "Code must be at least 6 characters"),
+    .length(6, "Code must be exactly 6 characters")
+    .regex(/^[A-Za-z0-9]{6}$/, "Code must be 6 alphanumeric characters"),
   newPassword: z
     .string()
     .min(1, "Password is required")
