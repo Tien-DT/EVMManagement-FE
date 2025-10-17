@@ -63,4 +63,17 @@ export const authService = {
       throw error;
     }
   },
+
+  resetPassword: async (data) => {
+    try {
+      const response = await axiosInstance.post(endpoints.auth.resetPassword, {
+        email: data.email,
+        resetToken: data.resetToken,
+        newPassword: data.newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
