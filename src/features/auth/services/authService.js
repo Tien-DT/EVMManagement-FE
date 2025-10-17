@@ -47,6 +47,15 @@ export const authService = {
     }
   },
 
+  verifyOtp: async (email, otp) => {
+    try {
+      const response = await axiosInstance.post(endpoints.auth.verifyOtp, { email, code: otp });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   resetPassword: async (data) => {
     try {
       const response = await axiosInstance.post(endpoints.auth.resetPassword, {
@@ -54,6 +63,15 @@ export const authService = {
         resetToken: data.resetToken,
         newPassword: data.newPassword,
       });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getUserProfile: async (accountId) => {
+    try {
+      const response = await axiosInstance.get(endpoints.userProfile.byAccount(accountId));
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
