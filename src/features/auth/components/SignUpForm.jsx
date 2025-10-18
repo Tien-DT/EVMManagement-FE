@@ -4,7 +4,8 @@ import signupBg from "../../../assets/images/signupbackground.png";
 import { useSignUp } from "../hooks/useSignUp";
 
 const SignUpForm = () => {
-  const { form, onSubmit, isLoading, error, setError } = useSignUp();
+  const { form, onSubmit, isLoading, error, setError, successMessage } =
+    useSignUp();
   const {
     register,
     handleSubmit,
@@ -22,7 +23,6 @@ const SignUpForm = () => {
             minHeight: "280px",
           }}
         >
-          {/* Welcome Text */}
           <div className="relative z-10 text-center py-12 sm:py-16 px-4">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3">
               Welcome!
@@ -33,12 +33,33 @@ const SignUpForm = () => {
           </div>
         </div>
 
-        {/* Form Card - overlap với hero section */}
+        {/* Form Card */}
         <div className="relative -mt-16 sm:-mt-20 mx-2 sm:mx-4 md:mx-auto max-w-md pb-8 sm:pb-12">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-800 text-center mb-4 sm:mb-6">
               Register an Account
             </h2>
+
+            {/* Success Message */}
+            {successMessage && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg mb-4">
+                <div className="flex items-center">
+                  <svg
+                    className="h-5 w-5 text-green-400 mr-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <p className="text-sm font-medium">{successMessage}</p>
+                </div>
+              </div>
+            )}
+
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
@@ -59,28 +80,23 @@ const SignUpForm = () => {
                   <div className="ml-3">
                     <p className="text-sm">{error}</p>
                   </div>
-                  <div className="ml-auto pl-3">
-                    <div className="-mx-1.5 -my-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setError(null)}
-                        className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
-                      >
-                        <span className="sr-only">Dismiss</span>
-                        <svg
-                          className="h-3 w-3"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setError(null)}
+                    className="ml-auto inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100"
+                  >
+                    <svg
+                      className="h-3 w-3"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
             )}
@@ -90,7 +106,7 @@ const SignUpForm = () => {
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-3 sm:space-y-4"
             >
-              {/* Full Name Field */}
+              {/* Full Name */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Full Name
@@ -110,7 +126,7 @@ const SignUpForm = () => {
                 )}
               </div>
 
-              {/* Email Field */}
+              {/* Email */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Email
@@ -121,7 +137,7 @@ const SignUpForm = () => {
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
                     errors.email ? "border-red-300" : "border-gray-300"
                   }`}
-                  placeholder="Your email address"
+                  placeholder="your.email@example.com"
                 />
                 {errors.email && (
                   <p className="mt-1 text-xs text-red-600">
@@ -130,7 +146,7 @@ const SignUpForm = () => {
                 )}
               </div>
 
-              {/* Phone Field */}
+              {/* Phone */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Phone Number
@@ -141,7 +157,7 @@ const SignUpForm = () => {
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
                     errors.phone ? "border-red-300" : "border-gray-300"
                   }`}
-                  placeholder="Your phone number"
+                  placeholder="0123456789"
                 />
                 {errors.phone && (
                   <p className="mt-1 text-xs text-red-600">
@@ -150,7 +166,7 @@ const SignUpForm = () => {
                 )}
               </div>
 
-              {/* Card ID Field */}
+              {/* Card ID */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Card ID
@@ -161,7 +177,7 @@ const SignUpForm = () => {
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
                     errors.cardId ? "border-red-300" : "border-gray-300"
                   }`}
-                  placeholder="Your card ID"
+                  placeholder="Card ID number"
                 />
                 {errors.cardId && (
                   <p className="mt-1 text-xs text-red-600">
@@ -170,7 +186,7 @@ const SignUpForm = () => {
                 )}
               </div>
 
-              {/* Role Field */}
+              {/* Role */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Role
@@ -192,7 +208,7 @@ const SignUpForm = () => {
                 )}
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Password
@@ -203,7 +219,7 @@ const SignUpForm = () => {
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
                     errors.password ? "border-red-300" : "border-gray-300"
                   }`}
-                  placeholder="Your password"
+                  placeholder="Enter password"
                 />
                 {errors.password && (
                   <p className="mt-1 text-xs text-red-600">
@@ -211,28 +227,6 @@ const SignUpForm = () => {
                   </p>
                 )}
               </div>
-
-              {/* Confirm Password Field */}
-              {/* <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  {...register("confirmPassword")}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm ${
-                    errors.confirmPassword
-                      ? "border-red-300"
-                      : "border-gray-300"
-                  }`}
-                  placeholder="Confirm your password"
-                />
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
-              </div> */}
 
               {/* Submit Button */}
               <button
@@ -259,12 +253,12 @@ const SignUpForm = () => {
                         r="10"
                         stroke="currentColor"
                         strokeWidth="4"
-                      ></circle>
+                      />
                       <path
                         className="opacity-75"
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                      />
                     </svg>
                     Creating Account...
                   </div>

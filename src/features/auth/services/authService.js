@@ -5,45 +5,62 @@ export const authService = {
   signup: async (data) => {
     try {
       const response = await axiosInstance.post(endpoints.auth.signup, data);
-      return response.data;
+      console.log("✅ Signup API response:", response);
+
+      // ✅ API trả về { success, message, data, errors, errorCode }
+      if (response.success) {
+        return response; // Trả về toàn bộ response
+      } else {
+        // Nếu success = false
+        throw new Error(response.message || "Đăng ký thất bại");
+      }
     } catch (error) {
-      throw error.response?.data || error.message;
+      console.error("❌ Signup service error:", error);
+      // Error đã được xử lý ở axios interceptor
+      throw error;
     }
   },
-  
+
   login: async (data) => {
     try {
       const response = await axiosInstance.post(endpoints.auth.login, data);
-      return response.data;
+      console.log("✅ Login API response:", response);
+      return response;
     } catch (error) {
-      throw error.response?.data || error.message;
+      console.error("❌ Login service error:", error);
+      throw error;
     }
   },
 
   getMe: async () => {
     try {
       const response = await axiosInstance.get(endpoints.auth.me);
-      return response.data;
+      return response;
     } catch (error) {
-      throw error.response?.data || error.message;
+      console.error("❌ GetMe service error:", error);
+      throw error;
     }
   },
 
   refreshToken: async () => {
     try {
       const response = await axiosInstance.post(endpoints.auth.refresh);
-      return response.data;
+      return response;
     } catch (error) {
-      throw error.response?.data || error.message;
+      console.error("❌ RefreshToken service error:", error);
+      throw error;
     }
   },
 
   forgotPassword: async (email) => {
     try {
-      const response = await axiosInstance.post(endpoints.auth.forgotPassword, { email });
-      return response.data;
+      const response = await axiosInstance.post(endpoints.auth.forgotPassword, {
+        email,
+      });
+      return response;
     } catch (error) {
-      throw error.response?.data || error.message;
+      console.error("❌ ForgotPassword service error:", error);
+      throw error;
     }
   },
 

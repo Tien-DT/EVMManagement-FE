@@ -12,7 +12,6 @@ const endpoints = {
   userProfile: {
     byAccount: (accountId) => `/v1/UserProfile/by-account/${accountId}`,
   },
-  // thêm các nhóm endpoint khác ở đây
   admin: {
     dashboard: "/v1/Admin/dashboard",
     users: "/v1/UserProfile",
@@ -22,7 +21,15 @@ const endpoints = {
   dealer: {
     vehicles: "/v1/Dealer/vehicles",
     orders: "/v1/Dealer/orders",
+    warehouses: "/v1/Warehouses",
+    registerStaff: "/v1/Auth/register-dealer",
   },
+  // User Profile endpoints
+  userProfile: {
+    getByAccount: (accId) => `/v1/UserProfile/by-account/${accId}`,
+  },
+  // Customer endpoints
+  customers: "/v1/Customers",
 };
 
 export default endpoints;
