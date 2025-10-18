@@ -77,4 +77,16 @@ export const authService = {
       throw error.response?.data || error.message;
     }
   },
+
+  changePassword: async (data) => {
+    try {
+      const response = await axiosInstance.post(endpoints.auth.changePassword, {
+        oldPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
