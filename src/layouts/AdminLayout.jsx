@@ -1,13 +1,47 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
+import { authService } from "../features/auth/services/authService";
 import AdminSidebar from "./sidebar/AdminSidebar";
 
 const AdminLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+
+  // Fetch user profile data when component mounts
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id || user?.fullName) {
+        // Skip if no user ID or if fullName is already loaded
+        return;
+      }
+
+      try {
+        const response = await authService.getUserProfile(user.id);
+        
+        if (response.success && response.data) {
+          // Update auth context with complete user data
+          const updatedUser = {
+            ...user,
+            fullName: response.data.fullName,
+            phone: response.data.phone,
+            cardId: response.data.cardId,
+            dealerId: response.data.dealerId,
+            role: response.data.account?.role || user.role,
+            isActive: response.data.account?.isActive,
+          };
+          setUser(updatedUser);
+        }
+      } catch (err) {
+        console.error("Error fetching user profile in AdminLayout:", err);
+        // Don't show error to user, just log it
+      }
+    };
+
+    fetchUserProfile();
+  }, [user?.id, user?.fullName, setUser]);
 
   const userInitial = useMemo(() => user?.fullName?.[0] || user?.name?.[0] || user?.email?.[0] || "👤", [user]);
   const displayName = useMemo(() => {
