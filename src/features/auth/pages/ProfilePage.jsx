@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { authService } from "../services/authService";
 import { useAuth } from "../../../context/AuthContext";
+import ChangePasswordModal from "../components/ChangePasswordModal";
 
 const ProfilePage = () => {
   const { user: authUser, setUser, loading: authLoading } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
   // Fetch user profile from API
   useEffect(() => {
@@ -62,9 +64,7 @@ const ProfilePage = () => {
   const displayData = profileData || authUser;
 
   const handleChangePassword = () => {
-    // Navigate to change password page or open modal
-    // For now, we can navigate to forgot password or create a dedicated change password page
-    window.location.href = "/forgot-password";
+    setIsChangePasswordModalOpen(true);
   };
 
   return (
@@ -139,6 +139,12 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setIsChangePasswordModalOpen(false)}
+      />
     </div>
   );
 };
