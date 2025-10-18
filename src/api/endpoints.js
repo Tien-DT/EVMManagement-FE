@@ -7,6 +7,7 @@ const endpoints = {
     forgotPassword: "/v1/Auth/forgot-password",
     verifyOtp: "/v1/Auth/verify-otp",
     resetPassword: "/v1/Auth/reset-password",
+    changePassword: "/v1/Auth/change-password",
   },
   userProfile: {
     byAccount: (accountId) => `/v1/UserProfile/by-account/${accountId}`,
