@@ -9,8 +9,11 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const userInitial = useMemo(() => user?.fullName?.[0] || user?.name?.[0] || "👤", [user]);
-  const displayName = useMemo(() => user?.fullName || user?.name || user?.email || "Account", [user]);
+  const userInitial = useMemo(() => user?.fullName?.[0] || user?.name?.[0] || user?.email?.[0] || "👤", [user]);
+  const displayName = useMemo(() => {
+    // Prioritize fullName, then name, then email as fallback
+    return user?.fullName || user?.name || user?.email || "Account";
+  }, [user]);
 
   const menuItems = [
     {
