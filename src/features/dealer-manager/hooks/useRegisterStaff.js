@@ -39,7 +39,7 @@ export const useRegisterStaff = () => {
         throw new Error("Không tìm thấy thông tin dealer của tài khoản này");
       }
 
-      console.log("✅ DealerId found:", dealerId);
+      console.log("DealerId found:", dealerId);
 
       // Đăng ký staff với dealerId
       const staffData = {
@@ -54,7 +54,7 @@ export const useRegisterStaff = () => {
       const response = await dealerService.registerStaff(staffData);
 
       if (response.success) {
-        console.log("✅ Staff registered successfully");
+        console.log("Staff registered successfully");
         setSuccess(true);
         form.reset();
         // Có thể redirect hoặc hiển thị thông báo thành công
@@ -68,7 +68,7 @@ export const useRegisterStaff = () => {
         throw new Error(response.message || "Đăng ký nhân viên thất bại");
       }
     } catch (err) {
-      console.error("❌ Register staff error:", err);
+      console.error("Register staff error:", err);
       setError(err.message || "Đăng ký nhân viên thất bại. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
