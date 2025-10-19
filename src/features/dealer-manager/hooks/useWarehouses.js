@@ -19,7 +19,7 @@ export const useWarehouses = () => {
         setWarehouses([]);
       }
     } catch (err) {
-      console.error("❌ Fetch warehouses error:", err);
+      console.error("Fetch warehouses error:", err);
       setError(err.message || "Không thể tải danh sách kho hàng");
       setWarehouses([]);
     } finally {
@@ -42,7 +42,7 @@ export const useWarehouses = () => {
         throw new Error(response.message || "Xóa kho hàng thất bại");
       }
     } catch (err) {
-      console.error("❌ Delete warehouse error:", err);
+      console.error("Delete warehouse error:", err);
       return { success: false, error: err.message };
     }
   };
