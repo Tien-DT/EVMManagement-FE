@@ -36,7 +36,7 @@ export const useCreateWarehouse = () => {
         throw new Error("Không tìm thấy thông tin dealer của tài khoản này");
       }
 
-      console.log("✅ DealerId found:", dealerId);
+      console.log("DealerId found:", dealerId);
 
       // Tạo warehouse với dealerId
       const warehouseData = {
@@ -50,7 +50,7 @@ export const useCreateWarehouse = () => {
       const response = await dealerService.createWarehouse(warehouseData);
 
       if (response.success) {
-        console.log("✅ Warehouse created successfully");
+        console.log("Warehouse created successfully");
         navigate("/dealer/warehouses", {
           replace: true,
           state: { message: "Tạo kho hàng thành công!" },
@@ -59,7 +59,7 @@ export const useCreateWarehouse = () => {
         throw new Error(response.message || "Tạo kho hàng thất bại");
       }
     } catch (err) {
-      console.error("❌ Create warehouse error:", err);
+      console.error("Create warehouse error:", err);
       setError(err.message || "Tạo kho hàng thất bại. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
