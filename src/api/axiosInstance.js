@@ -12,7 +12,7 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // ✅ Đọc từ sessionStorage
+    // Đọc từ sessionStorage
     const token = sessionStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -32,11 +32,11 @@ axiosInstance.interceptors.response.use(
   (error) => {
     // Xử lý token expired
     if (error.response?.status === 401) {
-      // ✅ Xóa sessionStorage
+      // Xóa sessionStorage
       sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("user");
 
-      // ✅ FIX: Kiểm tra xem có đang ở login không trước khi redirect
+      // FIX: Kiểm tra xem có đang ở login không trước khi redirect
       const currentPath = window.location.pathname;
       if (!currentPath.includes("/login")) {
         // Dùng setTimeout để tránh conflict với React Router
