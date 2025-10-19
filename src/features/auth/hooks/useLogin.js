@@ -51,13 +51,13 @@ export const useLogin = () => {
         password: data.password,
       });
 
-      console.log("✅ Login response received:", response);
+      console.log("Login response received:", response);
 
-      // ✅ FIX: Access token từ response.data.accessToken
+      // FIX: Access token từ response.data.accessToken
       const accessToken = response.data?.accessToken;
 
       if (!accessToken) {
-        console.error("❌ No access token in response.data");
+        console.error("No access token in response.data");
         throw new Error("No access token received");
       }
 
@@ -97,12 +97,12 @@ export const useLogin = () => {
         userInfo.role
       );
 
-      // ✅ Lưu vào context
+      // Lưu vào context
       login(userInfo, accessToken);
 
       console.log("💾 Login data saved to context");
 
-      // ✅ Navigate với role normalization
+      // Navigate với role normalization
       const role = userInfo.role?.toLowerCase() || "";
 
       if (role.includes("admin")) {
@@ -116,7 +116,7 @@ export const useLogin = () => {
         navigate("/admin/dashboard", { replace: true });
       }
     } catch (err) {
-      console.error("❌ Login error:", err);
+      console.error("Login error:", err);
       setError(err.message || "Đăng nhập thất bại. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
