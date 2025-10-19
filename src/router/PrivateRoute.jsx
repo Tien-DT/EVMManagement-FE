@@ -22,12 +22,12 @@ const PrivateRoute = () => {
   // 🚫 Nếu chưa có user => quay lại login
   if (!isAuthenticated || !user) {
     console.log("🚫 Not authenticated, redirecting to login");
-    // ✅ Lưu location hiện tại để redirect lại sau khi login
+    // Lưu location hiện tại để redirect lại sau khi login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  console.log("✅ User authenticated:", user);
-  // ✅ Nếu có user, render nội dung bên trong
+  console.log("User authenticated:", user);
+  // Nếu có user, render nội dung bên trong
   return <Outlet />;
 };
 
