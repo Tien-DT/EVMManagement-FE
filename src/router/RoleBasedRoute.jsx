@@ -23,7 +23,7 @@ const RoleBasedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ Kiểm tra role với includes để support nhiều format
+  // Kiểm tra role với includes để support nhiều format
   const userRole = user.role?.toLowerCase() || "";
   const hasRole = allowedRoles.some((role) => {
     const normalizedAllowed = role.toLowerCase();
@@ -55,7 +55,7 @@ const RoleBasedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ Nếu có quyền, render tiếp
+  // Nếu có quyền, render tiếp
   return <Outlet />;
 };
 
