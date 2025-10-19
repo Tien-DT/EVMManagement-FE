@@ -26,6 +26,10 @@ import DealerFormPage from "../features/dealer/pages/DealerFormPage";
 import VehicleListPage from "../features/vehicle/pages/VehicleListPage";
 import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
 
+// Promotion Pages
+import PromotionListPage from "../features/promotion/pages/PromotionListPage";
+import PromotionFormPage from "../features/promotion/pages/PromotionFormPage";
+
 // Auth Pages
 import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
@@ -67,7 +71,7 @@ const AppRouter = () => (
         }
       />
 
-      {/* Admin Routes - ✅ Support EVM_ADMIN role */}
+      {/* Admin Routes - Support EVM_ADMIN role */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
@@ -80,6 +84,9 @@ const AppRouter = () => (
             <Route path="/admin/vehicles" element={<VehicleListPage />} />
             <Route path="/admin/vehicles/new" element={<VehicleFormPage />} />
             <Route path="/admin/vehicles/:id/edit" element={<VehicleFormPage />} />
+            <Route path="/admin/promotions" element={<PromotionListPage />} />
+            <Route path="/admin/promotions/new" element={<PromotionFormPage />} />
+            <Route path="/admin/promotions/:id/edit" element={<PromotionFormPage />} />
           </Route>
         </Route>
       </Route>
@@ -105,7 +112,7 @@ const AppRouter = () => (
         </Route>
       </Route>
 
-      {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
+      {/* FIX: Root redirect về login, KHÔNG loop */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Catch all - redirect to login */}
