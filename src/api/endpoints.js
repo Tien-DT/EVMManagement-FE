@@ -17,6 +17,7 @@ const endpoints = {
     users: "/v1/UserProfile",
     dealers: "/v1/Dealers",
     vehicles: "/v1/VehicleModels",
+    promotions: "/v1/Promotions",
   },
   dealer: {
     vehicles: "/v1/Dealer/vehicles",
