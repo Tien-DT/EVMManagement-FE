@@ -7,10 +7,10 @@ export const dealerService = {
   getAllWarehouses: async () => {
     try {
       const response = await axiosInstance.get(endpoints.dealer.warehouses);
-      console.log("✅ Get warehouses response:", response);
+      console.log("Get warehouses response:", response);
       return response;
     } catch (error) {
-      console.error("❌ Get warehouses error:", error);
+      console.error("Get warehouses error:", error);
       throw error;
     }
   },
@@ -21,10 +21,10 @@ export const dealerService = {
         endpoints.dealer.warehouses,
         data
       );
-      console.log("✅ Create warehouse response:", response);
+      console.log("Create warehouse response:", response);
       return response;
     } catch (error) {
-      console.error("❌ Create warehouse error:", error);
+      console.error("Create warehouse error:", error);
       throw error;
     }
   },
@@ -35,10 +35,10 @@ export const dealerService = {
         `${endpoints.dealer.warehouses}/${id}`,
         data
       );
-      console.log("✅ Update warehouse response:", response);
+      console.log("Update warehouse response:", response);
       return response;
     } catch (error) {
-      console.error("❌ Update warehouse error:", error);
+      console.error("Update warehouse error:", error);
       throw error;
     }
   },
@@ -48,10 +48,10 @@ export const dealerService = {
       const response = await axiosInstance.delete(
         `${endpoints.dealer.warehouses}/${id}`
       );
-      console.log("✅ Delete warehouse response:", response);
+      console.log("Delete warehouse response:", response);
       return response;
     } catch (error) {
-      console.error("❌ Delete warehouse error:", error);
+      console.error("Delete warehouse error:", error);
       throw error;
     }
   },
@@ -63,10 +63,10 @@ export const dealerService = {
         endpoints.dealer.registerStaff,
         data
       );
-      console.log("✅ Register staff response:", response);
+      console.log("Register staff response:", response);
       return response;
     } catch (error) {
-      console.error("❌ Register staff error:", error);
+      console.error("Register staff error:", error);
       throw error;
     }
   },
@@ -77,10 +77,10 @@ export const dealerService = {
       const response = await axiosInstance.get(
         endpoints.userProfile.getByAccount(accId)
       );
-      console.log("✅ Get user profile response:", response);
+      console.log("Get user profile response:", response);
       return response;
     } catch (error) {
-      console.error("❌ Get user profile error:", error);
+      console.error("Get user profile error:", error);
       throw error;
     }
   },
