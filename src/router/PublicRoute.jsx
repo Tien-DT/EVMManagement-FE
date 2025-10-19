@@ -22,7 +22,7 @@ const PublicRoute = ({ children }) => {
   if (user) {
     console.log("🔄 User authenticated, redirecting based on role:", user.role);
 
-    // ✅ FIX: Normalize role và redirect
+    // FIX: Normalize role và redirect
     const normalizedRole = user.role?.toLowerCase();
 
     let redirectPath = "/admin/dashboard"; // default
@@ -41,5 +41,5 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-// ✅ FIX: Export default đúng cách
+// FIX: Export default đúng cách
 export default PublicRoute;
