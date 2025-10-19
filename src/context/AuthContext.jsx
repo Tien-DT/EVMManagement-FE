@@ -20,7 +20,7 @@ const decodeToken = (token) => {
     );
     return JSON.parse(jsonPayload);
   } catch (error) {
-    console.error("❌ Error decoding token:", error);
+    console.error("Error decoding token:", error);
     return null;
   }
 };
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     console.log("💾 Saving to context:", { userData, userToken });
     setUser(userData);
     setToken(userToken);
-    // ✅ Dùng sessionStorage - tự động xóa khi đóng browser
+    // Dùng sessionStorage - tự động xóa khi đóng browser
     sessionStorage.setItem("accessToken", userToken);
     sessionStorage.setItem("user", JSON.stringify(userData));
   };
@@ -67,10 +67,10 @@ export const AuthProvider = ({ children }) => {
           if (storedUser) {
             try {
               const parsedUser = JSON.parse(storedUser);
-              console.log("✅ Loaded user from sessionStorage:", parsedUser);
+              console.log("Loaded user from sessionStorage:", parsedUser);
               setUser(parsedUser);
             } catch (parseError) {
-              console.error("❌ Error parsing stored user:", parseError);
+              console.error("Error parsing stored user:", parseError);
               sessionStorage.removeItem("user");
               sessionStorage.removeItem("accessToken");
             }
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
                   decodedToken.unique_name ||
                   decodedToken.email,
               };
-              console.log("✅ Decoded user from token:", userFromToken);
+              console.log("Decoded user from token:", userFromToken);
               setUser(userFromToken);
               sessionStorage.setItem("user", JSON.stringify(userFromToken));
             } else {
@@ -106,13 +106,13 @@ export const AuthProvider = ({ children }) => {
           console.log("ℹ️ No stored token found - user needs to login");
         }
       } catch (err) {
-        console.error("❌ Auth init error:", err);
+        console.error("Auth init error:", err);
         sessionStorage.removeItem("accessToken");
         sessionStorage.removeItem("user");
       } finally {
         if (isMounted) {
           setLoading(false);
-          console.log("✅ Auth initialization complete");
+          console.log("Auth initialization complete");
         }
       }
     };
