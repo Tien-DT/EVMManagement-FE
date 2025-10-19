@@ -8,7 +8,8 @@ import {
   X,
   User,
   Building2,
-  Car
+  Car,
+  Tag
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -30,6 +31,11 @@ const AdminSidebar = () => {
       path: '/admin/vehicles',
       icon: Car,
       label: 'Vehicles'
+    },
+    {
+      path: '/admin/promotions',
+      icon: Tag,
+      label: 'Promotions'
     },
     {
       path: '/admin/register',
