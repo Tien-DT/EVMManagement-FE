@@ -31,7 +31,7 @@ export const useSignUp = () => {
     try {
       console.log("📝 Signup data:", data);
 
-      // ✅ Call API với đúng structure
+      // Call API với đúng structure
       const response = await authService.signup({
         email: data.email,
         password: data.password,
@@ -41,16 +41,16 @@ export const useSignUp = () => {
         cardId: data.cardId,
       });
 
-      console.log("✅ Signup successful:", response);
+      console.log("Signup successful:", response);
 
-      // ✅ Kiểm tra response
+      // Kiểm tra response
       if (response.success) {
         setSuccessMessage(response.message || "Tạo tài khoản thành công!");
 
         // Reset form
         form.reset();
 
-        // ✅ Hiện thông báo rồi quay về dashboard sau 2s
+        // Hiện thông báo rồi quay về dashboard sau 2s
         setTimeout(() => {
           navigate("/admin/dashboard");
         }, 2000);
@@ -58,7 +58,7 @@ export const useSignUp = () => {
         throw new Error(response.message || "Đăng ký thất bại");
       }
     } catch (err) {
-      console.error("❌ Signup error:", err);
+      console.error("Signup error:", err);
       setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
