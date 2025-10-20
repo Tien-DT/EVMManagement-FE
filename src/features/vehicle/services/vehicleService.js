@@ -1,7 +1,7 @@
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 
-const basePath = endpoints.admin.vehicles;
+const basePath = endpoints.admin.vehicleModels;
 
 export const vehicleService = {
   list: async (params = {}) => {
