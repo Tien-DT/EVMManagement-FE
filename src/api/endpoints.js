@@ -23,6 +23,7 @@ const endpoints = {
     vehicles: "/v1/Dealer/vehicles",
     orders: "/v1/Dealer/orders",
     warehouses: "/v1/Warehouses",
+    warehousesByDealer: (dealerId) => `/v1/Warehouses/dealer/${dealerId}`,
     registerStaff: "/v1/Auth/register-dealer",
   },
   // User Profile endpoints

@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../features/auth/services/authService";
-import AdminSidebar from "./sidebar/AdminSidebar";
+import AdminSidebar from "./Sidebar/AdminSidebar";
 
 const AdminLayout = () => {
   const { user, setUser, logout } = useAuth();
@@ -20,7 +20,7 @@ const AdminLayout = () => {
 
       try {
         const response = await authService.getUserProfile(user.id);
-        
+
         if (response.success && response.data) {
           // Update auth context with complete user data
           const updatedUser = {
@@ -43,7 +43,10 @@ const AdminLayout = () => {
     fetchUserProfile();
   }, [user?.id, user?.fullName, setUser]);
 
-  const userInitial = useMemo(() => user?.fullName?.[0] || user?.name?.[0] || user?.email?.[0] || "👤", [user]);
+  const userInitial = useMemo(
+    () => user?.fullName?.[0] || user?.name?.[0] || user?.email?.[0] || "👤",
+    [user]
+  );
   const displayName = useMemo(() => {
     // Prioritize fullName, then name, then email as fallback
     return user?.fullName || user?.name || user?.email || "Account";
@@ -54,7 +57,9 @@ const AdminLayout = () => {
       key: "profile",
       label: (
         <div className="px-2 py-1">
-          <div className="text-sm font-medium text-slate-800">{displayName}</div>
+          <div className="text-sm font-medium text-slate-800">
+            {displayName}
+          </div>
           <div className="text-xs text-slate-500">{user?.email || ""}</div>
         </div>
       ),
@@ -100,7 +105,9 @@ const AdminLayout = () => {
                 placement="bottomRight"
               >
                 <button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
-                  <span className="text-sm font-medium max-w-[140px] truncate">{displayName}</span>
+                  <span className="text-sm font-medium max-w-[140px] truncate">
+                    {displayName}
+                  </span>
                   <span className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                     {userInitial}
                   </span>
