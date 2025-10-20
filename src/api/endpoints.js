@@ -31,7 +31,23 @@ const endpoints = {
     getByAccount: (accId) => `/v1/UserProfile/by-account/${accId}`,
   },
   // Customer endpoints
-  customers: "/v1/Customers",
+  customers: {
+    getAll: "/v1/Customers",
+    getById: (id) => `/v1/Customers/${id}`,
+    create: "/v1/Customers",
+    update: (id) => `/v1/Customers/${id}`,
+    delete: (id) => `/v1/Customers/${id}`,
+    search: "/v1/Customers/search",
+  },
+  // Quotation endpoints
+  quotations: {
+    getAll: "/v1/Quotations",
+    getById: (id) => `/v1/Quotations/${id}`,
+    create: "/v1/Quotations",
+    update: (id) => `/v1/Quotations/${id}`,
+    delete: (id) => `/v1/Quotations/${id}`,
+    getByDealerId: (dealerId) => `/v1/Quotations/dealer/${dealerId}`,
+  },
 };
 
 export default endpoints;

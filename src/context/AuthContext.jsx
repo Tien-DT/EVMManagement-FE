@@ -60,6 +60,16 @@ export const AuthProvider = ({ children }) => {
           hasToken: !!storedToken,
           hasUser: !!storedUser,
         });
+        
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            console.log("🔑 DEBUG - User role:", parsedUser.role);
+            console.log("🔑 DEBUG - Full user info:", parsedUser);
+          } catch (e) {
+            console.error("Error parsing user for debug:", e);
+          }
+        }
 
         if (storedToken && isMounted) {
           setToken(storedToken);
