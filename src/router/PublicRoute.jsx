@@ -20,17 +20,23 @@ const PublicRoute = ({ children }) => {
 
   // If user is authenticated, redirect based on role
   if (user) {
-    console.log("🔄 User authenticated, redirecting based on role:", user.role);
+    const normalizedRole = user.role?.toLowerCase() || "";
+    console.log(
+      "🔄 User authenticated, redirecting based on role:",
+      normalizedRole
+    );
 
-    // FIX: Normalize role và redirect
-    const normalizedRole = user.role?.toLowerCase();
+    let redirectPath = "/login";
 
-    let redirectPath = "/admin/dashboard"; // default
-
-    if (normalizedRole?.includes("admin")) {
+    // Hỗ trợ nhiều định dạng role từ backend
+    if (normalizedRole.includes("admin")) {
       redirectPath = "/admin/dashboard";
-    } else if (normalizedRole?.includes("dealer")) {
+    } else if (normalizedRole === "dealer_staff" || normalizedRole === "dealer-staff") {
+      redirectPath = "/dealer-staff/customers";
+    } else if (normalizedRole === "dealer_manager" || normalizedRole === "dealer") {
       redirectPath = "/dealer/dashboard";
+    } else if (normalizedRole.includes("evm_staff") || normalizedRole.includes("evm-staff")) {
+      redirectPath = "/evm-staff/dashboard";
     }
 
     console.log("➡️ Redirecting to:", redirectPath);

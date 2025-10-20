@@ -12,8 +12,10 @@ import RoleBasedRoute from "./RoleBasedRoute";
 
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
-import DealerLayout from "../layouts/DealerLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
+import DealerStaffLayout from "../layouts/DealerStaffLayout";
+import EVMStaffLayout from "../layouts/EVMStaffLayout";
+
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
@@ -45,6 +47,14 @@ import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
 
+// Dealer Staff Pages
+import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
+import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
+
+// EVM Staff Pages
+import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
+import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
+
 const AppRouter = () => (
   <Router>
     <Routes>
@@ -74,7 +84,7 @@ const AppRouter = () => (
         }
       />
 
-      {/* Admin Routes - Support EVM_ADMIN role */}
+      {/* Admin Routes - ✅ Support EVM_ADMIN role */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
@@ -119,7 +129,32 @@ const AppRouter = () => (
         </Route>
       </Route>
 
-      {/* FIX: Root redirect về login, KHÔNG loop */}
+      {/* Dealer Staff Routes */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<RoleBasedRoute allowedRoles={["dealer-staff"]} />}>
+          <Route element={<DealerStaffLayout />}>
+            <Route path="/dealer-staff/customers" element={<CustomersPage />} />
+            <Route
+              path="/dealer-staff/customers/create"
+              element={<CreateCustomerPage />}
+            />
+            <Route
+              path="/dealer-staff/customers/create"
+              element={<CreateCustomerPage />}
+            />
+            <Route
+              path="/dealer-staff/quotations"
+              element={<QuotationsPage />}
+            />
+            <Route
+              path="/dealer-staff/quotations/create"
+              element={<CreateQuotationPage />}
+            />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Catch all - redirect to login */}

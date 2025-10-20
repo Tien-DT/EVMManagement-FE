@@ -15,6 +15,25 @@ export const dealerService = {
     }
   },
 
+  getWarehousesByDealer: async (dealerId, pageNumber = 1, pageSize = 10) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.dealer.warehousesByDealer(dealerId),
+        {
+          params: {
+            pageNumber,
+            pageSize,
+          },
+        }
+      );
+      console.log("Get warehouses by dealer response:", response);
+      return response;
+    } catch (error) {
+      console.error("Get warehouses by dealer error:", error);
+      throw error;
+    }
+  },
+
   createWarehouse: async (data) => {
     try {
       const response = await axiosInstance.post(

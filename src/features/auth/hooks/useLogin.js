@@ -55,7 +55,7 @@ export const useLogin = () => {
 
       console.log("Login response received:", response);
 
-      // FIX: Access token từ response.data.accessToken
+      // Access token từ response.data.accessToken
       const accessToken = response.data?.accessToken;
 
       if (!accessToken) {
@@ -70,7 +70,7 @@ export const useLogin = () => {
 
       // Decode token để lấy user info
       const decodedToken = decodeToken(accessToken);
-      console.log("🔓 Token decoded successfully:", decodedToken);
+      console.log("📋 Token decoded successfully:", decodedToken);
 
       if (!decodedToken) {
         throw new Error("Invalid token format");
@@ -98,6 +98,35 @@ export const useLogin = () => {
         "Role:",
         userInfo.role
       );
+
+      // Fetch UserProfile để lấy dealerId
+      try {
+        console.log("📞 Fetching user profile for account:", userInfo.id);
+        const profileResponse = await authService.getUserProfile(userInfo.id);
+
+        if (profileResponse.success && profileResponse.data) {
+          console.log("✅ User profile fetched:", profileResponse.data);
+
+          // Add dealerId to userInfo
+          userInfo.dealerId = profileResponse.data.dealerId;
+          userInfo.fullName = profileResponse.data.fullName || userInfo.name;
+          userInfo.phoneNumber = profileResponse.data.phoneNumber;
+
+          // Save full profile to sessionStorage
+          sessionStorage.setItem(
+            "userProfile",
+            JSON.stringify(profileResponse.data)
+          );
+
+          console.log(
+            "💾 User profile saved with dealerId:",
+            userInfo.dealerId
+          );
+        }
+      } catch (profileError) {
+        console.warn("⚠️ Could not fetch user profile:", profileError);
+        // Continue anyway - some users might not have a profile yet
+      }
 
       // Lưu vào context
       login(userInfo, accessToken);

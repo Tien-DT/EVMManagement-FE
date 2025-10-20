@@ -48,7 +48,7 @@ export const useRegisterStaff = () => {
         dealerId: dealerId,
         phone: data.phone,
         cardId: data.cardId,
-        role: "DEALER_MANAGER",
+        role: "DEALER_STAFF",
       };
 
       const response = await dealerService.registerStaff(staffData);
