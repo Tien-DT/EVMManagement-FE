@@ -27,6 +27,8 @@ import DealerFormPage from "../features/dealer/pages/DealerFormPage";
 // Vehicle Pages
 import VehicleListPage from "../features/vehicle/pages/VehicleListPage";
 import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
+import VehicleModelDetailPage from "../features/vehicle/pages/VehicleModelDetailPage";
+import VehicleVariantFormPage from "../features/vehicle/pages/VehicleVariantFormPage";
 
 // Promotion Pages
 import PromotionListPage from "../features/promotion/pages/PromotionListPage";
@@ -37,6 +39,7 @@ import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
 import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
 import ResetPasswordPage from "../features/auth/pages/ResetPasswordPage";
+import UserProfileTestPage from "../features/auth/pages/UserProfileTestPage";
 
 // Dealer Manager Pages
 import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerManagerDashboardPage";
@@ -90,25 +93,17 @@ const AppRouter = () => (
             <Route path="/admin/register" element={<SignUpForm />} />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
-            <Route
-              path="/admin/dealers/:id/edit"
-              element={<DealerFormPage />}
-            />
-            <Route path="/admin/vehicles" element={<VehicleListPage />} />
-            <Route path="/admin/vehicles/new" element={<VehicleFormPage />} />
-            <Route
-              path="/admin/vehicles/:id/edit"
-              element={<VehicleFormPage />}
-            />
+            <Route path="/admin/dealers/:id/edit" element={<DealerFormPage />} />
+            <Route path="/admin/vehiclemodels" element={<VehicleListPage />} />
+            <Route path="/admin/vehiclemodels/new" element={<VehicleFormPage />} />
+            <Route path="/admin/vehiclemodels/:id/edit" element={<VehicleFormPage />} />
+            <Route path="/admin/vehiclemodels/:id" element={<VehicleModelDetailPage />} />
+            <Route path="/admin/vehiclemodels/:id/variants/new" element={<VehicleVariantFormPage />} />
+            <Route path="/admin/vehiclemodels/:id/variants/:variantId/edit" element={<VehicleVariantFormPage />} />
             <Route path="/admin/promotions" element={<PromotionListPage />} />
-            <Route
-              path="/admin/promotions/new"
-              element={<PromotionFormPage />}
-            />
-            <Route
-              path="/admin/promotions/:id/edit"
-              element={<PromotionFormPage />}
-            />
+            <Route path="/admin/promotions/new" element={<PromotionFormPage />} />
+            <Route path="/admin/promotions/:id/edit" element={<PromotionFormPage />} />
+            <Route path="/admin/user-profile-test" element={<UserProfileTestPage />} />
           </Route>
         </Route>
       </Route>

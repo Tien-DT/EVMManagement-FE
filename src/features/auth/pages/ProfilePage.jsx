@@ -2,18 +2,26 @@ import React, { useEffect, useState } from "react";
 import { authService } from "../services/authService";
 import { useAuth } from "../../../context/AuthContext";
 import ChangePasswordModal from "../components/ChangePasswordModal";
+import { useNotification } from "../../../context/NotificationContext";
 
 const ProfilePage = () => {
   const { user: authUser, setUser, loading: authLoading } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { showSuccess, showError } = useNotification();
   const [error, setError] = useState(null);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
   // Fetch user profile from API
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!authUser?.id) {
+      // Use accountId from authUser, fallback to id if accountId doesn't exist
+      const accountId = authUser?.accountId || authUser?.id;
+      console.log("ProfilePage - authUser:", authUser);
+      console.log("ProfilePage - accountId:", accountId);
+      
+      if (!accountId) {
+        setError("No account ID found");
         return;
       }
 
@@ -22,7 +30,8 @@ const ProfilePage = () => {
         setError(null);
         
         // Call API to get user profile by accountId
-        const response = await authService.getUserProfile(authUser.id);
+        const response = await authService.getUserProfileByAccount(accountId);
+        console.log("ProfilePage - API response:", response);
         
         if (response.success && response.data) {
           setProfileData(response.data);
@@ -38,17 +47,24 @@ const ProfilePage = () => {
             isActive: response.data.account?.isActive,
           };
           setUser(updatedUser);
+          showSuccess("Profile loaded successfully!");
+        } else {
+          const errorMessage = "Failed to load profile data";
+          setError(errorMessage);
+          showError(errorMessage);
         }
       } catch (err) {
         console.error("Error fetching profile:", err);
-        setError(err?.message || "Failed to load profile");
+        const errorMessage = err?.message || "Failed to load profile";
+        setError(errorMessage);
+        showError(errorMessage);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchProfile();
-  }, [authUser?.id]);
+  }, [authUser?.accountId, authUser?.id]);
 
   if (authLoading || isLoading) {
     return (

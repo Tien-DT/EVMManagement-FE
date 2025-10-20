@@ -97,13 +97,60 @@ export const authService = {
 
   changePassword: async (data) => {
     try {
-      const response = await axiosInstance.post(endpoints.auth.changePassword, {
-        oldPassword: data.currentPassword,
+      // Try the most common field names for change password APIs
+      const payload = {
+        currentPassword: data.currentPassword,
         newPassword: data.newPassword,
-      });
-      return response.data;
+      };
+      
+      console.log("Change password payload:", payload);
+      console.log("API endpoint:", endpoints.auth.changePassword);
+      
+      const response = await axiosInstance.post(endpoints.auth.changePassword, payload);
+      console.log("Change password API response:", response);
+      console.log("Response status:", response.status);
+      console.log("Response data:", response.data);
+      
+      return response;
     } catch (error) {
-      throw error.response?.data || error.message;
+      console.error("Change password API error:", error);
+      console.error("Error response:", error.response);
+      console.error("Error status:", error.response?.status);
+      console.error("Error data:", error.response?.data);
+      throw error;
+    }
+  },
+
+  // Test function to try different field name combinations
+  testChangePassword: async (data) => {
+    const fieldCombinations = [
+      { currentPassword: data.currentPassword, newPassword: data.newPassword },
+      { oldPassword: data.currentPassword, newPassword: data.newPassword },
+      { currentPassword: data.currentPassword, password: data.newPassword },
+      { oldPassword: data.currentPassword, password: data.newPassword },
+    ];
+
+    for (let i = 0; i < fieldCombinations.length; i++) {
+      try {
+        console.log(`Trying field combination ${i + 1}:`, fieldCombinations[i]);
+        const response = await axiosInstance.post(endpoints.auth.changePassword, fieldCombinations[i]);
+        console.log(`Success with combination ${i + 1}:`, response);
+        return response;
+      } catch (error) {
+        console.log(`Failed with combination ${i + 1}:`, error.response?.data);
+        if (i === fieldCombinations.length - 1) {
+          throw error;
+        }
+      }
+    }
+  },
+
+  getUserProfileByAccount: async (accountId) => {
+    try {
+      const response = await axiosInstance.get(`/v1/UserProfile/by-account/${accountId}`);
+      return response;
+    } catch (error) {
+      throw error;
     }
   },
 };
