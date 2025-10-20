@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { loginSchema } from "../schemas/loginSchema";
 import { authService } from "../services/authService";
 import { useAuth } from "../../../context/AuthContext";
+import { useNotification } from "../../../context/NotificationContext";
 
 // Helper function để decode JWT token
 const decodeToken = (token) => {
@@ -29,6 +30,7 @@ export const useLogin = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showSuccess, showError } = useNotification();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -102,6 +104,9 @@ export const useLogin = () => {
 
       console.log("💾 Login data saved to context");
 
+      // Show success notification
+      showSuccess(`Welcome back, ${userInfo.name || userInfo.email}! Sign in successful.`);
+
       // Navigate với role normalization
       const role = userInfo.role?.toLowerCase() || "";
 
@@ -117,7 +122,9 @@ export const useLogin = () => {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+      const errorMessage = err.message || "Đăng nhập thất bại. Vui lòng thử lại.";
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
