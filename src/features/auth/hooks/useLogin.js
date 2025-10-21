@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { loginSchema } from "../schemas/loginSchema";
 import { authService } from "../services/authService";
 import { useAuth } from "../../../context/AuthContext";
+import { useNotification } from "../../../context/NotificationContext";
 
 // Helper function để decode JWT token
 const decodeToken = (token) => {
@@ -29,6 +30,7 @@ export const useLogin = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showSuccess, showError } = useNotification();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -53,7 +55,7 @@ export const useLogin = () => {
 
       console.log("Login response received:", response);
 
-      // FIX: Access token từ response.data.accessToken
+      // Access token từ response.data.accessToken
       const accessToken = response.data?.accessToken;
 
       if (!accessToken) {
@@ -68,7 +70,7 @@ export const useLogin = () => {
 
       // Decode token để lấy user info
       const decodedToken = decodeToken(accessToken);
-      console.log("🔓 Token decoded successfully:", decodedToken);
+      console.log("📋 Token decoded successfully:", decodedToken);
 
       if (!decodedToken) {
         throw new Error("Invalid token format");
@@ -97,10 +99,42 @@ export const useLogin = () => {
         userInfo.role
       );
 
+      // Fetch UserProfile để lấy dealerId
+      try {
+        console.log("📞 Fetching user profile for account:", userInfo.id);
+        const profileResponse = await authService.getUserProfile(userInfo.id);
+
+        if (profileResponse.success && profileResponse.data) {
+          console.log("✅ User profile fetched:", profileResponse.data);
+
+          // Add dealerId to userInfo
+          userInfo.dealerId = profileResponse.data.dealerId;
+          userInfo.fullName = profileResponse.data.fullName || userInfo.name;
+          userInfo.phoneNumber = profileResponse.data.phoneNumber;
+
+          // Save full profile to sessionStorage
+          sessionStorage.setItem(
+            "userProfile",
+            JSON.stringify(profileResponse.data)
+          );
+
+          console.log(
+            "💾 User profile saved with dealerId:",
+            userInfo.dealerId
+          );
+        }
+      } catch (profileError) {
+        console.warn("⚠️ Could not fetch user profile:", profileError);
+        // Continue anyway - some users might not have a profile yet
+      }
+
       // Lưu vào context
       login(userInfo, accessToken);
 
       console.log("💾 Login data saved to context");
+
+      // Show success notification
+      showSuccess(`Welcome back, ${userInfo.name || userInfo.email}! Sign in successful.`);
 
       // Navigate với role normalization
       const role = userInfo.role?.toLowerCase() || "";
@@ -117,7 +151,9 @@ export const useLogin = () => {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+      const errorMessage = err.message || "Đăng nhập thất bại. Vui lòng thử lại.";
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }

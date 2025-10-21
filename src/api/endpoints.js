@@ -16,13 +16,15 @@ const endpoints = {
     dashboard: "/v1/Admin/dashboard",
     users: "/v1/UserProfile",
     dealers: "/v1/Dealers",
-    vehicles: "/v1/VehicleModels",
+    vehicleModels: "/v1/VehicleModels",
+    vehicleVariants: "/v1/VehicleVariants",
     promotions: "/v1/Promotions",
   },
   dealer: {
     vehicles: "/v1/Dealer/vehicles",
     orders: "/v1/Dealer/orders",
     warehouses: "/v1/Warehouses",
+    warehousesByDealer: (dealerId) => `/v1/Warehouses/dealer/${dealerId}`,
     registerStaff: "/v1/Auth/register-dealer",
   },
   // User Profile endpoints
@@ -30,7 +32,23 @@ const endpoints = {
     getByAccount: (accId) => `/v1/UserProfile/by-account/${accId}`,
   },
   // Customer endpoints
-  customers: "/v1/Customers",
+  customers: {
+    getAll: "/v1/Customers",
+    getById: (id) => `/v1/Customers/${id}`,
+    create: "/v1/Customers",
+    update: (id) => `/v1/Customers/${id}`,
+    delete: (id) => `/v1/Customers/${id}`,
+    search: "/v1/Customers/search",
+  },
+  // Quotation endpoints
+  quotations: {
+    getAll: "/v1/Quotations",
+    getById: (id) => `/v1/Quotations/${id}`,
+    create: "/v1/Quotations",
+    update: (id) => `/v1/Quotations/${id}`,
+    delete: (id) => `/v1/Quotations/${id}`,
+    getByDealerId: (dealerId) => `/v1/Quotations/dealer/${dealerId}`,
+  },
 };
 
 export default endpoints;

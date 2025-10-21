@@ -1,46 +1,91 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, MapPin, Package, Edit, Trash2, Eye } from "lucide-react";
+import {
+  Plus,
+  Search,
+  MapPin,
+  Package,
+  Edit,
+  Trash2,
+  Eye,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { useWarehouses } from "../hooks/useWarehouses";
 
 const WarehousesPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [dealerId, setDealerId] = useState(null);
 
-  // Mock data - sẽ thay bằng API call
-  const [warehouses, setWarehouses] = useState([
-    {
-      id: "1",
-      name: "Main Warehouse",
-      address: "123 Nguyen Hue, District 1, HCMC",
-      capacity: 1000,
-      currentStock: 750,
-      type: "DEALER",
-      status: "active",
-    },
-    {
-      id: "2",
-      name: "Secondary Storage",
-      address: "456 Le Loi, District 3, HCMC",
-      capacity: 500,
-      currentStock: 320,
-      type: "DEALER",
-      status: "active",
-    },
-    {
-      id: "3",
-      name: "North Branch",
-      address: "789 Tran Hung Dao, Thu Duc, HCMC",
-      capacity: 800,
-      currentStock: 150,
-      type: "DEALER",
-      status: "inactive",
-    },
-  ]);
+  // Get dealerId from sessionStorage or context
+  useEffect(() => {
+    const fetchDealerId = async () => {
+      try {
+        // Get user from sessionStorage
+        const userStr = sessionStorage.getItem("user");
+        if (!userStr) {
+          console.error("❌ No user found in sessionStorage");
+          setDealerId(null);
+          return;
+        }
+
+        const user = JSON.parse(userStr);
+        const accountId = user.id;
+
+        if (!accountId) {
+          console.error("❌ No accountId found in user");
+          setDealerId(null);
+          return;
+        }
+
+        console.log("🔍 Fetching dealerId for accountId:", accountId);
+
+        // Import dealerService at the top if not already imported
+        const { dealerService } = await import("../services/dealerService");
+
+        // Fetch user profile to get dealerId
+        const userProfile = await dealerService.getUserProfile(accountId);
+
+        if (userProfile.success && userProfile.data?.dealerId) {
+          const fetchedDealerId = userProfile.data.dealerId;
+          console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+          // Save to sessionStorage for future use
+          sessionStorage.setItem(
+            "userProfile",
+            JSON.stringify(userProfile.data)
+          );
+          sessionStorage.setItem("dealerId", fetchedDealerId);
+
+          setDealerId(fetchedDealerId);
+        } else {
+          console.error("❌ No dealerId found in user profile");
+          setDealerId(null);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching dealerId:", error);
+        setDealerId(null);
+      }
+    };
+
+    fetchDealerId();
+  }, []);
+
+  const {
+    warehouses,
+    isLoading,
+    error,
+    pagination,
+    refreshWarehouses,
+    deleteWarehouse,
+    changePage,
+  } = useWarehouses(dealerId);
 
   const filteredWarehouses = warehouses.filter(
     (warehouse) =>
-      warehouse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      warehouse.address.toLowerCase().includes(searchTerm.toLowerCase())
+      warehouse.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      warehouse.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status) => {
@@ -50,6 +95,7 @@ const WarehousesPage = () => {
   };
 
   const getCapacityPercentage = (current, total) => {
+    if (!total) return 0;
     return (current / total) * 100;
   };
 
@@ -58,6 +104,50 @@ const WarehousesPage = () => {
     if (percentage >= 70) return "bg-yellow-500";
     return "bg-green-500";
   };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa kho hàng này?")) {
+      const result = await deleteWarehouse(id);
+      if (result.success) {
+        alert("Xóa kho hàng thành công!");
+      } else {
+        alert(`Xóa kho hàng thất bại: ${result.error}`);
+      }
+    }
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải danh sách kho hàng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Có lỗi xảy ra
+          </h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => refreshWarehouses()}
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -106,7 +196,9 @@ const WarehousesPage = () => {
           <h3 className="text-sm font-medium opacity-90 mb-1">
             Total Warehouses
           </h3>
-          <p className="text-3xl font-bold">{warehouses.length}</p>
+          <p className="text-3xl font-bold">
+            {pagination.totalCount || warehouses.length}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
@@ -119,7 +211,7 @@ const WarehousesPage = () => {
             Total Capacity
           </h3>
           <p className="text-3xl font-bold text-gray-900">
-            {warehouses.reduce((sum, w) => sum + w.capacity, 0)}
+            {warehouses.reduce((sum, w) => sum + (w.capacity || 0), 0)}
           </p>
         </div>
 
@@ -133,7 +225,7 @@ const WarehousesPage = () => {
             Current Stock
           </h3>
           <p className="text-3xl font-bold text-gray-900">
-            {warehouses.reduce((sum, w) => sum + w.currentStock, 0)}
+            {warehouses.reduce((sum, w) => sum + (w.currentStock || 0), 0)}
           </p>
         </div>
       </div>
@@ -164,8 +256,8 @@ const WarehousesPage = () => {
             <tbody className="divide-y divide-gray-200">
               {filteredWarehouses.map((warehouse) => {
                 const capacityPercentage = getCapacityPercentage(
-                  warehouse.currentStock,
-                  warehouse.capacity
+                  warehouse.currentStock || 0,
+                  warehouse.capacity || 0
                 );
 
                 return (
@@ -180,10 +272,10 @@ const WarehousesPage = () => {
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900">
-                            {warehouse.name}
+                            {warehouse.name || "N/A"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {warehouse.type}
+                            {warehouse.type || "DEALER"}
                           </p>
                         </div>
                       </div>
@@ -191,14 +283,17 @@ const WarehousesPage = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2 text-gray-600">
                         <MapPin size={16} className="text-gray-400" />
-                        <span className="text-sm">{warehouse.address}</span>
+                        <span className="text-sm">
+                          {warehouse.address || "N/A"}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">
-                            {warehouse.currentStock} / {warehouse.capacity}
+                            {warehouse.currentStock || 0} /{" "}
+                            {warehouse.capacity || 0}
                           </span>
                           <span className="text-gray-500 font-medium">
                             {capacityPercentage.toFixed(0)}%
@@ -209,7 +304,9 @@ const WarehousesPage = () => {
                             className={`h-2 rounded-full transition-all duration-300 ${getCapacityColor(
                               capacityPercentage
                             )}`}
-                            style={{ width: `${capacityPercentage}%` }}
+                            style={{
+                              width: `${Math.min(capacityPercentage, 100)}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -217,21 +314,34 @@ const WarehousesPage = () => {
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          warehouse.status
+                          warehouse.status || "active"
                         )}`}
                       >
-                        {warehouse.status}
+                        {warehouse.status || "active"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
-                        <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <button
+                          onClick={() =>
+                            navigate(`/dealer/warehouses/${warehouse.id}`)
+                          }
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
                           <Eye size={18} />
                         </button>
-                        <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button
+                          onClick={() =>
+                            navigate(`/dealer/warehouses/${warehouse.id}/edit`)
+                          }
+                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
                           <Edit size={18} />
                         </button>
-                        <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button
+                          onClick={() => handleDelete(warehouse.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -263,6 +373,34 @@ const WarehousesPage = () => {
                 <span>Create Warehouse</span>
               </button>
             )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Showing {warehouses.length} of {pagination.totalCount} results
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => changePage(pagination.currentPage - 1)}
+                disabled={pagination.currentPage === 1}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {pagination.currentPage} of {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => changePage(pagination.currentPage + 1)}
+                disabled={pagination.currentPage === pagination.totalPages}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -25,11 +25,29 @@ const RoleBasedRoute = ({ allowedRoles }) => {
 
   // Kiểm tra role với includes để support nhiều format
   const userRole = user.role?.toLowerCase() || "";
+  console.log("🔍 DEBUG - RoleBasedRoute - User role:", userRole);
+  console.log("🔍 DEBUG - RoleBasedRoute - Allowed roles:", allowedRoles);
+
+  // Kiểm tra role với nhiều định dạng khác nhau
   const hasRole = allowedRoles.some((role) => {
     const normalizedAllowed = role.toLowerCase();
-    return (
-      userRole.includes(normalizedAllowed) || userRole === normalizedAllowed
-    );
+    
+    // Hỗ trợ nhiều định dạng role từ backend
+    // 1. Kiểm tra chính xác (case insensitive)
+    if (userRole.toLowerCase() === normalizedAllowed) return true;
+    
+    // 2. Kiểm tra với dấu gạch ngang thay cho gạch dưới
+    const dashFormat = userRole.toLowerCase().replace(/_/g, "-");
+    if (dashFormat === normalizedAllowed) return true;
+    
+    // 3. Kiểm tra với includes cho các trường hợp role có tiền tố
+    if (normalizedAllowed === "admin" && userRole.toLowerCase().includes("admin")) return true;
+    if (normalizedAllowed === "dealer" && userRole.toLowerCase() === "dealer_manager") return true;
+    if (normalizedAllowed === "dealer-staff" && userRole.toLowerCase() === "dealer_staff") return true;
+    if (normalizedAllowed === "evm-staff" && userRole.toLowerCase().includes("evm_staff")) return true;
+    
+    console.log(`🔍 DEBUG - Comparing: user role "${userRole}" with allowed role "${normalizedAllowed}" - No match`);
+    return false;
   });
 
   console.log("🔍 Role check:", {
@@ -47,8 +65,12 @@ const RoleBasedRoute = ({ allowedRoles }) => {
 
     if (normalizedRole.includes("admin")) {
       return <Navigate to="/admin/dashboard" replace />;
-    } else if (normalizedRole.includes("dealer")) {
+    } else if (normalizedRole === "dealer-staff") {
+      return <Navigate to="/dealer-staff/customers" replace />;
+    } else if (normalizedRole === "dealer") {
       return <Navigate to="/dealer/dashboard" replace />;
+    } else if (normalizedRole.includes("evm_staff")) {
+      return <Navigate to="/evm-staff/dashboard" replace />;
     }
 
     // Nếu không match role nào, logout

@@ -28,9 +28,9 @@ const AdminSidebar = () => {
       label: 'Dealers'
     },
     {
-      path: '/admin/vehicles',
+      path: '/admin/vehiclemodels',
       icon: Car,
-      label: 'Vehicles'
+      label: 'Vehicle Models'
     },
     {
       path: '/admin/promotions',

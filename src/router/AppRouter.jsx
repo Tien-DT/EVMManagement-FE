@@ -12,8 +12,10 @@ import RoleBasedRoute from "./RoleBasedRoute";
 
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
-import DealerLayout from "../layouts/DealerLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
+import DealerStaffLayout from "../layouts/DealerStaffLayout";
+import EVMStaffLayout from "../layouts/EVMStaffLayout";
+
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
@@ -25,6 +27,8 @@ import DealerFormPage from "../features/dealer/pages/DealerFormPage";
 // Vehicle Pages
 import VehicleListPage from "../features/vehicle/pages/VehicleListPage";
 import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
+import VehicleModelDetailPage from "../features/vehicle/pages/VehicleModelDetailPage";
+import VehicleVariantFormPage from "../features/vehicle/pages/VehicleVariantFormPage";
 
 // Promotion Pages
 import PromotionListPage from "../features/promotion/pages/PromotionListPage";
@@ -35,12 +39,21 @@ import LoginPage from "../features/auth/pages/LoginPage";
 import ProfilePage from "../features/auth/pages/ProfilePage";
 import ForgotPasswordPage from "../features/auth/pages/ForgotPasswordPage";
 import ResetPasswordPage from "../features/auth/pages/ResetPasswordPage";
+import UserProfileTestPage from "../features/auth/pages/UserProfileTestPage";
 
 // Dealer Manager Pages
 import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerManagerDashboardPage";
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
+
+// Dealer Staff Pages
+import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
+import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
+
+// EVM Staff Pages
+import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
+import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 
 const AppRouter = () => (
   <Router>
@@ -71,7 +84,7 @@ const AppRouter = () => (
         }
       />
 
-      {/* Admin Routes - Support EVM_ADMIN role */}
+      {/* Admin Routes - ✅ Support EVM_ADMIN role */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
@@ -81,12 +94,16 @@ const AppRouter = () => (
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
             <Route path="/admin/dealers/:id/edit" element={<DealerFormPage />} />
-            <Route path="/admin/vehicles" element={<VehicleListPage />} />
-            <Route path="/admin/vehicles/new" element={<VehicleFormPage />} />
-            <Route path="/admin/vehicles/:id/edit" element={<VehicleFormPage />} />
+            <Route path="/admin/vehiclemodels" element={<VehicleListPage />} />
+            <Route path="/admin/vehiclemodels/new" element={<VehicleFormPage />} />
+            <Route path="/admin/vehiclemodels/:id/edit" element={<VehicleFormPage />} />
+            <Route path="/admin/vehiclemodels/:id" element={<VehicleModelDetailPage />} />
+            <Route path="/admin/vehiclemodels/:id/variants/new" element={<VehicleVariantFormPage />} />
+            <Route path="/admin/vehiclemodels/:id/variants/:variantId/edit" element={<VehicleVariantFormPage />} />
             <Route path="/admin/promotions" element={<PromotionListPage />} />
             <Route path="/admin/promotions/new" element={<PromotionFormPage />} />
             <Route path="/admin/promotions/:id/edit" element={<PromotionFormPage />} />
+            <Route path="/admin/user-profile-test" element={<UserProfileTestPage />} />
           </Route>
         </Route>
       </Route>
@@ -112,7 +129,32 @@ const AppRouter = () => (
         </Route>
       </Route>
 
-      {/* FIX: Root redirect về login, KHÔNG loop */}
+      {/* Dealer Staff Routes */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<RoleBasedRoute allowedRoles={["dealer-staff"]} />}>
+          <Route element={<DealerStaffLayout />}>
+            <Route path="/dealer-staff/customers" element={<CustomersPage />} />
+            <Route
+              path="/dealer-staff/customers/create"
+              element={<CreateCustomerPage />}
+            />
+            <Route
+              path="/dealer-staff/customers/create"
+              element={<CreateCustomerPage />}
+            />
+            <Route
+              path="/dealer-staff/quotations"
+              element={<QuotationsPage />}
+            />
+            <Route
+              path="/dealer-staff/quotations/create"
+              element={<CreateQuotationPage />}
+            />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Catch all - redirect to login */}

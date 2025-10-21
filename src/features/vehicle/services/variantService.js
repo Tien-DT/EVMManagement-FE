@@ -1,9 +1,9 @@
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 
-const basePath = endpoints.admin.vehicleModels;
+const basePath = endpoints.admin.vehicleVariants;
 
-export const vehicleService = {
+export const variantService = {
   list: async (params = {}) => {
     try {
       return await axiosInstance.get(basePath, { params });
@@ -45,4 +45,6 @@ export const vehicleService = {
   },
 };
 
-export default vehicleService;
+export default variantService;
+
+
