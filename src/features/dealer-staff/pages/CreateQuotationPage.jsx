@@ -1,61 +1,48 @@
-// src/features/evm-staff/pages/CreateQuotationPage.jsx
+// src/features/dealer-staff/pages/CreateQuotationPage.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { Box, Button, Container, Paper, Typography } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { FileText } from "lucide-react";
 import QuotationForm from "../components/QuotationForm";
-import { useCreateQuotation } from "../hooks/useCreateQuotation";
+import { quotationService } from "../services/quotationService";
 
-export const CreateQuotationPage = () => {
+const CreateQuotationPage = () => {
   const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    errors,
-    isSubmitting,
-    control,
-    watch,
-    setValue,
-  } = useCreateQuotation();
 
-  const onSubmit = async (data) => {
-    const result = await handleSubmit(data);
-    if (result.success) {
-      toast.success("Tạo báo giá thành công!");
-      navigate("/dealer-staff/quotations");
-    } else {
-      toast.error(result.error || "Có lỗi xảy ra khi tạo báo giá");
+  const handleCreateQuotation = async (data) => {
+    try {
+      console.log("Creating quotation with data:", data);
+      const response = await quotationService.createQuotation(data);
+
+      if (response.success) {
+        alert("Tạo báo giá thành công!");
+        navigate("/dealer-staff/quotations");
+      } else {
+        throw new Error(response.message || "Không thể tạo báo giá");
+      }
+    } catch (error) {
+      console.error("Create quotation error:", error);
+      alert(`Tạo báo giá thất bại: ${error.message}`);
     }
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        <Box display="flex" alignItems="center" mb={3}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate("/dealer-staff/quotations")}
-            sx={{ mr: 2 }}
-          >
-            Quay lại
-          </Button>
-          <Typography variant="h5" component="h1">
-            Tạo báo giá mới
-          </Typography>
-        </Box>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center space-x-3">
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
+          <FileText className="text-white" size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Tạo báo giá mới</h1>
+          <p className="text-gray-600 mt-1">
+            Điền thông tin để tạo báo giá cho khách hàng
+          </p>
+        </div>
+      </div>
 
-        <QuotationForm
-          register={register}
-          onSubmit={onSubmit}
-          errors={errors}
-          isSubmitting={isSubmitting}
-          control={control}
-          watch={watch}
-          setValue={setValue}
-        />
-      </Paper>
-    </Container>
+      {/* Form */}
+      <QuotationForm onSubmit={handleCreateQuotation} mode="create" />
+    </div>
   );
 };
 

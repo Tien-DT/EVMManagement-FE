@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://evm-management-be.onrender.com/api",
+  baseURL: "https://evm-redg.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },

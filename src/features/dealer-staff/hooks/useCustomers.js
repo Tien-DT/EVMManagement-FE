@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { customerService } from "../services/customerService";
 
-export const useCustomers = () => {
+export const useCustomers = (dealerId) => {
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,11 +14,20 @@ export const useCustomers = () => {
   });
 
   const fetchCustomers = async (pageNumber = 1, pageSize = 10) => {
+    if (!dealerId) {
+      console.log("No dealerId provided, skipping fetch");
+      setError("Dealer ID is required");
+      setIsLoading(false);
+      return;
+    }
+
+    console.log("Fetching customers for dealerId:", dealerId);
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await customerService.getAllCustomers(
+      const response = await customerService.getCustomersByDealer(
+        dealerId,
         pageNumber,
         pageSize
       );
@@ -26,22 +35,30 @@ export const useCustomers = () => {
       console.log("Customers API response:", response);
 
       if (response.success && response.data) {
-        // Xử lý response data
+        console.log("Full response structure:", JSON.stringify(response, null, 2));
+        console.log("Type of response.data:", typeof response.data);
+        console.log("Is data array?", Array.isArray(response.data));
+        
+        // Xử lý response data - API trả về data.items
         const customersData = Array.isArray(response.data)
           ? response.data
           : response.data.items || response.data.customers || [];
 
+        console.log("Processed customersData:", customersData);
+        console.log("Number of customers:", customersData.length);
+        
         setCustomers(customersData);
 
-        // Update pagination
-        if (response.pagination) {
-          setPagination({
-            currentPage: response.pagination.currentPage || pageNumber,
-            pageSize: response.pagination.pageSize || pageSize,
-            totalPages: response.pagination.totalPages || 0,
-            totalCount: response.pagination.totalCount || 0,
-          });
-        }
+        // Update pagination from response
+        const paginationData = {
+          currentPage: response.data.pageNumber || pageNumber,
+          pageSize: response.data.pageSize || pageSize,
+          totalPages: response.data.totalPages || 0,
+          totalCount: response.data.totalCount || 0,
+        };
+        
+        console.log("Pagination data:", paginationData);
+        setPagination(paginationData);
       } else {
         console.log("No data in response or success=false");
         setCustomers([]);
@@ -56,8 +73,10 @@ export const useCustomers = () => {
   };
 
   useEffect(() => {
-    fetchCustomers();
-  }, []);
+    if (dealerId) {
+      fetchCustomers();
+    }
+  }, [dealerId]);
 
   const deleteCustomer = async (id) => {
     try {

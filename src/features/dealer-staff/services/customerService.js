@@ -20,6 +20,26 @@ export const customerService = {
     }
   },
 
+  // Get customers by dealer ID
+  getCustomersByDealer: async (dealerId, pageNumber = 1, pageSize = 10) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.customers.getByDealer(dealerId),
+        {
+          params: {
+            pageNumber,
+            pageSize,
+          },
+        }
+      );
+      console.log("Get customers by dealer response:", response);
+      return response;
+    } catch (error) {
+      console.error("Get customers by dealer error:", error);
+      throw error;
+    }
+  },
+
   // Get customer by ID
   getCustomerById: async (id) => {
     try {
