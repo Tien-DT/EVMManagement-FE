@@ -49,6 +49,8 @@ const RoleBasedRoute = ({ allowedRoles }) => {
       return <Navigate to="/admin/dashboard" replace />;
     } else if (normalizedRole.includes("dealer")) {
       return <Navigate to="/dealer/dashboard" replace />;
+    } else if (normalizedRole.includes("evm_staff")) {
+      return <Navigate to="/evm-staff/dashboard" replace />;
     }
 
     // Nếu không match role nào, logout
