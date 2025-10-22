@@ -14,6 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerLayout from "../layouts/DealerLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
+import EvmStaffLayout from "../layouts/EvmStaffLayout";
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
@@ -44,6 +45,9 @@ import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerM
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
+
+// EVM Staff Pages
+import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
 
 const AppRouter = () => (
   <Router>
@@ -115,6 +119,19 @@ const AppRouter = () => (
               path="/dealer/register-staff"
               element={<RegisterStaffPage />}
             />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* EVM Staff Routes */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<RoleBasedRoute allowedRoles={["evm_staff"]} />}>
+          <Route element={<EvmStaffLayout />}>
+            <Route
+              path="/evm-staff/dashboard"
+              element={<EvmStaffDashboardPage />}
+            />
+            {/* Additional EVM Staff routes can be added here */}
           </Route>
         </Route>
       </Route>
