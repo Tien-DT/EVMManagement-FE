@@ -1,5 +1,12 @@
 // src/api/endpoints.js
 const endpoints = {
+  contracts: {
+    getAll: "/v1/Contracts",
+    getById: (id) => `/v1/Contracts/${id}`,
+    create: "/v1/Contracts",
+    update: (id) => `/v1/Contracts/${id}`,
+    delete: (id) => `/v1/Contracts/${id}`,
+  },
   auth: {
     signup: "/v1/Auth/accounts",
     login: "/v1/Auth/login",

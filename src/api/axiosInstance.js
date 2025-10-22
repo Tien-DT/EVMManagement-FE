@@ -5,21 +5,32 @@ const axiosInstance = axios.create({
   baseURL: "https://evm-redg.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
+    // BỎ header này vì nó gây lỗi CORS
+    // "Access-Control-Allow-Origin": "*",
   },
-  timeout: 15000,
+  timeout: 30000, // Tăng timeout lên 30s cho server Render
 });
 
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Đọc từ sessionStorage
     const token = sessionStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    console.log("📤 API Request:", {
+      method: config.method,
+      url: config.url,
+      data: config.data,
+      headers: config.headers,
+    });
+
     return config;
   },
   (error) => {
+    console.error("❌ Request error:", error);
     return Promise.reject(error);
   }
 );
@@ -27,19 +38,27 @@ axiosInstance.interceptors.request.use(
 // Response Interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
+    console.log("📥 API Response:", {
+      status: response.status,
+      data: response.data,
+    });
     return response.data;
   },
   (error) => {
+    console.error("❌ Response error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+
     // Xử lý token expired
     if (error.response?.status === 401) {
-      // Xóa sessionStorage
       sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("user");
+      sessionStorage.removeItem("userProfile");
 
-      // FIX: Kiểm tra xem có đang ở login không trước khi redirect
       const currentPath = window.location.pathname;
       if (!currentPath.includes("/login")) {
-        // Dùng setTimeout để tránh conflict với React Router
         setTimeout(() => {
           window.location.replace("/login");
         }, 100);

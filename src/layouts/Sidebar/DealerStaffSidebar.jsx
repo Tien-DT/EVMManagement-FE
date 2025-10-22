@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { FileText } from "lucide-react";
+import { FileText, FileSignature } from "lucide-react";
 
 const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
   const { user } = useAuth();
@@ -51,6 +51,11 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
       name: "Báo giá",
       path: "/dealer-staff/quotations",
       icon: <FileText size={20} />,
+    },
+    {
+      name: "Hợp đồng",
+      path: "/dealer-staff/contracts",
+      icon: <FileSignature size={20} />,
     },
   ];
 

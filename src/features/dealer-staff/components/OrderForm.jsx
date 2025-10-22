@@ -10,6 +10,7 @@ import {
   Checkbox,
   Spin,
   Divider,
+  message,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import { orderService } from "../services/orderService";
@@ -17,7 +18,7 @@ import moment from "moment";
 
 const { Option } = Select;
 
-const OrderForm = ({ user }) => {
+const OrderForm = ({ user, onFormResult }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -33,11 +34,9 @@ const OrderForm = ({ user }) => {
       if (user && user.id) {
         setLoading(true);
         try {
-          // Sử dụng try-catch để xử lý lỗi API
           const response = await orderService.getQuotations(user.id);
           console.log("Quotations API response:", response);
 
-          // Kiểm tra response trước khi xử lý
           if (!response) {
             console.error("API response is undefined or null");
             setQuotations([]);
@@ -45,30 +44,23 @@ const OrderForm = ({ user }) => {
             return;
           }
 
-          // Xác định cấu trúc dữ liệu
           let quotationsData = [];
-          
-          // Kiểm tra các cấu trúc dữ liệu có thể có
+
           if (Array.isArray(response)) {
-            // Trường hợp response trực tiếp là mảng
             quotationsData = response;
-            console.log("Response is directly an array:", quotationsData.length);
           } else if (response.data) {
             if (Array.isArray(response.data)) {
-              // Trường hợp response.data là mảng
               quotationsData = response.data;
-              console.log("Response.data is array:", quotationsData.length);
             } else if (typeof response.data === "object") {
-              // Trường hợp response.data là object
               if (Array.isArray(response.data.items)) {
                 quotationsData = response.data.items;
-                console.log("Found quotations in items:", quotationsData.length);
               } else if (Array.isArray(response.data.data)) {
                 quotationsData = response.data.data;
-                console.log("Found quotations in data:", quotationsData.length);
-              } else if (response.data.quotations && Array.isArray(response.data.quotations)) {
+              } else if (
+                response.data.quotations &&
+                Array.isArray(response.data.quotations)
+              ) {
                 quotationsData = response.data.quotations;
-                console.log("Found quotations in quotations field:", quotationsData.length);
               }
             }
           }
@@ -81,6 +73,7 @@ const OrderForm = ({ user }) => {
           }
         } catch (error) {
           console.error("Error fetching quotations:", error);
+          message.error("Không thể tải danh sách báo giá");
         } finally {
           setLoading(false);
         }
@@ -96,7 +89,6 @@ const OrderForm = ({ user }) => {
     if (quotation) {
       setSelectedQuotation(quotation);
 
-      // Tính toán totalAmount từ quotationDetails
       let calculatedTotal = 0;
       if (
         quotation.quotationDetails &&
@@ -139,25 +131,122 @@ const OrderForm = ({ user }) => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      // Lấy thông tin từ sessionStorage
+      const userStr = sessionStorage.getItem("user");
+      const userProfileStr = sessionStorage.getItem("userProfile");
+
+      let accountId = null;
+      let userProfileId = null;
+      let dealerId = null;
+
+      // Lấy accountId từ user
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          accountId = userData.id;
+          console.log("✅ Lấy accountId từ user:", accountId);
+        } catch (err) {
+          console.error("❌ Lỗi khi parse user:", err);
+        }
+      }
+
+      // Lấy userProfileId và dealerId từ userProfile
+      if (userProfileStr) {
+        try {
+          const userProfile = JSON.parse(userProfileStr);
+          userProfileId = userProfile.id;
+          dealerId = userProfile.dealerId;
+          console.log("✅ Lấy userProfileId từ userProfile:", userProfileId);
+          console.log("✅ Lấy dealerId từ userProfile:", dealerId);
+        } catch (err) {
+          console.error("❌ Lỗi khi parse userProfile:", err);
+        }
+      }
+
+      // Nếu không có userProfileId, sử dụng accountId
+      if (!userProfileId && accountId) {
+        userProfileId = accountId;
+        console.log("⚠️ Sử dụng accountId làm userProfileId:", userProfileId);
+      }
+
+      // Nếu không có dealerId, sử dụng dealerId từ form
+      if (!dealerId && values.dealerId) {
+        dealerId = values.dealerId;
+        console.log("⚠️ Sử dụng dealerId từ form:", dealerId);
+      }
+
+      // Validate thông tin cần thiết
+      if (!userProfileId) {
+        const errorMsg =
+          "Không tìm thấy thông tin UserProfile. Vui lòng đăng nhập lại.";
+        console.error(errorMsg);
+        message.error(errorMsg);
+        if (onFormResult) {
+          onFormResult({ success: false, message: errorMsg });
+        }
+        return;
+      }
+
+      if (!dealerId) {
+        const errorMsg =
+          "Không tìm thấy thông tin Dealer. Vui lòng đăng nhập lại.";
+        console.error(errorMsg);
+        message.error(errorMsg);
+        if (onFormResult) {
+          onFormResult({ success: false, message: errorMsg });
+        }
+        return;
+      }
+
+      // Chuẩn bị dữ liệu order
       const orderData = {
-        ...values,
-        dealerId: user.id,
-        createdByUserId: user.id,
-        expectedDeliveryAt: values.expectedDeliveryAt.format(),
+        code: values.code,
+        quotationId: values.quotationId,
+        customerId: values.customerId,
+        dealerId: dealerId,
+        createdByUserId: userProfileId,
+        status: values.status,
+        totalAmount: values.totalAmount,
+        discountAmount: values.discountAmount,
+        finalAmount: values.finalAmount,
+        expectedDeliveryAt: values.expectedDeliveryAt.toISOString(),
+        orderType: values.orderType,
+        isFinanced: values.isFinanced || false,
       };
 
-      console.log("Creating order with data:", orderData);
+      console.log("📤 Creating order with data:", orderData);
 
       const response = await orderService.createOrder(orderData);
-      if (response.success) {
-        navigate("/dealer-staff/orders");
-        return { success: true, message: "Tạo đơn hàng thành công" };
+
+      console.log("📥 Create order response:", response);
+
+      // Xử lý response
+      if (response && (response.success || response.data)) {
+        message.success("Tạo đơn hàng thành công");
+        if (onFormResult) {
+          onFormResult({ success: true, message: "Tạo đơn hàng thành công" });
+        }
+        // Chờ 500ms để user thấy message success
+        setTimeout(() => {
+          navigate("/dealer-staff/orders");
+        }, 500);
       } else {
-        return { success: false, message: response.message || "Tạo đơn hàng thất bại" };
+        const errorMsg = response?.message || "Tạo đơn hàng thất bại";
+        message.error(errorMsg);
+        if (onFormResult) {
+          onFormResult({ success: false, message: errorMsg });
+        }
       }
     } catch (error) {
-      console.error("Error creating order:", error);
-      return { success: false, message: "Lỗi khi tạo đơn hàng: " + error.message };
+      console.error("❌ Error creating order:", error);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "Lỗi khi tạo đơn hàng";
+      message.error(errorMsg);
+      if (onFormResult) {
+        onFormResult({ success: false, message: errorMsg });
+      }
     } finally {
       setLoading(false);
     }
@@ -165,7 +254,10 @@ const OrderForm = ({ user }) => {
 
   if (loading && quotations.length === 0) {
     return (
-      <div className="loading-container" style={{ textAlign: "center", padding: "50px" }}>
+      <div
+        className="loading-container"
+        style={{ textAlign: "center", padding: "50px" }}
+      >
         <Spin size="large" />
       </div>
     );
@@ -204,7 +296,8 @@ const OrderForm = ({ user }) => {
         >
           {quotations.map((quotation) => (
             <Option key={quotation.id} value={quotation.id}>
-              {quotation.code} - {quotation.customerName || "Không có tên khách hàng"}
+              {quotation.code} -{" "}
+              {quotation.customerName || "Không có tên khách hàng"}
             </Option>
           ))}
         </Select>
@@ -246,7 +339,9 @@ const OrderForm = ({ user }) => {
       >
         <InputNumber
           style={{ width: "100%" }}
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
           disabled
         />
@@ -259,7 +354,9 @@ const OrderForm = ({ user }) => {
       >
         <InputNumber
           style={{ width: "100%" }}
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
           onChange={handleDiscountChange}
           min={0}
@@ -273,7 +370,9 @@ const OrderForm = ({ user }) => {
       >
         <InputNumber
           style={{ width: "100%" }}
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
           disabled
         />
@@ -306,9 +405,9 @@ const OrderForm = ({ user }) => {
       </Form.Item>
 
       <Form.Item>
-        <Button 
-          type="primary" 
-          htmlType="submit" 
+        <Button
+          type="primary"
+          htmlType="submit"
           loading={loading}
           style={{
             backgroundColor: "#1890ff",
@@ -325,14 +424,14 @@ const OrderForm = ({ user }) => {
             border: "none",
             borderRadius: "4px",
             cursor: "pointer",
-            transition: "all 0.3s ease"
+            transition: "all 0.3s ease",
           }}
           className="ant-btn-primary"
         >
           Tạo đơn hàng
         </Button>
-        <Button 
-          style={{ 
+        <Button
+          style={{
             marginLeft: 8,
             height: "40px",
             padding: "0 16px",
@@ -340,8 +439,8 @@ const OrderForm = ({ user }) => {
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            borderRadius: "4px"
-          }} 
+            borderRadius: "4px",
+          }}
           onClick={() => navigate("/dealer-staff/orders")}
         >
           Hủy

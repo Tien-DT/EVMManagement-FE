@@ -56,6 +56,11 @@ import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 import OrdersPage from "../features/dealer-staff/pages/OrdersPage";
 import CreateOrderPage from "../features/dealer-staff/pages/CreateOrderPage";
+import OrderDetailPage from "../features/dealer-staff/pages/OrderDetailPage";
+
+// Contract Pages
+import ContractsPage from "../features/dealer-staff/pages/ContractsPage";
+import CreateContractPage from "../features/dealer-staff/pages/CreateContractPage";
 
 const AppRouter = () => (
   <Router>
@@ -159,6 +164,18 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/orders/create"
               element={<CreateOrderPage />}
+            />
+            <Route
+              path="/dealer-staff/orders/:id"
+              element={<OrderDetailPage />}
+            />
+            <Route
+              path="/dealer-staff/contracts"
+              element={<ContractsPage />}
+            />
+            <Route
+              path="/dealer-staff/contracts/create"
+              element={<CreateContractPage />}
             />
           </Route>
         </Route>
