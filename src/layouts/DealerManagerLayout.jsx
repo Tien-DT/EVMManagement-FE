@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import DealerManagerSidebar from "./sidebar/DealerManagerSidebar";
+import DealerManagerSidebar from "./Sidebar/DealerManagerSidebar";
 import { useAuth } from "../context/AuthContext";
 
 const DealerManagerLayout = () => {

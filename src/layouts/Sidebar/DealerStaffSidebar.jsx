@@ -127,7 +127,7 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
       </div>
 
       {!collapsed && (
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-700">
+        <div className="absolute bottom-0 w-full p-4 border-gray-700">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium">
               {user?.fullName?.charAt(0) || user?.email?.charAt(0) || "U"}

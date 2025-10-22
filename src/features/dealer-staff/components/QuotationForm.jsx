@@ -42,11 +42,65 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
       const user = JSON.parse(userStr);
       setUserId(user.id);
       setFormData((prev) => ({ ...prev, createdByUserId: user.id }));
+      console.log("🔍 User ID set:", user.id);
     }
 
     const cachedDealerId = sessionStorage.getItem("dealerId");
     if (cachedDealerId) {
+      console.log("✅ Found cached dealerId:", cachedDealerId);
       setDealerId(cachedDealerId);
+    } else {
+      console.log("❌ No dealerId found in sessionStorage, fetching from API...");
+      // Fetch dealerId if not in sessionStorage
+      const fetchDealerId = async () => {
+        try {
+          const userStr = sessionStorage.getItem("user");
+          if (!userStr) {
+            console.error("❌ No user found in sessionStorage");
+            return;
+          }
+
+          const user = JSON.parse(userStr);
+          const accountId = user.id;
+
+          if (!accountId) {
+            console.error("❌ No accountId found in user");
+            return;
+          }
+
+          console.log("🔍 Fetching dealerId for accountId:", accountId);
+
+          // Import dealerService
+          const { dealerService } = await import(
+            "../../dealer-manager/services/dealerService"
+          );
+
+          // Fetch user profile to get dealerId
+          const userProfile = await dealerService.getUserProfile(accountId);
+          console.log("📦 User profile response:", userProfile);
+
+          if (userProfile.success && userProfile.data?.dealerId) {
+            const fetchedDealerId = userProfile.data.dealerId;
+            console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+            // Save to sessionStorage for future use
+            sessionStorage.setItem(
+              "userProfile",
+              JSON.stringify(userProfile.data)
+            );
+            sessionStorage.setItem("dealerId", fetchedDealerId);
+
+            setDealerId(fetchedDealerId);
+          } else {
+            console.error("❌ No dealerId found in user profile");
+            console.error("User profile data:", userProfile.data);
+          }
+        } catch (error) {
+          console.error("❌ Error fetching dealerId:", error);
+        }
+      };
+
+      fetchDealerId();
     }
   }, []);
 
@@ -310,7 +364,7 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
                             <div>
                               <span className="text-gray-600">Ranking:</span>
                               <p className="font-medium">
-                                {vehicle.variant?.ranking || "N/A"}
+                                {vehicle.variant?.vehicleModel?.ranking || vehicle.variant?.ranking || "N/A"}
                               </p>
                             </div>
                             <div>
