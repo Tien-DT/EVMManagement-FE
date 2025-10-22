@@ -1,14 +1,14 @@
-// src/features/evm-staff/pages/CreateQuotationPage.jsx
+// src/features/dealer-staff/pages/CreateQuotationPage.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { Box, Button, Container, Paper, Typography } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { ArrowLeft } from "lucide-react";
 import QuotationForm from "../components/QuotationForm";
 import { useCreateQuotation } from "../hooks/useCreateQuotation";
+import { useNotification } from "../../../context/NotificationContext";
 
 export const CreateQuotationPage = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotification();
   const {
     register,
     handleSubmit,
@@ -22,40 +22,38 @@ export const CreateQuotationPage = () => {
   const onSubmit = async (data) => {
     const result = await handleSubmit(data);
     if (result.success) {
-      toast.success("Tạo báo giá thành công!");
+      showSuccess("Tạo báo giá thành công!");
       navigate("/dealer-staff/quotations");
     } else {
-      toast.error(result.error || "Có lỗi xảy ra khi tạo báo giá");
+      showError(result.error || "Có lỗi xảy ra khi tạo báo giá");
     }
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        <Box display="flex" alignItems="center" mb={3}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate("/dealer-staff/quotations")}
-            sx={{ mr: 2 }}
-          >
-            Quay lại
-          </Button>
-          <Typography variant="h5" component="h1">
-            Tạo báo giá mới
-          </Typography>
-        </Box>
+    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-8 border border-gray-200">
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => navigate("/dealer-staff/quotations")}
+          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors mr-4"
+        >
+          <ArrowLeft size={20} className="mr-2" />
+          Quay lại
+        </button>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Tạo báo giá mới
+        </h1>
+      </div>
 
-        <QuotationForm
-          register={register}
-          onSubmit={onSubmit}
-          errors={errors}
-          isSubmitting={isSubmitting}
-          control={control}
-          watch={watch}
-          setValue={setValue}
-        />
-      </Paper>
-    </Container>
+      <QuotationForm
+        register={register}
+        onSubmit={onSubmit}
+        errors={errors}
+        isSubmitting={isSubmitting}
+        control={control}
+        watch={watch}
+        setValue={setValue}
+      />
+    </div>
   );
 };
 
