@@ -50,10 +50,14 @@ import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPag
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
-
-// EVM Staff Pages
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
+
+// EVM Staff Pages
+import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
+import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
+import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
+import EvmStaffCustomersPage from "../features/evm-staff/pages/EvmStaffCustomersPage";
 
 const AppRouter = () => (
   <Router>
@@ -150,6 +154,19 @@ const AppRouter = () => (
               path="/dealer-staff/quotations/create"
               element={<CreateQuotationPage />}
             />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* EVM Staff Routes */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<RoleBasedRoute allowedRoles={["evm-staff"]} />}>
+          <Route element={<EVMStaffLayout />}>
+            <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
+            <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
+            <Route path="/evm-staff/orders" element={<EvmStaffOrdersPage />} />
+            <Route path="/evm-staff/customers" element={<EvmStaffCustomersPage />} />
+            <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>
         </Route>
       </Route>
