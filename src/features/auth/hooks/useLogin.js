@@ -116,6 +116,9 @@ export const useLogin = () => {
       } else if (role.includes("dealer")) {
         console.log("📄 Navigating to dealer dashboard");
         navigate("/dealer/dashboard", { replace: true });
+      } else if (role.includes("evm_staff")) {
+        console.log("📄 Navigating to EVM staff dashboard");
+        navigate("/evm-staff/dashboard", { replace: true });
       } else {
         console.log("📄 Navigating to admin dashboard (default)");
         navigate("/admin/dashboard", { replace: true });
