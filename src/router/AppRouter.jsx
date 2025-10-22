@@ -54,6 +54,8 @@ import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPag
 // EVM Staff Pages
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
+import OrdersPage from "../features/dealer-staff/pages/OrdersPage";
+import CreateOrderPage from "../features/dealer-staff/pages/CreateOrderPage";
 
 const AppRouter = () => (
   <Router>
@@ -149,6 +151,14 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/quotations/create"
               element={<CreateQuotationPage />}
+            />
+            <Route
+              path="/dealer-staff/orders"
+              element={<OrdersPage />}
+            />
+            <Route
+              path="/dealer-staff/orders/create"
+              element={<CreateOrderPage />}
             />
           </Route>
         </Route>

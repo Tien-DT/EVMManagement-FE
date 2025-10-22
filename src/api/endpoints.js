@@ -49,9 +49,20 @@ const endpoints = {
     getAll: "/v1/Quotations",
     getById: (id) => `/v1/Quotations/${id}`,
     getByDealerId: (dealerId) => `/v1/Quotations/dealer/${dealerId}`,
+    getByDealer: (dealerId) => `/v1/Quotations/dealer/${dealerId}`, // Alias
     create: "/v1/Quotations",
     update: (id) => `/v1/Quotations/${id}`,
     delete: (id) => `/v1/Quotations/${id}`,
+  },
+  
+  // Order endpoints
+  orders: {
+    getAll: "/v1/Orders",
+    getById: (id) => `/v1/Orders/${id}`,
+    getByDealer: (dealerId) => `/v1/Orders/dealer/${dealerId}`,
+    create: "/v1/Orders",
+    update: (id) => `/v1/Orders/${id}`,
+    delete: (id) => `/v1/Orders/${id}`,
   },
 };
 

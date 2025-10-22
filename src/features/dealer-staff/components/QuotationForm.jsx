@@ -38,86 +38,97 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
   // Get dealerId and userId
   useEffect(() => {
     const userStr = sessionStorage.getItem("user");
+    let accountId = null;
+
     if (userStr) {
       const user = JSON.parse(userStr);
       setUserId(user.id);
-      // Không set createdByUserId ở đây, sẽ lấy từ userProfile
+      accountId = user.id;
       console.log("🔍 User ID set:", user.id);
+    }
+
+    const setProfileData = (profile) => {
+      if (!profile) return;
+
+      const profileId = profile.id;
+      if (profileId) {
+        setFormData((prev) =>
+          prev.createdByUserId === profileId
+            ? prev
+            : { ...prev, createdByUserId: profileId }
+        );
+        console.log("✅ createdByUserId set to profile ID:", profileId);
+      } else {
+        console.error("❌ No profile ID found in user profile");
+      }
+
+      if (profile.dealerId) {
+        sessionStorage.setItem("dealerId", profile.dealerId);
+        setDealerId(profile.dealerId);
+        console.log("✅ DealerId set from profile:", profile.dealerId);
+      } else {
+        console.error("❌ No dealerId found in user profile");
+      }
+    };
+
+    const cachedProfileStr = sessionStorage.getItem("userProfile");
+    if (cachedProfileStr) {
+      try {
+        const cachedProfile = JSON.parse(cachedProfileStr);
+        console.log("📦 Loaded cached user profile:", cachedProfile);
+        setProfileData(cachedProfile);
+      } catch (err) {
+        console.error("❌ Error parsing cached userProfile:", err);
+        sessionStorage.removeItem("userProfile");
+      }
     }
 
     const cachedDealerId = sessionStorage.getItem("dealerId");
     if (cachedDealerId) {
       console.log("✅ Found cached dealerId:", cachedDealerId);
       setDealerId(cachedDealerId);
-    } else {
-      console.log("❌ No dealerId found in sessionStorage, fetching from API...");
-      // Fetch dealerId if not in sessionStorage
-      const fetchDealerId = async () => {
-        try {
-          const userStr = sessionStorage.getItem("user");
-          if (!userStr) {
-            console.error("❌ No user found in sessionStorage");
-            return;
-          }
+    }
 
-          const user = JSON.parse(userStr);
-          const accountId = user.id;
+    const fetchUserProfile = async () => {
+      if (!accountId) {
+        console.error("❌ No accountId found in user");
+        return;
+      }
 
-          if (!accountId) {
-            console.error("❌ No accountId found in user");
-            return;
-          }
+      try {
+        console.log("🔍 Fetching user profile for accountId:", accountId);
+        const { dealerService } = await import(
+          "../../dealer-manager/services/dealerService"
+        );
 
-          console.log("🔍 Fetching dealerId for accountId:", accountId);
+        const userProfile = await dealerService.getUserProfile(accountId);
+        console.log("📦 User profile response:", userProfile);
 
-          // Import dealerService
-          const { dealerService } = await import(
-            "../../dealer-manager/services/dealerService"
+        if (userProfile.success && userProfile.data) {
+          sessionStorage.setItem(
+            "userProfile",
+            JSON.stringify(userProfile.data)
           );
-
-          // Fetch user profile to get dealerId
-          const userProfile = await dealerService.getUserProfile(accountId);
-          console.log("📦 User profile response:", userProfile);
-
-          if (userProfile.success && userProfile.data) {
-            // Lấy dealerId từ userProfile
-            const fetchedDealerId = userProfile.data.dealerId;
-            console.log("✅ DealerId fetched from API:", fetchedDealerId);
-
-            // Lấy id từ userProfile để dùng cho createdByUserId
-            const profileId = userProfile.data.id;
-            console.log("✅ Profile ID fetched from API:", profileId);
-            
-            // Set createdByUserId từ id của userProfile
-            if (profileId) {
-              setFormData((prev) => ({ ...prev, createdByUserId: profileId }));
-              console.log("✅ createdByUserId set to profile ID:", profileId);
-            } else {
-              console.error("❌ No profile ID found in user profile");
-            }
-
-            // Save to sessionStorage for future use
-            sessionStorage.setItem(
-              "userProfile",
-              JSON.stringify(userProfile.data)
-            );
-            
-            if (fetchedDealerId) {
-              sessionStorage.setItem("dealerId", fetchedDealerId);
-              setDealerId(fetchedDealerId);
-            } else {
-              console.error("❌ No dealerId found in user profile");
-            }
-          } else {
-            console.error("❌ No data found in user profile response");
-            console.error("User profile data:", userProfile.data);
-          }
-        } catch (error) {
-          console.error("❌ Error fetching dealerId:", error);
+          setProfileData(userProfile.data);
+        } else {
+          console.error("❌ No data found in user profile response");
+          console.error("User profile data:", userProfile.data);
         }
-      };
+      } catch (error) {
+        console.error("❌ Error fetching user profile:", error);
+      }
+    };
 
-      fetchDealerId();
+    if (!cachedProfileStr) {
+      console.log(
+        "❌ No user profile cached in sessionStorage, fetching from API..."
+      );
+      fetchUserProfile();
+    } else if (!cachedDealerId) {
+      console.log(
+        "❌ DealerId missing in sessionStorage, ensuring profile has dealer info"
+      );
+      fetchUserProfile();
     }
   }, []);
 
@@ -381,7 +392,9 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
                             <div>
                               <span className="text-gray-600">Ranking:</span>
                               <p className="font-medium">
-                                {vehicle.variant?.vehicleModel?.ranking || vehicle.variant?.ranking || "N/A"}
+                                {vehicle.variant?.vehicleModel?.ranking ||
+                                  vehicle.variant?.ranking ||
+                                  "N/A"}
                               </p>
                             </div>
                             <div>
@@ -555,7 +568,9 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
               <option value="SENT">Đã gửi</option>
               <option value="ACCEPTED">Đã chấp nhận</option>
               <option value="REJECTED">Đã từ chối</option>
-              <option value="CONVERTED_TO_ORDER">Đã chuyển thành đơn hàng</option>
+              <option value="CONVERTED_TO_ORDER">
+                Đã chuyển thành đơn hàng
+              </option>
             </select>
           </div>
         </div>
