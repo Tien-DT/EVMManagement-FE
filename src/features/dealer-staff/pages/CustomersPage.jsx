@@ -1,212 +1,431 @@
-import React from "react";
+// src/features/dealer-staff/pages/CustomersPage.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Plus,
+  Search,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  CreditCard,
+  Edit,
+  Trash2,
+  Eye,
+  Loader2,
+  AlertCircle,
+  Calendar,
+} from "lucide-react";
+import { useCustomers } from "../../dealer-staff/hooks/useCustomers";
 
 const CustomersPage = () => {
-  return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        Quản lý khách hàng
-      </h1>
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg
-              className="h-5 w-5 text-yellow-400"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm text-yellow-700">
-              Đây là trang dành cho Dealer Staff. Bạn đang đăng nhập với vai trò Dealer Staff.
-            </p>
-          </div>
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dealerId, setDealerId] = useState(null);
+
+  // Get dealerId from sessionStorage or context
+  useEffect(() => {
+    const fetchDealerId = async () => {
+      try {
+        // Check if dealerId already in sessionStorage
+        const cachedDealerId = sessionStorage.getItem("dealerId");
+        if (cachedDealerId) {
+          console.log("✅ Using cached dealerId:", cachedDealerId);
+          setDealerId(cachedDealerId);
+          return;
+        }
+
+        // Get user from sessionStorage
+        const userStr = sessionStorage.getItem("user");
+        if (!userStr) {
+          console.error("❌ No user found in sessionStorage");
+          setDealerId(null);
+          return;
+        }
+
+        const user = JSON.parse(userStr);
+        const accountId = user.id;
+
+        if (!accountId) {
+          console.error("❌ No accountId found in user");
+          setDealerId(null);
+          return;
+        }
+
+        console.log("🔍 Fetching dealerId for accountId:", accountId);
+
+        // Import dealerService
+        const { dealerService } = await import(
+          "../../dealer-manager/services/dealerService"
+        );
+
+        // Fetch user profile to get dealerId
+        const userProfile = await dealerService.getUserProfile(accountId);
+        console.log("📦 User profile response:", userProfile);
+
+        if (userProfile.success && userProfile.data?.dealerId) {
+          const fetchedDealerId = userProfile.data.dealerId;
+          console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+          // Save to sessionStorage for future use
+          sessionStorage.setItem(
+            "userProfile",
+            JSON.stringify(userProfile.data)
+          );
+          sessionStorage.setItem("dealerId", fetchedDealerId);
+
+          setDealerId(fetchedDealerId);
+        } else {
+          console.error("❌ No dealerId found in user profile");
+          console.error("User profile data:", userProfile.data);
+          setDealerId(null);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching dealerId:", error);
+        setDealerId(null);
+      }
+    };
+
+    fetchDealerId();
+  }, []);
+
+  const {
+    customers,
+    isLoading,
+    error,
+    pagination,
+    refreshCustomers,
+    deleteCustomer,
+    changePage,
+  } = useCustomers(dealerId);
+
+  // Debug: Log dealerId changes
+  useEffect(() => {
+    console.log("🎯 DealerId changed in CustomersPage:", dealerId);
+  }, [dealerId]);
+
+  // Filter customers based on search
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.phone?.includes(searchTerm) ||
+      customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.cardId?.includes(searchTerm)
+  );
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  const getGenderDisplay = (gender) => {
+    const genderMap = {
+      male: "Nam",
+      female: "Nữ",
+      other: "Khác",
+    };
+    return genderMap[gender?.toLowerCase()] || gender || "N/A";
+  };
+
+  const handleDelete = async (id, fullName) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa khách hàng "${fullName}"?`)) {
+      const result = await deleteCustomer(id);
+      if (result.success) {
+        alert("Xóa khách hàng thành công!");
+      } else {
+        alert(`Xóa khách hàng thất bại: ${result.error}`);
+      }
+    }
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải danh sách khách hàng...</p>
         </div>
       </div>
-      
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Tìm kiếm khách hàng..."
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-          />
-          <div className="absolute left-3 top-2.5">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-        </div>
-        <button 
-          onClick={() => window.location.href = "/dealer-staff/customers/create"}
-          className="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-lg flex items-center"
-        >
-          <svg
-            className="h-5 w-5 mr-2"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Có lỗi xảy ra
+          </h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => refreshCustomers()}
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
-          Thêm khách hàng
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Quản lý khách hàng
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Danh sách khách hàng và thông tin chi tiết
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/dealer-staff/customers/create")}
+          className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+        >
+          <Plus size={20} />
+          <span>Tạo hồ sơ khách hàng</span>
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Mã KH
-              </th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Họ tên
-              </th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Số điện thoại
-              </th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Địa chỉ
-              </th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Thao tác
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <tr key={item} className="hover:bg-gray-50">
-                <td className="py-3 px-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    KH{item.toString().padStart(5, "0")}
-                  </div>
-                </td>
-                <td className="py-3 px-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    Nguyễn Văn Khách {item}
-                  </div>
-                </td>
-                <td className="py-3 px-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    098765432{item}
-                  </div>
-                </td>
-                <td className="py-3 px-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    customer{item}@example.com
-                  </div>
-                </td>
-                <td className="py-3 px-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {item}23 Đường Lê Lợi, Quận 1, TP.HCM
-                  </div>
-                </td>
-                <td className="py-3 px-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-2">
-                    <button className="text-teal-600 hover:text-teal-900">
-                      <svg
-                        className="h-5 w-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
-                    <button className="text-blue-600 hover:text-blue-900">
-                      <svg
-                        className="h-5 w-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
-                      <svg
-                        className="h-5 w-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Search */}
+      <div className="bg-white rounded-xl p-4 shadow-md border border-gray-200">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên, số điện thoại, email hoặc CCCD..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="flex justify-between items-center mt-6">
-        <div className="text-sm text-gray-500">
-          Hiển thị 1-5 của 5 khách hàng
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <User size={24} />
+            </div>
+          </div>
+          <h3 className="text-sm font-medium opacity-90 mb-1">
+            Tổng khách hàng
+          </h3>
+          <p className="text-3xl font-bold">
+            {pagination.totalCount || customers.length}
+          </p>
         </div>
-        <div className="flex space-x-1">
-          <button className="px-3 py-1 rounded border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-            Trước
-          </button>
-          <button className="px-3 py-1 rounded border border-teal-500 bg-teal-500 text-white">
-            1
-          </button>
-          <button className="px-3 py-1 rounded border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-            Sau
-          </button>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <User size={24} className="text-green-600" />
+            </div>
+          </div>
+          <h3 className="text-sm font-medium text-gray-600 mb-1">Nam</h3>
+          <p className="text-3xl font-bold text-gray-900">
+            {customers.filter((c) => c.gender?.toLowerCase() === "male").length}
+          </p>
         </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+              <User size={24} className="text-pink-600" />
+            </div>
+          </div>
+          <h3 className="text-sm font-medium text-gray-600 mb-1">Nữ</h3>
+          <p className="text-3xl font-bold text-gray-900">
+            {
+              customers.filter((c) => c.gender?.toLowerCase() === "female")
+                .length
+            }
+          </p>
+        </div>
+      </div>
+
+      {/* Customers List */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Khách hàng
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Liên hệ
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Địa chỉ
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Ngày sinh
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  CCCD
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Thao tác
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredCustomers.map((customer) => (
+                <tr
+                  key={customer.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {customer.fullName?.charAt(0).toUpperCase() || "?"}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {customer.fullName || "N/A"}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {getGenderDisplay(customer.gender)}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Phone size={14} className="text-gray-400" />
+                        <span>{customer.phone || "N/A"}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Mail size={14} className="text-gray-400" />
+                        <span>{customer.email || "N/A"}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-start space-x-2 text-sm text-gray-600">
+                      <MapPin size={14} className="text-gray-400 mt-1" />
+                      <span className="line-clamp-2">
+                        {customer.address || "N/A"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <Calendar size={14} className="text-gray-400" />
+                      <span>{formatDate(customer.dob)}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <CreditCard size={14} className="text-gray-400" />
+                      <span>{customer.cardId || "N/A"}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() =>
+                          navigate(`/dealer-staff/customers/${customer.id}`)
+                        }
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Xem chi tiết"
+                      >
+                        <Eye size={18} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/dealer-staff/customers/${customer.id}/edit`
+                          )
+                        }
+                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Chỉnh sửa"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleDelete(customer.id, customer.fullName)
+                        }
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Xóa"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Empty State */}
+        {filteredCustomers.length === 0 && (
+          <div className="text-center py-12">
+            <User size={48} className="mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Không tìm thấy khách hàng
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {searchTerm
+                ? "Thử điều chỉnh từ khóa tìm kiếm"
+                : "Tạo hồ sơ khách hàng đầu tiên để bắt đầu"}
+            </p>
+            {!searchTerm && (
+              <button
+                onClick={() => navigate("/dealer-staff/customers/create")}
+                className="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                <Plus size={20} />
+                <span>Tạo hồ sơ khách hàng</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Hiển thị {customers.length} trong tổng số {pagination.totalCount}{" "}
+              khách hàng
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => changePage(pagination.currentPage - 1)}
+                disabled={pagination.currentPage === 1}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Trước
+              </button>
+              <span className="text-sm text-gray-600">
+                Trang {pagination.currentPage} / {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => changePage(pagination.currentPage + 1)}
+                disabled={pagination.currentPage === pagination.totalPages}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { FileText } from "lucide-react";
+import { FileText, FileSignature } from "lucide-react";
 
 const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
   const { user } = useAuth();
@@ -28,8 +28,8 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
       ),
     },
     {
-      name: "Hồ sơ",
-      path: "/dealer-staff/profile",
+      name: "Đơn hàng",
+      path: "/dealer-staff/orders",
       icon: (
         <svg
           className="w-5 h-5"
@@ -42,7 +42,7 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
           />
         </svg>
       ),
@@ -51,6 +51,11 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
       name: "Báo giá",
       path: "/dealer-staff/quotations",
       icon: <FileText size={20} />,
+    },
+    {
+      name: "Hợp đồng",
+      path: "/dealer-staff/contracts",
+      icon: <FileSignature size={20} />,
     },
   ];
 
@@ -127,7 +132,7 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
       </div>
 
       {!collapsed && (
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-700">
+        <div className="absolute bottom-0 w-full p-4 border-gray-700">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium">
               {user?.fullName?.charAt(0) || user?.email?.charAt(0) || "U"}

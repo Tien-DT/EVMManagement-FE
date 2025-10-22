@@ -1,58 +1,47 @@
 // src/features/dealer-staff/pages/CreateQuotationPage.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { FileText } from "lucide-react";
 import QuotationForm from "../components/QuotationForm";
-import { useCreateQuotation } from "../hooks/useCreateQuotation";
-import { useNotification } from "../../../context/NotificationContext";
+import { quotationService } from "../services/quotationService";
 
-export const CreateQuotationPage = () => {
+const CreateQuotationPage = () => {
   const navigate = useNavigate();
-  const { showSuccess, showError } = useNotification();
-  const {
-    register,
-    handleSubmit,
-    errors,
-    isSubmitting,
-    control,
-    watch,
-    setValue,
-  } = useCreateQuotation();
 
-  const onSubmit = async (data) => {
-    const result = await handleSubmit(data);
-    if (result.success) {
-      showSuccess("Tạo báo giá thành công!");
-      navigate("/dealer-staff/quotations");
-    } else {
-      showError(result.error || "Có lỗi xảy ra khi tạo báo giá");
+  const handleCreateQuotation = async (data) => {
+    try {
+      console.log("Creating quotation with data:", data);
+      const response = await quotationService.createQuotation(data);
+
+      if (response.success) {
+        alert("Tạo báo giá thành công!");
+        navigate("/dealer-staff/quotations");
+      } else {
+        throw new Error(response.message || "Không thể tạo báo giá");
+      }
+    } catch (error) {
+      console.error("Create quotation error:", error);
+      alert(`Tạo báo giá thất bại: ${error.message}`);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-8 border border-gray-200">
-      <div className="flex items-center mb-6">
-        <button
-          onClick={() => navigate("/dealer-staff/quotations")}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors mr-4"
-        >
-          <ArrowLeft size={20} className="mr-2" />
-          Quay lại
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Tạo báo giá mới
-        </h1>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center space-x-3">
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
+          <FileText className="text-white" size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Tạo báo giá mới</h1>
+          <p className="text-gray-600 mt-1">
+            Điền thông tin để tạo báo giá cho khách hàng
+          </p>
+        </div>
       </div>
 
-      <QuotationForm
-        register={register}
-        onSubmit={onSubmit}
-        errors={errors}
-        isSubmitting={isSubmitting}
-        control={control}
-        watch={watch}
-        setValue={setValue}
-      />
+      {/* Form */}
+      <QuotationForm onSubmit={handleCreateQuotation} mode="create" />
     </div>
   );
 };

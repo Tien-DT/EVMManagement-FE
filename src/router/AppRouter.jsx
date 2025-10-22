@@ -52,6 +52,13 @@ import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
+import OrdersPage from "../features/dealer-staff/pages/OrdersPage";
+import CreateOrderPage from "../features/dealer-staff/pages/CreateOrderPage";
+import OrderDetailPage from "../features/dealer-staff/pages/OrderDetailPage";
+
+// Contract Pages
+import ContractsPage from "../features/dealer-staff/pages/ContractsPage";
+import CreateContractPage from "../features/dealer-staff/pages/CreateContractPage";
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
@@ -153,6 +160,26 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/quotations/create"
               element={<CreateQuotationPage />}
+            />
+            <Route
+              path="/dealer-staff/orders"
+              element={<OrdersPage />}
+            />
+            <Route
+              path="/dealer-staff/orders/create"
+              element={<CreateOrderPage />}
+            />
+            <Route
+              path="/dealer-staff/orders/:id"
+              element={<OrderDetailPage />}
+            />
+            <Route
+              path="/dealer-staff/contracts"
+              element={<ContractsPage />}
+            />
+            <Route
+              path="/dealer-staff/contracts/create"
+              element={<CreateContractPage />}
             />
           </Route>
         </Route>
