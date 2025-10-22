@@ -137,3 +137,163 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# ========================================
+# React & Create React App specific
+# ========================================
+
+# Production build
+/build
+/dist
+
+# Testing
+/coverage
+
+# Environment variables (local overrides)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ========================================
+# IDE & Editors
+# ========================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ========================================
+# Operating System
+# ========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+
+# ========================================
+# Temporary & Debug files
+# ========================================
+
+# Debug logs
+debug.log
+*.log.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Lock files (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
+
+# ========================================
+# React/Node Specific - Thêm các folder không cần thiết
+# ========================================
+
+# ESBuild cache
+.esbuild/
+
+# Webpack cache
+.webpack/
+
+# Turbo cache
+.turbo/
+
+# Prettier cache
+.prettiercache
+
+# ESLint cache
+.eslintcache
+
+# Jest cache
+.jest/
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+
+# ========================================
+# Misc
+# ========================================
+
+# Storybook build
+storybook-static/
+
+# Bundle analysis
+stats.json
+bundle-report.html
+
+# Source maps (nếu không cần debug production)
+*.map
+
+# Package manager metadata
+.pnpm-debug.log*
+.pnp.js
+
+# Sentry
+.sentryclirc
+
+# Vercel
+.vercel
+
+# Netlify
+.netlify

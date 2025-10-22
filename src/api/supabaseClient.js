@@ -1,10 +1,16 @@
 // src/api/supabaseClient.js
 import { createClient } from "@supabase/supabase-js";
 
-// Thông tin kết nối Supabase
-const supabaseUrl = "https://okeiszxxcsahlpylkbnv.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rZWlzenh4Y3NhaGxweWxrYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNDI2ODIsImV4cCI6MjA3NjcxODY4Mn0.rHTzBCwWrpi3cmCHmPHZ_qTN6Ib1e2QL8EsLwCoF-W0";
+// Lấy thông tin từ environment variables
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+// Kiểm tra xem env variables có được set chưa
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    "Missing Supabase environment variables. Please check your .env file."
+  );
+}
 
 // Tạo client Supabase
 const supabaseClient = createClient(supabaseUrl, supabaseKey);

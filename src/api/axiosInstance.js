@@ -2,14 +2,12 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://evm-redg.onrender.com/api",
+  baseURL: process.env.REACT_APP_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
-    // BỎ header này vì nó gây lỗi CORS
-    // "Access-Control-Allow-Origin": "*",
   },
-  timeout: 30000, // Tăng timeout lên 30s cho server Render
+  timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || "30000"),
 });
 
 // Request Interceptor
