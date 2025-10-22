@@ -14,7 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EVMStaffLayout";
+import EVMStaffLayout from "../layouts/EvmStaffLayout"; 
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -62,6 +62,9 @@ import CreateContractPage from "../features/dealer-staff/pages/CreateContractPag
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
+import EvmStaffOrderRequestsPage from "../features/evm-staff/pages/EvmStaffOrderRequestsPage";
+import EvmStaffCreateQuotationPage from "../features/evm-staff/pages/EvmStaffCreateQuotationPage";
+import EvmStaffContractsPage from "../features/evm-staff/pages/EvmStaffContractsPage";
 import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
 import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
 import EvmStaffCustomersPage from "../features/evm-staff/pages/EvmStaffCustomersPage";
@@ -190,6 +193,10 @@ const AppRouter = () => (
         <Route element={<RoleBasedRoute allowedRoles={["evm-staff"]} />}>
           <Route element={<EVMStaffLayout />}>
             <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
+            <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
+            <Route path="/evm-staff/quotations" element={<QuotationsPage />} />
+            <Route path="/evm-staff/quotations/create/:requestId" element={<EvmStaffCreateQuotationPage />} />
+            <Route path="/evm-staff/contracts" element={<EvmStaffContractsPage />} />
             <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
             <Route path="/evm-staff/orders" element={<EvmStaffOrdersPage />} />
             <Route path="/evm-staff/customers" element={<EvmStaffCustomersPage />} />

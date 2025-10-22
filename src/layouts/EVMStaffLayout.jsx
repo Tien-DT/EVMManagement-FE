@@ -1,4 +1,3 @@
-// src/layouts/EVMStaffLayout.jsx
 import React, { useMemo, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
@@ -79,7 +78,7 @@ const EVMStaffLayout = () => {
                 arrow
               >
                 <div className="flex items-center cursor-pointer">
-                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+                  <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-medium">
                     {user?.fullName?.charAt(0) || user?.email?.charAt(0) || "U"}
                   </div>
                   <span className="ml-2 text-sm font-medium text-gray-700">
