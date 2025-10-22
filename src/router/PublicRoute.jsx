@@ -31,6 +31,8 @@ const PublicRoute = ({ children }) => {
       redirectPath = "/admin/dashboard";
     } else if (normalizedRole?.includes("dealer")) {
       redirectPath = "/dealer/dashboard";
+    } else if (normalizedRole?.includes("evm_staff")) {
+      redirectPath = "/evm-staff/dashboard";
     }
 
     console.log("➡️ Redirecting to:", redirectPath);
