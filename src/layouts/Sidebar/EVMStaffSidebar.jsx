@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   Users,
   Settings,
+  FileText,
 } from "lucide-react";
 
 const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
@@ -19,6 +20,21 @@ const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
         name: "Dashboard",
         path: "/evm-staff/dashboard",
         icon: <LayoutDashboard size={20} />,
+      },
+      {
+        name: "Yêu cầu đặt hàng",
+        path: "/evm-staff/order-requests",
+        icon: <ShoppingCart size={20} />,
+      },
+      {
+        name: "Báo giá",
+        path: "/evm-staff/quotations",
+        icon: <FileText size={20} />,
+      },
+      {
+        name: "Hợp đồng",
+        path: "/evm-staff/contracts",
+        icon: <FileText size={20} />,
       },
       {
         name: "Xe điện",
@@ -123,22 +139,6 @@ const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
           </nav>
         </div>
       </div>
-
-      {!collapsed && (
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-700">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-medium">
-              {user?.fullName?.charAt(0) || user?.email?.charAt(0) || "U"}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-white">
-                {user?.fullName || "User"}
-              </p>
-              <p className="text-xs text-gray-400">{user?.email}</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
