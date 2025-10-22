@@ -4,7 +4,8 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
   LayoutDashboard,
-  FileText,
+  Car,
+  ShoppingCart,
   Users,
   Settings,
 } from "lucide-react";
@@ -20,9 +21,14 @@ const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
         icon: <LayoutDashboard size={20} />,
       },
       {
-        name: "Báo giá",
-        path: "/evm-staff/quotations",
-        icon: <FileText size={20} />,
+        name: "Xe điện",
+        path: "/evm-staff/vehicles",
+        icon: <Car size={20} />,
+      },
+      {
+        name: "Đơn hàng",
+        path: "/evm-staff/orders",
+        icon: <ShoppingCart size={20} />,
       },
       {
         name: "Khách hàng",
@@ -48,7 +54,7 @@ const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         {!collapsed && (
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold">EVM</span>
             </div>
             <h2 className="ml-3 text-lg font-semibold">EVM Staff</h2>
@@ -56,7 +62,7 @@ const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
         )}
         {collapsed && (
           <div className="w-full flex justify-center">
-            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold">E</span>
             </div>
           </div>
@@ -105,7 +111,7 @@ const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
                 className={({ isActive }) =>
                   `flex items-center px-4 py-3 transition-colors ${
                     isActive
-                      ? "bg-blue-500 text-white"
+                      ? "bg-emerald-500 text-white"
                       : "text-gray-300 hover:bg-gray-700"
                   } ${collapsed ? "justify-center" : ""}`
                 }
@@ -121,7 +127,7 @@ const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
       {!collapsed && (
         <div className="absolute bottom-0 w-full p-4 border-t border-gray-700">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-medium">
               {user?.fullName?.charAt(0) || user?.email?.charAt(0) || "U"}
             </div>
             <div className="ml-3">
