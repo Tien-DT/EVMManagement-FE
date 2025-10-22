@@ -63,19 +63,6 @@ const EvmStaffCustomersPage = () => {
           status: 'inactive',
           lastOrder: '2024-01-18',
           vehicles: ['EVM Hatchback']
-        },
-        {
-          id: 4,
-          name: 'Phạm Thị D',
-          email: 'phamthid@email.com',
-          phone: '0741852963',
-          address: '321 Đường GHI, Quận 4, TP.HCM',
-          registrationDate: '2024-01-18',
-          totalOrders: 0,
-          totalSpent: 0,
-          status: 'prospect',
-          lastOrder: null,
-          vehicles: []
         }
       ]);
       setLoading(false);
