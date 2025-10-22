@@ -48,6 +48,9 @@ import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPag
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
+import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
+import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
+import EvmStaffCustomersPage from "../features/evm-staff/pages/EvmStaffCustomersPage";
 
 const AppRouter = () => (
   <Router>
@@ -127,11 +130,11 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["evm_staff"]} />}>
           <Route element={<EvmStaffLayout />}>
-            <Route
-              path="/evm-staff/dashboard"
-              element={<EvmStaffDashboardPage />}
-            />
-            {/* Additional EVM Staff routes can be added here */}
+            <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
+            <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
+            <Route path="/evm-staff/orders" element={<EvmStaffOrdersPage />} />
+            <Route path="/evm-staff/customers" element={<EvmStaffCustomersPage />} />
+            <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>
         </Route>
       </Route>
