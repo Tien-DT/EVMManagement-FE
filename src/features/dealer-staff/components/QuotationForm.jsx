@@ -41,7 +41,7 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
     if (userStr) {
       const user = JSON.parse(userStr);
       setUserId(user.id);
-      setFormData((prev) => ({ ...prev, createdByUserId: user.id }));
+      // Không set createdByUserId ở đây, sẽ lấy từ userProfile
       console.log("🔍 User ID set:", user.id);
     }
 
@@ -79,20 +79,37 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
           const userProfile = await dealerService.getUserProfile(accountId);
           console.log("📦 User profile response:", userProfile);
 
-          if (userProfile.success && userProfile.data?.dealerId) {
+          if (userProfile.success && userProfile.data) {
+            // Lấy dealerId từ userProfile
             const fetchedDealerId = userProfile.data.dealerId;
             console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+            // Lấy id từ userProfile để dùng cho createdByUserId
+            const profileId = userProfile.data.id;
+            console.log("✅ Profile ID fetched from API:", profileId);
+            
+            // Set createdByUserId từ id của userProfile
+            if (profileId) {
+              setFormData((prev) => ({ ...prev, createdByUserId: profileId }));
+              console.log("✅ createdByUserId set to profile ID:", profileId);
+            } else {
+              console.error("❌ No profile ID found in user profile");
+            }
 
             // Save to sessionStorage for future use
             sessionStorage.setItem(
               "userProfile",
               JSON.stringify(userProfile.data)
             );
-            sessionStorage.setItem("dealerId", fetchedDealerId);
-
-            setDealerId(fetchedDealerId);
+            
+            if (fetchedDealerId) {
+              sessionStorage.setItem("dealerId", fetchedDealerId);
+              setDealerId(fetchedDealerId);
+            } else {
+              console.error("❌ No dealerId found in user profile");
+            }
           } else {
-            console.error("❌ No dealerId found in user profile");
+            console.error("❌ No data found in user profile response");
             console.error("User profile data:", userProfile.data);
           }
         } catch (error) {
