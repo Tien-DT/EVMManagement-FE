@@ -4,9 +4,14 @@ const dealerContractService = {
   // Get all dealer contracts
   getAllContracts: async (params = {}) => {
     try {
+      console.log('Service: Fetching contracts with params:', params);
       const response = await axiosInstance.get('/v1/DealerContracts', { params });
-      return response.data;
+      console.log('Service: Contracts response:', response);
+      // axiosInstance returns response.data which is { success, data: { items }, errors }
+      // We return the whole response so hook can access response.data.items
+      return response;
     } catch (error) {
+      console.error('Service: Error fetching contracts:', error);
       throw error;
     }
   },
@@ -24,9 +29,15 @@ const dealerContractService = {
   // Create new dealer contract (POST method)
   createContract: async (contractData) => {
     try {
+      console.log('Service: Sending POST request to /v1/DealerContracts');
+      console.log('Service: Contract data:', contractData);
       const response = await axiosInstance.post('/v1/DealerContracts', contractData);
-      return response.data;
+      console.log('Service: Response received:', response);
+      // Return whole response for consistency
+      return response;
     } catch (error) {
+      console.error('Service: Error creating contract:', error);
+      console.error('Service: Error response:', error.response);
       throw error;
     }
   },
