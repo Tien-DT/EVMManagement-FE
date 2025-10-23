@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
   Search, 
@@ -12,22 +13,22 @@ import {
   User,
   Car,
   Key,
-  Send
+  Send,
+  Plus
 } from 'lucide-react';
+import useDealerContracts from '../hooks/useDealerContracts';
 
 const EvmStaffContractsPage = () => {
-  const [contracts, setContracts] = useState([]);
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [loading, setLoading] = useState(false);
-
-  // TODO: Replace with actual API call
-  useEffect(() => {
-    setLoading(true);
-    // TODO: Implement actual API call to fetch contracts
-    setContracts([]);
-    setLoading(false);
-  }, []);
+  
+  const { 
+    contracts, 
+    loading, 
+    error, 
+    fetchContracts 
+  } = useDealerContracts();
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -89,9 +90,16 @@ const EvmStaffContractsPage = () => {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Hợp Đồng</h1>
-          <p className="text-gray-600 mt-1">Quản lý hợp đồng và OTP ký số</p>
+          <h1 className="text-2xl font-bold text-gray-900">Hợp Đồng Đại Lý</h1>
+          <p className="text-gray-600 mt-1">Quản lý hợp đồng đại lý</p>
         </div>
+        <button
+          onClick={() => navigate('/evm-staff/contracts/create')}
+          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center"
+        >
+          <Plus size={16} className="mr-2" />
+          Tạo hợp đồng
+        </button>
       </div>
 
       {/* Stats Cards */}
