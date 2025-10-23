@@ -208,7 +208,7 @@ const QuotationsPage = () => {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() =>
-                            navigate(`/evm-staff/quotations/${quotation.id}`)
+                            navigate(`/dealer-staff/quotations/${quotation.id}`)
                           }
                           className="text-blue-600 hover:text-blue-900"
                           title="Xem chi tiết"
