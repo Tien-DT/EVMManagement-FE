@@ -50,8 +50,10 @@ import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPag
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
+import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
+import QuotationDetailPage from "../features/dealer-staff/pages/QuotationDetailPage";
 import OrdersPage from "../features/dealer-staff/pages/OrdersPage";
 import CreateOrderPage from "../features/dealer-staff/pages/CreateOrderPage";
 import OrderDetailPage from "../features/dealer-staff/pages/OrderDetailPage";
@@ -59,6 +61,7 @@ import OrderDetailPage from "../features/dealer-staff/pages/OrderDetailPage";
 // Contract Pages
 import ContractsPage from "../features/dealer-staff/pages/ContractsPage";
 import CreateContractPage from "../features/dealer-staff/pages/CreateContractPage";
+import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPage";
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
@@ -107,17 +110,44 @@ const AppRouter = () => (
             <Route path="/admin/register" element={<SignUpForm />} />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
-            <Route path="/admin/dealers/:id/edit" element={<DealerFormPage />} />
+            <Route
+              path="/admin/dealers/:id/edit"
+              element={<DealerFormPage />}
+            />
             <Route path="/admin/vehiclemodels" element={<VehicleListPage />} />
-            <Route path="/admin/vehiclemodels/new" element={<VehicleFormPage />} />
-            <Route path="/admin/vehiclemodels/:id/edit" element={<VehicleFormPage />} />
-            <Route path="/admin/vehiclemodels/:id" element={<VehicleModelDetailPage />} />
-            <Route path="/admin/vehiclemodels/:id/variants/new" element={<VehicleVariantFormPage />} />
-            <Route path="/admin/vehiclemodels/:id/variants/:variantId/edit" element={<VehicleVariantFormPage />} />
+            <Route
+              path="/admin/vehiclemodels/new"
+              element={<VehicleFormPage />}
+            />
+            <Route
+              path="/admin/vehiclemodels/:id/edit"
+              element={<VehicleFormPage />}
+            />
+            <Route
+              path="/admin/vehiclemodels/:id"
+              element={<VehicleModelDetailPage />}
+            />
+            <Route
+              path="/admin/vehiclemodels/:id/variants/new"
+              element={<VehicleVariantFormPage />}
+            />
+            <Route
+              path="/admin/vehiclemodels/:id/variants/:variantId/edit"
+              element={<VehicleVariantFormPage />}
+            />
             <Route path="/admin/promotions" element={<PromotionListPage />} />
-            <Route path="/admin/promotions/new" element={<PromotionFormPage />} />
-            <Route path="/admin/promotions/:id/edit" element={<PromotionFormPage />} />
-            <Route path="/admin/user-profile-test" element={<UserProfileTestPage />} />
+            <Route
+              path="/admin/promotions/new"
+              element={<PromotionFormPage />}
+            />
+            <Route
+              path="/admin/promotions/:id/edit"
+              element={<PromotionFormPage />}
+            />
+            <Route
+              path="/admin/user-profile-test"
+              element={<UserProfileTestPage />}
+            />
           </Route>
         </Route>
       </Route>
@@ -147,15 +177,18 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["dealer-staff"]} />}>
           <Route element={<DealerStaffLayout />}>
+            {/* Customer Routes */}
             <Route path="/dealer-staff/customers" element={<CustomersPage />} />
             <Route
               path="/dealer-staff/customers/create"
               element={<CreateCustomerPage />}
             />
             <Route
-              path="/dealer-staff/customers/create"
-              element={<CreateCustomerPage />}
+              path="/dealer-staff/customers/:id"
+              element={<CustomerDetailPage />}
             />
+
+            {/* Quotation Routes */}
             <Route
               path="/dealer-staff/quotations"
               element={<QuotationsPage />}
@@ -165,9 +198,12 @@ const AppRouter = () => (
               element={<CreateQuotationPage />}
             />
             <Route
-              path="/dealer-staff/orders"
-              element={<OrdersPage />}
+              path="/dealer-staff/quotations/:id"
+              element={<QuotationDetailPage />}
             />
+
+            {/* Order Routes */}
+            <Route path="/dealer-staff/orders" element={<OrdersPage />} />
             <Route
               path="/dealer-staff/orders/create"
               element={<CreateOrderPage />}
@@ -176,13 +212,16 @@ const AppRouter = () => (
               path="/dealer-staff/orders/:id"
               element={<OrderDetailPage />}
             />
-            <Route
-              path="/dealer-staff/contracts"
-              element={<ContractsPage />}
-            />
+
+            {/* Contract Routes */}
+            <Route path="/dealer-staff/contracts" element={<ContractsPage />} />
             <Route
               path="/dealer-staff/contracts/create"
               element={<CreateContractPage />}
+            />
+            <Route
+              path="/dealer-staff/contracts/:id"
+              element={<ContractDetailPage />}
             />
           </Route>
         </Route>
@@ -199,7 +238,10 @@ const AppRouter = () => (
             <Route path="/evm-staff/contracts" element={<EvmStaffContractsPage />} />
             <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
             <Route path="/evm-staff/orders" element={<EvmStaffOrdersPage />} />
-            <Route path="/evm-staff/customers" element={<EvmStaffCustomersPage />} />
+            <Route
+              path="/evm-staff/customers"
+              element={<EvmStaffCustomersPage />}
+            />
             <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>
         </Route>
