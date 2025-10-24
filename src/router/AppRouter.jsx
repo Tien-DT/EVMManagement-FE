@@ -66,7 +66,9 @@ import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPag
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
 import EvmStaffOrderRequestsPage from "../features/evm-staff/pages/EvmStaffOrderRequestsPage";
+import EvmStaffQuotationsPage from "../features/evm-staff/pages/EvmStaffQuotationsPage";
 import EvmStaffCreateQuotationPage from "../features/evm-staff/pages/EvmStaffCreateQuotationPage";
+import EvmStaffQuotationDetailPage from "../features/evm-staff/pages/EvmStaffQuotationDetailPage";
 import EvmStaffContractsPage from "../features/evm-staff/pages/EvmStaffContractsPage";
 import EvmStaffCreateDealerContractPage from "../features/evm-staff/pages/EvmStaffCreateDealerContractPage";
 import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
@@ -234,10 +236,18 @@ const AppRouter = () => (
           <Route element={<EVMStaffLayout />}>
             <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
             <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
-            <Route path="/evm-staff/quotations" element={<QuotationsPage />} />
+            
+            {/* Quotation Routes */}
+            <Route path="/evm-staff/quotations" element={<EvmStaffQuotationsPage />} />
+            <Route path="/evm-staff/quotations/create" element={<EvmStaffCreateQuotationPage />} />
             <Route path="/evm-staff/quotations/create/:requestId" element={<EvmStaffCreateQuotationPage />} />
+            <Route path="/evm-staff/quotations/edit/:id" element={<EvmStaffCreateQuotationPage />} />
+            <Route path="/evm-staff/quotations/:id" element={<EvmStaffQuotationDetailPage />} />
+            
+            {/* Contract Routes */}
             <Route path="/evm-staff/contracts" element={<EvmStaffContractsPage />} />
             <Route path="/evm-staff/contracts/create" element={<EvmStaffCreateDealerContractPage />} />
+            
             <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
             <Route path="/evm-staff/orders" element={<EvmStaffOrdersPage />} />
             <Route

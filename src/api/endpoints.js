@@ -62,6 +62,16 @@ const endpoints = {
     delete: (id) => `/v1/Quotations/${id}`,
   },
   
+  // Quotation Details endpoints
+  quotationDetails: {
+    getAll: "/v1/QuotationDetails",
+    getById: (id) => `/v1/QuotationDetails/${id}`,
+    getByQuotationId: (quotationId) => `/v1/QuotationDetails/quotation/${quotationId}`,
+    create: "/v1/QuotationDetails",
+    update: (id) => `/v1/QuotationDetails/${id}`,
+    delete: (id) => `/v1/QuotationDetails/${id}`,
+  },
+  
   // Order endpoints
   orders: {
     getAll: "/v1/Orders",
