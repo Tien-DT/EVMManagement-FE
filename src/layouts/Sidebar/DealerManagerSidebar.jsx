@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Warehouse,
   UserPlus,
+  Clock,
   ChevronRight,
   Menu,
   X,
@@ -23,6 +24,11 @@ const DealerManagerSidebar = () => {
       path: "/dealer/warehouses",
       icon: Warehouse,
       label: "Warehouses",
+    },
+    {
+      path: "/dealer/time-slots",
+      icon: Clock,
+      label: "Time Slots",
     },
     {
       path: "/dealer/register-staff",

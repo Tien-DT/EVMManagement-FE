@@ -1,4 +1,3 @@
-// src/router/AppRouter.jsx
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -14,7 +13,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EvmStaffLayout"; 
+import EVMStaffLayout from "../layouts/EVMStaffLayout"; 
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -46,6 +45,8 @@ import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerM
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
+import TimeSlotsPage from "../features/dealer-manager/pages/TimeSlotsPage";
+import CreateTimeSlotPage from "../features/dealer-manager/pages/CreateTimeSlotPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
@@ -101,7 +102,7 @@ const AppRouter = () => (
         }
       />
 
-      {/* Admin Routes - ✅ Support EVM_ADMIN role */}
+      {/* Admin Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
@@ -169,6 +170,10 @@ const AppRouter = () => (
               path="/dealer/register-staff"
               element={<RegisterStaffPage />}
             />
+            
+            {/* Time Slots Routes */}
+            <Route path="/dealer/time-slots" element={<TimeSlotsPage />} />
+            <Route path="/dealer/time-slots/create" element={<CreateTimeSlotPage />} />
           </Route>
         </Route>
       </Route>
@@ -247,7 +252,7 @@ const AppRouter = () => (
         </Route>
       </Route>
 
-      {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
+      {/* Root redirect */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Catch all - redirect to login */}

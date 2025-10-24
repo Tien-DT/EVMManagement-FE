@@ -37,7 +37,7 @@ const endpoints = {
   // User Profile endpoints
   userProfile: {
     getByAccount: (accId) => `/v1/UserProfile/by-account/${accId}`,
-    byAccount: (accountId) => `/v1/UserProfile/by-account/${accountId}`, // Alias
+    byAccount: (accountId) => `/v1/UserProfile/by-account/${accountId}`,
   },
   
   // Customer endpoints
@@ -56,7 +56,7 @@ const endpoints = {
     getAll: "/v1/Quotations",
     getById: (id) => `/v1/Quotations/${id}`,
     getByDealerId: (dealerId) => `/v1/Quotations/dealer/${dealerId}`,
-    getByDealer: (dealerId) => `/v1/Quotations/dealer/${dealerId}`, // Alias
+    getByDealer: (dealerId) => `/v1/Quotations/dealer/${dealerId}`,
     create: "/v1/Quotations",
     update: (id) => `/v1/Quotations/${id}`,
     delete: (id) => `/v1/Quotations/${id}`,
@@ -70,6 +70,15 @@ const endpoints = {
     create: "/v1/Orders",
     update: (id) => `/v1/Orders/${id}`,
     delete: (id) => `/v1/Orders/${id}`,
+  },
+
+  // Master Time Slots endpoints
+  masterTimeSlots: {
+    getAll: "/v1/MasterTimeSlots",
+    getById: (id) => `/v1/MasterTimeSlots/${id}`,
+    create: "/v1/MasterTimeSlots",
+    update: (id) => `/v1/MasterTimeSlots/${id}`,
+    delete: (id) => `/v1/MasterTimeSlots/${id}`,
   },
 };
 
