@@ -1,16 +1,42 @@
 import React, { useEffect, useState } from 'react';
 
 const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 }) => {
+  const [isExiting, setIsExiting] = useState(false);
+  const [progress, setProgress] = useState(100);
+
   useEffect(() => {
     if (isVisible) {
+      // Progress bar animation
+      const startTime = Date.now();
+      const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+        setProgress(remaining);
+      }, 10);
+
+      // Auto close timer
       const timer = setTimeout(() => {
-        onClose();
+        setIsExiting(true);
+        setTimeout(() => {
+          onClose();
+        }, 300); // Wait for exit animation
       }, duration);
-      return () => clearTimeout(timer);
+
+      return () => {
+        clearTimeout(timer);
+        clearInterval(progressInterval);
+      };
     }
   }, [isVisible, onClose, duration]);
 
-  if (!isVisible) return null;
+  const handleClose = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
+
+  if (!isVisible && !isExiting) return null;
 
   const getToastStyles = (type) => {
     switch (type) {
@@ -79,21 +105,54 @@ const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 
 
   const { bgColor, textColor, iconColor, borderColor, icon } = getToastStyles(type);
 
+  const getProgressBarColor = (type) => {
+    switch (type) {
+      case 'success': return 'bg-green-500';
+      case 'error': return 'bg-red-500';
+      case 'info': return 'bg-blue-500';
+      case 'warning': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
   return (
-    <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
-      <div className={`${bgColor} ${borderColor} border ${textColor} px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 max-w-sm`}>
-        <div className={iconColor}>
-          {icon}
+    <div 
+      className={`
+        ${isExiting ? 'animate-toast-exit' : 'animate-toast-enter'}
+        w-full max-w-sm
+      `}
+      style={{
+        animation: isExiting 
+          ? 'toastExit 0.3s ease-in-out forwards' 
+          : 'toastEnter 0.3s ease-in-out forwards'
+      }}
+    >
+      <div className={`${bgColor} ${borderColor} border ${textColor} rounded-lg shadow-xl overflow-hidden backdrop-blur-sm`}>
+        <div className="px-4 py-3 flex items-center gap-3">
+          <div className={`${iconColor} flex-shrink-0`}>
+            {icon}
+          </div>
+          <span className="flex-1 text-sm font-medium leading-snug">{message}</span>
+          <button
+            onClick={handleClose}
+            className={`${iconColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+            aria-label="Close notification"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <span className="flex-1 font-medium">{message}</span>
-        <button
-          onClick={onClose}
-          className={`${iconColor} hover:opacity-70 transition-opacity`}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        {/* Progress bar */}
+        <div className="h-1 bg-gray-200">
+          <div 
+            className={`h-full ${getProgressBarColor(type)} transition-all ease-linear`}
+            style={{ 
+              width: `${progress}%`,
+              transition: 'width 0.01s linear'
+            }}
+          />
+        </div>
       </div>
     </div>
   );

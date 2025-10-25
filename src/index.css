@@ -15,3 +15,34 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+/* Toast Animations */
+@keyframes toastEnter {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastExit {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.8);
+  }
+}
+
+.animate-toast-enter {
+  animation: toastEnter 0.3s ease-in-out forwards;
+}
+
+.animate-toast-exit {
+  animation: toastExit 0.3s ease-in-out forwards;
+}

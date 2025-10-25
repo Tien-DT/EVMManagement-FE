@@ -67,17 +67,19 @@ export const NotificationProvider = ({ children }) => {
     <NotificationContext.Provider value={value}>
       {children}
       {/* Render all notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {notifications.map((notification) => (
-          <Toast
-            key={notification.id}
-            message={notification.message}
-            type={notification.type}
-            isVisible={notification.isVisible}
-            onClose={() => removeNotification(notification.id)}
-            duration={notification.duration}
-          />
-        ))}
+      <div className="fixed top-4 right-4 z-50 space-y-3 pointer-events-none">
+        <div className="pointer-events-auto space-y-3">
+          {notifications.map((notification) => (
+            <Toast
+              key={notification.id}
+              message={notification.message}
+              type={notification.type}
+              isVisible={notification.isVisible}
+              onClose={() => removeNotification(notification.id)}
+              duration={notification.duration}
+            />
+          ))}
+        </div>
       </div>
     </NotificationContext.Provider>
   );

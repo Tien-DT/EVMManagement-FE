@@ -19,16 +19,19 @@ import EVMStaffLayout from "../layouts/EvmStaffLayout";
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
+import RegisterDealerManagerPage from "../features/admin/pages/RegisterDealerManagerPage";
 
 // Dealer Pages
 import DealerListPage from "../features/dealer/pages/DealerListPage";
 import DealerFormPage from "../features/dealer/pages/DealerFormPage";
+import DealerDetailPage from "../features/dealer/pages/DealerDetailPage";
 
 // Vehicle Pages
 import VehicleListPage from "../features/vehicle/pages/VehicleListPage";
 import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
 import VehicleModelDetailPage from "../features/vehicle/pages/VehicleModelDetailPage";
 import VehicleVariantFormPage from "../features/vehicle/pages/VehicleVariantFormPage";
+import VehicleVariantDetailPage from "../features/vehicle/pages/VehicleVariantDetailPage";
 
 // Promotion Pages
 import PromotionListPage from "../features/promotion/pages/PromotionListPage";
@@ -114,8 +117,10 @@ const AppRouter = () => (
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
+            <Route path="/admin/register-dealer-manager" element={<RegisterDealerManagerPage />} />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
+            <Route path="/admin/dealers/:id" element={<DealerDetailPage />} />
             <Route
               path="/admin/dealers/:id/edit"
               element={<DealerFormPage />}
@@ -136,6 +141,10 @@ const AppRouter = () => (
             <Route
               path="/admin/vehiclemodels/:id/variants/new"
               element={<VehicleVariantFormPage />}
+            />
+            <Route
+              path="/admin/vehiclemodels/:id/variants/:variantId"
+              element={<VehicleVariantDetailPage />}
             />
             <Route
               path="/admin/vehiclemodels/:id/variants/:variantId/edit"

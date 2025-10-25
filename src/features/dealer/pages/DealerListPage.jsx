@@ -156,22 +156,22 @@ export default function DealerListPage() {
               {/* Card Body */}
               <div className="p-6 space-y-3">
                 <div className="flex items-center text-sm text-gray-600">
-                  <MapPin size={16} className="mr-3 text-gray-400" />
+                  <MapPin size={16} className="mr-3 text-gray-400 flex-shrink-0" />
                   <span className="truncate">{dealer.address || "No address"}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
-                  <Phone size={16} className="mr-3 text-gray-400" />
+                  <Phone size={16} className="mr-3 text-gray-400 flex-shrink-0" />
                   <span>{dealer.phone || "No phone"}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
-                  <Mail size={16} className="mr-3 text-gray-400" />
+                  <Mail size={16} className="mr-3 text-gray-400 flex-shrink-0" />
                   <span className="truncate">{dealer.email || "No email"}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
-                  <Calendar size={16} className="mr-3 text-gray-400" />
+                  <Calendar size={16} className="mr-3 text-gray-400 flex-shrink-0" />
                   <span>
                     {dealer.establishedAt 
                       ? new Date(dealer.establishedAt).toLocaleDateString() 
@@ -182,21 +182,30 @@ export default function DealerListPage() {
 
               {/* Card Footer */}
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                <div className="flex justify-center space-x-3">
+                <div className="flex flex-col gap-2">
                   <Link
-                    to={`/admin/dealers/${dealer.id}/edit`}
-                    className="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm font-medium"
+                    to={`/admin/dealers/${dealer.id}`}
+                    className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
-                    <Edit3 size={16} className="mr-2" />
-                    Edit
+                    <Building2 size={16} className="mr-2" />
+                    View Details
                   </Link>
-                  <button
-                    onClick={() => handleDelete(dealer.id)}
-                    className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                  >
-                    <Trash2 size={16} className="mr-2" />
-                    Delete
-                  </button>
+                  <div className="flex gap-2">
+                    <Link
+                      to={`/admin/dealers/${dealer.id}/edit`}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm font-medium"
+                    >
+                      <Edit3 size={16} className="mr-2" />
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(dealer.id)}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                    >
+                      <Trash2 size={16} className="mr-2" />
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

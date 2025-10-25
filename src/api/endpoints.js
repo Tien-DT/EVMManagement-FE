@@ -36,7 +36,13 @@ const endpoints = {
   
   // User Profile endpoints
   userProfile: {
+    getAll: "/v1/UserProfile",
+    getById: (id) => `/v1/UserProfile/${id}`,
     getByAccount: (accId) => `/v1/UserProfile/by-account/${accId}`,
+    getByRole: "/v1/UserProfile/by-role",
+    getByDealer: (dealerId) => `/v1/UserProfile/by-dealer/${dealerId}`,
+    update: (id) => `/v1/UserProfile/${id}`, // PATCH
+    updateByAccount: (accId) => `/v1/UserProfile/${accId}`, // PUT
     byAccount: (accountId) => `/v1/UserProfile/by-account/${accountId}`, // Alias
   },
   
