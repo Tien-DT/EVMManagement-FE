@@ -7,6 +7,13 @@ const endpoints = {
     update: (id) => `/v1/Contracts/${id}`,
     delete: (id) => `/v1/Contracts/${id}`,
   },
+  dealerContracts: {
+    getAll: "/v1/DealerContracts",
+    getById: (id) => `/v1/DealerContracts/${id}`,
+    getByDealer: (dealerId) => `/v1/DealerContracts/dealer/${dealerId}`,
+    create: "/v1/DealerContracts",
+    verifyOtp: (dealerId) => `/v1/DealerContracts/${dealerId}/verify-otp`,
+  },
   auth: {
     signup: "/v1/Auth/accounts",
     login: "/v1/Auth/login",

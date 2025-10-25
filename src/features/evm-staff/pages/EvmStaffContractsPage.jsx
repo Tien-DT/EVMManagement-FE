@@ -3,32 +3,45 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
   Search, 
-  Filter, 
   Eye,
-  CheckCircle,
-  Clock,
-  XCircle,
-  AlertCircle,
-  Calendar,
-  User,
-  Car,
-  Key,
-  Send,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react';
-import useDealerContracts from '../hooks/useDealerContracts';
+import useContracts from '../hooks/useContracts';
+import { useNotification } from '../../../context/NotificationContext';
 
 const EvmStaffContractsPage = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [contractToDelete, setContractToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const { 
     contracts, 
     loading, 
     error, 
-    fetchContracts 
-  } = useDealerContracts();
+    pagination,
+    fetchContracts,
+    deleteContract
+  } = useContracts();
+
+  // Format contract ID to readable code
+  const formatContractCode = (uuid) => {
+    if (!uuid) return 'N/A';
+    // Extract last 8 characters and convert to uppercase
+    const shortId = uuid.slice(-8).toUpperCase();
+    return `CNT-${shortId}`;
+  };
+
+  // Format quotation ID to readable code
+  const formatQuotationCode = (uuid) => {
+    if (!uuid) return 'N/A';
+    const shortId = uuid.slice(-8).toUpperCase();
+    return `QUO-${shortId}`;
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -37,257 +50,218 @@ const EvmStaffContractsPage = () => {
     }).format(amount);
   };
 
-  const getStatusColor = (status) => {
+  const getStatusStyle = (status) => {
     switch(status) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'sent': return 'bg-blue-100 text-blue-800';
-      case 'signed': return 'bg-green-100 text-green-800';
-      case 'expired': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case 'draft': return <FileText size={16} />;
-      case 'sent': return <Send size={16} />;
-      case 'signed': return <CheckCircle size={16} />;
-      case 'expired': return <XCircle size={16} />;
-      default: return null;
+      case 'DRAFT': 
+        return 'bg-gray-50 text-gray-700 border border-gray-200';
+      case 'PENDING_SIGNATURE': 
+        return 'bg-amber-50 text-amber-700 border border-amber-200';
+      case 'ACTIVE': 
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+      case 'CANCELED': 
+        return 'bg-slate-50 text-slate-600 border border-slate-200';
+      default: 
+        return 'bg-gray-50 text-gray-700 border border-gray-200';
     }
   };
 
   const getStatusText = (status) => {
     switch(status) {
-      case 'draft': return 'Bản nháp';
-      case 'sent': return 'Đã gửi';
-      case 'signed': return 'Đã ký';
-      case 'expired': return 'Hết hạn';
-      default: return 'Không xác định';
+      case 'DRAFT': return 'Draft';
+      case 'PENDING_SIGNATURE': return 'Pending Signature';
+      case 'ACTIVE': return 'Active';
+      case 'CANCELED': return 'Canceled';
+      default: return 'Unknown';
     }
   };
 
   const filteredContracts = contracts.filter(contract => {
-    const matchesSearch = contract.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const contractCode = contract.code || formatContractCode(contract.id);
+    const quotationCode = contract.quotationCode || formatQuotationCode(contract.quotationId);
+    const matchesSearch = contractCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          contract.dealerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contract.quotationId?.toLowerCase().includes(searchTerm.toLowerCase());
+                         quotationCode.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || contract.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
-  const handleCreateOTP = (contractId) => {
-    // TODO: Implement create OTP functionality
-    console.log('Create OTP for contract:', contractId);
+  const handleViewContract = (contractId) => {
+    navigate(`/evm-staff/contracts/${contractId}`);
   };
 
-  const handleViewContract = (contractId) => {
-    // TODO: Navigate to contract detail page
-    console.log('View contract:', contractId);
+  const handleDeleteClick = (contract) => {
+    setContractToDelete(contract);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!contractToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteContract(contractToDelete.id);
+      showSuccess('Contract deleted successfully');
+      setShowDeleteModal(false);
+      setContractToDelete(null);
+    } catch (error) {
+      console.error('Error deleting contract:', error);
+      showError(error.response?.data?.message || 'Failed to delete contract');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-semibold text-gray-900">Hợp Đồng Đại Lý</h1>
-          <p className="text-gray-500 mt-1">Quản lý và theo dõi hợp đồng đại lý</p>
+          <h1 className="text-2xl font-semibold text-gray-900">Dealer Contracts</h1>
+          <p className="text-sm text-gray-600 mt-1">Manage and track dealer contracts</p>
         </div>
         <button
           onClick={() => navigate('/evm-staff/contracts/create')}
-          className="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 font-medium"
+          className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 flex items-center gap-2"
         >
-          <Plus size={18} />
-          Tạo hợp đồng
+          <Plus size={16} />
+          New Contract
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Tổng hợp đồng</p>
-              <p className="text-2xl font-semibold text-gray-900">{contracts.length}</p>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <FileText size={24} className="text-gray-600" />
-            </div>
-          </div>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-white p-4 border border-gray-200 rounded-md">
+          <p className="text-xs text-gray-600 mb-1">Total</p>
+          <p className="text-2xl font-semibold text-gray-900">{contracts.length}</p>
         </div>
-        
-        <div className="bg-white p-5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Đã gửi</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {contracts.filter(c => c.status === 'sent').length}
-              </p>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <Send size={24} className="text-blue-600" />
-            </div>
-          </div>
+        <div className="bg-white p-4 border border-gray-200 rounded-md">
+          <p className="text-xs text-gray-600 mb-1">Pending</p>
+          <p className="text-2xl font-semibold text-gray-900">
+            {contracts.filter(c => c.status === 'PENDING_SIGNATURE').length}
+          </p>
         </div>
-        
-        <div className="bg-white p-5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Đã ký</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {contracts.filter(c => c.status === 'signed').length}
-              </p>
-            </div>
-            <div className="p-3 bg-green-50 rounded-lg">
-              <CheckCircle size={24} className="text-green-600" />
-            </div>
-          </div>
+        <div className="bg-white p-4 border border-gray-200 rounded-md">
+          <p className="text-xs text-gray-600 mb-1">Active</p>
+          <p className="text-2xl font-semibold text-gray-900">
+            {contracts.filter(c => c.status === 'ACTIVE').length}
+          </p>
         </div>
-        
-        <div className="bg-white p-5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Hết hạn</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {contracts.filter(c => c.status === 'expired').length}
-              </p>
-            </div>
-            <div className="p-3 bg-red-50 rounded-lg">
-              <XCircle size={24} className="text-red-600" />
-            </div>
-          </div>
+        <div className="bg-white p-4 border border-gray-200 rounded-md">
+          <p className="text-xs text-gray-600 mb-1">Canceled</p>
+          <p className="text-2xl font-semibold text-gray-900">
+            {contracts.filter(c => c.status === 'CANCELED').length}
+          </p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
-            <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo ID, đại lý hoặc báo giá..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-              />
-            </div>
+      {/* Search and Filter */}
+      <div className="bg-white p-4 border border-gray-200 rounded-md">
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by code or dealer name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+            />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
+            className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
           >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="draft">Bản nháp</option>
-            <option value="sent">Đã gửi</option>
-            <option value="signed">Đã ký</option>
-            <option value="expired">Hết hạn</option>
+            <option value="all">All Status</option>
+            <option value="DRAFT">Draft</option>
+            <option value="PENDING_SIGNATURE">Pending</option>
+            <option value="ACTIVE">Active</option>
+            <option value="CANCELED">Canceled</option>
           </select>
         </div>
       </div>
 
       {/* Contracts Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
         {loading ? (
-          <div className="flex justify-center items-center py-16">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-900 border-t-transparent"></div>
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-900 border-t-transparent"></div>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="w-full table-fixed">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Hợp đồng
-                  </th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Đại lý
-                  </th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Báo giá
-                  </th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Giá trị
-                  </th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Trạng thái
-                  </th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    OTP
-                  </th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Ngày tạo
-                  </th>
-                  <th className="px-6 py-3.5 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Thao tác
-                  </th>
+                  <th className="w-36 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Contract Code</th>
+                  <th className="w-56 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Dealer</th>
+                  <th className="w-36 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Quotation</th>
+                  <th className="w-40 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Value</th>
+                  <th className="w-32 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
+                  <th className="w-36 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Created</th>
+                  <th className="w-48 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {filteredContracts.map((contract) => (
                   <tr key={contract.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{contract.id}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center">
-                          <User size={18} className="text-gray-600" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{contract.dealerName}</div>
-                          <div className="text-xs text-gray-500">{contract.dealerEmail}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{contract.quotationId}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{formatCurrency(contract.totalValue)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
-                        {getStatusIcon(contract.status)}
-                        {getStatusText(contract.status)}
+                    <td className="px-4 py-4 align-middle text-center">
+                      <span className="text-sm font-mono font-medium text-gray-900">
+                        {contract.code || formatContractCode(contract.id)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {contract.otpStatus ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                          <Key size={12} />
-                          Đã tạo
+                    <td className="px-4 py-4 align-middle">
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-medium text-gray-900 truncate w-full text-center">
+                          {contract.dealerName || contract.dealer?.name || 'N/A'}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          Chưa tạo
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar size={16} />
-                        {new Date(contract.createdAt).toLocaleDateString('vi-VN')}
+                        {(contract.dealerEmail || contract.dealer?.email) && (
+                          <span className="text-xs text-gray-500 truncate w-full text-center">
+                            {contract.dealerEmail || contract.dealer?.email}
+                          </span>
+                        )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 align-middle text-center">
+                      <span className="text-sm font-mono text-gray-700">
+                        {contract.quotationCode || formatQuotationCode(contract.quotationId)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 align-middle text-center">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {formatCurrency(contract.totalValue)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 align-middle">
+                      <div className="flex justify-center">
+                        <span className={`inline-block px-2.5 py-1 text-xs font-medium rounded whitespace-nowrap ${getStatusStyle(contract.status)}`}>
+                          {getStatusText(contract.status)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 align-middle text-center">
+                      <span className="text-sm text-gray-600">
+                        {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        }) : 'Invalid Date'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 align-middle">
                       <div className="flex items-center justify-center gap-2">
                         <button 
-                          onClick={() => handleCreateOTP(contract.id)}
-                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                          disabled={contract.status !== 'sent' || contract.otpStatus}
-                          title="Tạo OTP"
+                          onClick={() => handleViewContract(contract.id)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
                         >
-                          <Key size={18} />
+                          <Eye size={14} />
+                          View
                         </button>
                         <button 
-                          onClick={() => handleViewContract(contract.id)}
-                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Xem chi tiết"
+                          onClick={() => handleDeleteClick(contract)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
                         >
-                          <Eye size={18} />
+                          <Trash2 size={14} />
+                          Delete
                         </button>
                       </div>
                     </td>
@@ -301,13 +275,63 @@ const EvmStaffContractsPage = () => {
 
       {/* Empty State */}
       {!loading && filteredContracts.length === 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 py-16">
+        <div className="bg-white border border-gray-200 rounded-md py-12">
           <div className="text-center">
-            <div className="inline-flex p-4 bg-gray-100 rounded-full mb-4">
-              <FileText size={32} className="text-gray-400" />
+            <FileText size={40} className="mx-auto text-gray-300 mb-3" />
+            <h3 className="text-sm font-medium text-gray-900 mb-1">No contracts found</h3>
+            <p className="text-xs text-gray-500">Try adjusting your search or filter</p>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && contractToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <Trash2 size={20} className="text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Delete Contract</h3>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Không có hợp đồng nào</h3>
-            <p className="text-gray-500 text-sm">Chưa có hợp đồng nào được tạo</p>
+            
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to delete contract{' '}
+              <strong className="font-mono">{contractToDelete.code || formatContractCode(contractToDelete.id)}</strong>
+              {contractToDelete.dealerName && (
+                <> for <strong>{contractToDelete.dealerName}</strong></>
+              )}? This action cannot be undone.
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setContractToDelete(null);
+                }}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    Delete Contract
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

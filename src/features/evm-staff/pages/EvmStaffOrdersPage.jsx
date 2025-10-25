@@ -1,87 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   ShoppingCart, 
   Search, 
-  Filter, 
   Eye,
-  Edit,
+  Trash2,
   CheckCircle,
   Clock,
   XCircle,
   AlertCircle,
   Calendar,
   User,
-  Car
+  Car,
+  DollarSign,
+  Plus
 } from 'lucide-react';
+import useOrders from '../hooks/useOrders';
+import { useNotification } from '../../../context/NotificationContext';
+import orderService from '../services/orderService';
 
 const EvmStaffOrdersPage = () => {
-  const [orders, setOrders] = useState([]);
+  const navigate = useNavigate();
+  const { showSuccess, showError } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [loading, setLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Mock data - replace with API call
-  useEffect(() => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setOrders([
-        {
-          id: 'ORD-2024-001',
-          customer: 'Nguyễn Văn A',
-          email: 'nguyenvana@email.com',
-          phone: '0123456789',
-          vehicle: 'EVM Sedan Pro',
-          variant: 'Standard',
-          price: 650000000,
-          status: 'completed',
-          orderDate: '2024-01-15',
-          deliveryDate: '2024-01-20',
-          paymentMethod: 'Bank Transfer'
-        },
-        {
-          id: 'ORD-2024-002',
-          customer: 'Trần Thị B',
-          email: 'tranthib@email.com',
-          phone: '0987654321',
-          vehicle: 'EVM SUV Max',
-          variant: 'Premium',
-          price: 850000000,
-          status: 'processing',
-          orderDate: '2024-01-16',
-          deliveryDate: '2024-01-25',
-          paymentMethod: 'Credit Card'
-        },
-        {
-          id: 'ORD-2024-003',
-          customer: 'Lê Văn C',
-          email: 'levanc@email.com',
-          phone: '0369852147',
-          vehicle: 'EVM Hatchback',
-          variant: 'Eco',
-          price: 450000000,
-          status: 'pending',
-          orderDate: '2024-01-17',
-          deliveryDate: '2024-01-22',
-          paymentMethod: 'Cash'
-        },
-        {
-          id: 'ORD-2024-004',
-          customer: 'Phạm Thị D',
-          email: 'phamthid@email.com',
-          phone: '0741852963',
-          vehicle: 'EVM Truck Heavy',
-          variant: 'Commercial',
-          price: 1200000000,
-          status: 'cancelled',
-          orderDate: '2024-01-18',
-          deliveryDate: '2024-01-28',
-          paymentMethod: 'Bank Transfer'
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  const { orders, loading, error, deleteOrder } = useOrders();
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -91,42 +38,71 @@ const EvmStaffOrdersPage = () => {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+    const upperStatus = status?.toUpperCase();
+    switch(upperStatus) {
+      case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'PROCESSING': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'CONFIRMED': return 'bg-green-50 text-green-700 border-green-200';
+      case 'CANCELED': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
   const getStatusIcon = (status) => {
-    switch(status) {
-      case 'completed': return <CheckCircle size={16} />;
-      case 'processing': return <Clock size={16} />;
-      case 'pending': return <AlertCircle size={16} />;
-      case 'cancelled': return <XCircle size={16} />;
-      default: return null;
+    const upperStatus = status?.toUpperCase();
+    switch(upperStatus) {
+      case 'COMPLETED': return <CheckCircle size={16} />;
+      case 'PROCESSING': return <Clock size={16} />;
+      case 'CONFIRMED': return <CheckCircle size={16} />;
+      case 'CANCELED': return <XCircle size={16} />;
+      default: return <AlertCircle size={16} />;
     }
   };
 
   const getStatusText = (status) => {
-    switch(status) {
-      case 'completed': return 'Hoàn thành';
-      case 'processing': return 'Đang xử lý';
-      case 'pending': return 'Chờ xử lý';
-      case 'cancelled': return 'Đã hủy';
+    const upperStatus = status?.toUpperCase();
+    switch(upperStatus) {
+      case 'COMPLETED': return 'Hoàn thành';
+      case 'PROCESSING': return 'Đang xử lý';
+      case 'CONFIRMED': return 'Đã xác nhận';
+      case 'CANCELED': return 'Đã hủy';
       default: return 'Không xác định';
     }
   };
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.vehicle.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || order.status === filterStatus;
+    const orderCode = order.code || orderService.generateOrderCode(order.id);
+    const matchesSearch = orderCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.dealerName?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || order.status?.toUpperCase() === filterStatus.toUpperCase();
     return matchesSearch && matchesFilter;
   });
+
+  const handleDeleteClick = (order) => {
+    setOrderToDelete(order);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!orderToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteOrder(orderToDelete.id);
+      showSuccess('Xóa đơn hàng thành công!');
+      setShowDeleteModal(false);
+      setOrderToDelete(null);
+    } catch (error) {
+      showError(error.message || 'Có lỗi xảy ra khi xóa đơn hàng');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleViewOrder = (orderId) => {
+    navigate(`/evm-staff/orders/${orderId}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -136,6 +112,13 @@ const EvmStaffOrdersPage = () => {
           <h1 className="text-2xl font-bold text-gray-900">Quản Lý Đơn Hàng</h1>
           <p className="text-gray-600 mt-1">Theo dõi và xử lý đơn hàng xe điện</p>
         </div>
+        <button
+          onClick={() => navigate('/evm-staff/orders/create')}
+          className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 flex items-center gap-2"
+        >
+          <Plus size={16} />
+          Tạo đơn hàng mới
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -158,9 +141,9 @@ const EvmStaffOrdersPage = () => {
               <CheckCircle size={20} className="text-green-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Hoàn thành</p>
+              <p className="text-sm text-gray-600">Đã xác nhận</p>
               <p className="text-xl font-bold text-gray-900">
-                {orders.filter(o => o.status === 'completed').length}
+                {orders.filter(o => o.status?.toUpperCase() === 'CONFIRMED').length}
               </p>
             </div>
           </div>
@@ -168,13 +151,13 @@ const EvmStaffOrdersPage = () => {
         
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Clock size={20} className="text-yellow-600" />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Clock size={20} className="text-blue-600" />
             </div>
             <div className="ml-3">
               <p className="text-sm text-gray-600">Đang xử lý</p>
               <p className="text-xl font-bold text-gray-900">
-                {orders.filter(o => o.status === 'processing').length}
+                {orders.filter(o => o.status?.toUpperCase() === 'PROCESSING').length}
               </p>
             </div>
           </div>
@@ -182,13 +165,13 @@ const EvmStaffOrdersPage = () => {
         
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <XCircle size={20} className="text-red-600" />
+            <div className="p-2 bg-emerald-100 rounded-lg">
+              <CheckCircle size={20} className="text-emerald-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Đã hủy</p>
+              <p className="text-sm text-gray-600">Hoàn thành</p>
               <p className="text-xl font-bold text-gray-900">
-                {orders.filter(o => o.status === 'cancelled').length}
+                {orders.filter(o => o.status?.toUpperCase() === 'COMPLETED').length}
               </p>
             </div>
           </div>
@@ -210,23 +193,17 @@ const EvmStaffOrdersPage = () => {
               />
             </div>
           </div>
-          <div className="flex gap-2">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="pending">Chờ xử lý</option>
-              <option value="processing">Đang xử lý</option>
-              <option value="completed">Hoàn thành</option>
-              <option value="cancelled">Đã hủy</option>
-            </select>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center">
-              <Filter size={20} className="mr-2" />
-              Bộ lọc
-            </button>
-          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="PROCESSING">Đang xử lý</option>
+            <option value="COMPLETED">Hoàn thành</option>
+            <option value="CANCELED">Đã hủy</option>
+          </select>
         </div>
       </div>
 
@@ -268,52 +245,69 @@ const EvmStaffOrdersPage = () => {
                 {filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{order.id}</div>
-                      <div className="text-sm text-gray-500">{order.paymentMethod}</div>
+                      <div className="text-sm font-medium text-gray-900 font-mono">
+                        {order.code || orderService.generateOrderCode(order.id)}
+                      </div>
+                      <div className="text-sm text-gray-500">{order.orderType || '-'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
                           <User size={16} className="text-emerald-600" />
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{order.customer}</div>
-                          <div className="text-sm text-gray-500">{order.email}</div>
-                          <div className="text-sm text-gray-500">{order.phone}</div>
+                          <div className="text-sm font-medium text-gray-900">{order.customerName || 'N/A'}</div>
+                          <div className="text-sm text-gray-500">{order.customerEmail || '-'}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <Car size={16} className="text-gray-400 mr-2" />
+                        <Car size={16} className="text-gray-400 mr-2 flex-shrink-0" />
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{order.vehicle}</div>
-                          <div className="text-sm text-gray-500">{order.variant}</div>
+                          <div className="text-sm font-medium text-gray-900">{order.vehicleModel || 'N/A'}</div>
+                          <div className="text-sm text-gray-500">{order.vehicleVariant || '-'}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{formatCurrency(order.price)}</div>
+                      <div className="flex items-center gap-1">
+                        <DollarSign size={14} className="text-emerald-600" />
+                        <div className="text-sm font-medium text-emerald-700">
+                          {formatCurrency(order.finalAmount || order.totalAmount || 0)}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border-2 ${getStatusColor(order.status)}`}>
                         {getStatusIcon(order.status)}
-                        <span className="ml-1">{getStatusText(order.status)}</span>
+                        <span className="ml-1.5">{getStatusText(order.status)}</span>
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-500">
-                        <Calendar size={16} className="mr-2" />
-                        {new Date(order.orderDate).toLocaleDateString('vi-VN')}
+                        <Calendar size={14} className="mr-2" />
+                        {order.createdDate ? new Date(order.createdDate).toLocaleDateString('vi-VN') :
+                         order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-emerald-600 hover:text-emerald-900 mr-3">
-                        <Eye size={16} />
-                      </button>
-                      <button className="text-blue-600 hover:text-blue-900 mr-3">
-                        <Edit size={16} />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleViewOrder(order.id)}
+                          className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors"
+                          title="Xem chi tiết"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteClick(order)}
+                          className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                          title="Xóa"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -329,6 +323,60 @@ const EvmStaffOrdersPage = () => {
           <ShoppingCart size={48} className="mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy đơn hàng nào</h3>
           <p className="text-gray-600">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && orderToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <Trash2 size={24} className="text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Xóa Đơn Hàng</h3>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-6">
+              Bạn có chắc chắn muốn xóa đơn hàng{' '}
+              <strong className="font-mono">{orderToDelete.code || orderService.generateOrderCode(orderToDelete.id)}</strong>
+              {orderToDelete.customerName && (
+                <> cho khách hàng <strong>{orderToDelete.customerName}</strong></>
+              )}? 
+              <br />
+              <span className="text-red-600 font-medium">Hành động này không thể hoàn tác.</span>
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setOrderToDelete(null);
+                }}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    Đang xóa...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    Xóa Đơn Hàng
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

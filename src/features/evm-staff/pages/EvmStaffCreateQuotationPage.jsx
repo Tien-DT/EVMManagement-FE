@@ -8,7 +8,9 @@ import {
   User,
   Calculator,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  Package
 } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 import { useCreateQuotation } from '../hooks/useCreateQuotation';
@@ -112,182 +114,235 @@ const EvmStaffCreateQuotationPage = () => {
 
   if (isSubmitting) {
     return (
-      <div className="flex justify-center items-center min-h-96">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-900 border-t-transparent"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex flex-col justify-center items-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mb-4"></div>
+        <p className="text-gray-600 font-medium">Đang xử lý...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate('/evm-staff/quotations')}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h1 className="text-3xl font-semibold text-gray-900">
-            {isEditMode ? 'Chỉnh Sửa Báo Giá' : 'Tạo Báo Giá Mới'}
-          </h1>
-          <p className="text-gray-500 mt-1">Nhập thông tin báo giá cho khách hàng</p>
-        </div>
-      </div>
-
-      {/* Order Request Info - Show only if creating from request */}
-      {orderRequest && (
-        <div className="bg-white border border-blue-200 rounded-lg p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <FileText size={18} className="text-blue-600" />
-            Thông tin yêu cầu
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <User size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-700">
-                <span className="font-medium">Đại lý:</span> {orderRequest.dealerName}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Car size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-700">
-                <span className="font-medium">Xe:</span> {orderRequest.vehicleModel} - {orderRequest.vehicleVariant}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calculator size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-700">
-                <span className="font-medium">Số lượng:</span> {orderRequest.quantity}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">
-                <span className="font-medium">Ngày yêu cầu:</span> {new Date(orderRequest.requestedAt).toLocaleDateString('vi-VN')}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Quotation Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
-        {/* Basic Info */}
-        <div>
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Thông tin cơ bản</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mã báo giá <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.code}
-                onChange={(e) => handleInputChange('code', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-                placeholder="VD: BG001"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ID Khách hàng <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.customerId}
-                onChange={(e) => handleInputChange('customerId', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-                placeholder="UUID của khách hàng"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Có hiệu lực đến <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={formData.validUntil}
-                onChange={(e) => handleInputChange('validUntil', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Trạng thái
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-              >
-                <option value="DRAFT">Bản nháp</option>
-                <option value="SENT">Đã gửi</option>
-                <option value="APPROVED">Đã duyệt</option>
-                <option value="REJECTED">Bị từ chối</option>
-              </select>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 p-8 animate-fadeIn">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6 animate-slideIn">
+          <button
+            onClick={() => navigate('/evm-staff/quotations')}
+            className="p-3 text-gray-600 hover:text-blue-600 hover:bg-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              {isEditMode ? 'Chỉnh Sửa Báo Giá' : 'Tạo Báo Giá Mới'}
+            </h1>
+            <p className="text-gray-600 mt-2">Nhập thông tin chi tiết để {isEditMode ? 'cập nhật' : 'tạo'} báo giá</p>
           </div>
         </div>
 
-        {/* Quotation Details */}
-        <QuotationDetailForm 
-          details={formData.quotationDetails} 
-          onChange={handleDetailsChange} 
-        />
+        {/* Order Request Info - Show only if creating from request */}
+        {orderRequest && (
+          <div className="bg-white border-2 border-blue-200 rounded-2xl p-6 shadow-lg animate-scaleIn">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                <FileText size={20} className="text-white" />
+              </div>
+              Thông tin yêu cầu
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl">
+                <User size={18} className="text-blue-600" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Đại lý</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderRequest.dealerName}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl">
+                <Car size={18} className="text-blue-600" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Xe</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderRequest.vehicleModel} - {orderRequest.vehicleVariant}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl">
+                <Calculator size={18} className="text-blue-600" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Số lượng</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderRequest.quantity}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl">
+                <Calendar size={18} className="text-blue-600" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Ngày yêu cầu</p>
+                  <p className="text-sm font-semibold text-gray-900">{new Date(orderRequest.requestedAt).toLocaleDateString('vi-VN')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Additional Info */}
-        <div className="space-y-4 pt-6 border-t border-gray-200">
-          <h3 className="text-base font-semibold text-gray-900">Thông tin bổ sung</h3>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ghi chú
-            </label>
-            <textarea
-              value={formData.note}
-              onChange={(e) => handleInputChange('note', e.target.value)}
-              rows={4}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-              placeholder="Ghi chú thêm về báo giá..."
+        {/* Quotation Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Info */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100 animate-scaleIn">
+            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                <FileText size={20} className="text-white" />
+              </div>
+              Thông tin cơ bản
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Mã báo giá <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.code}
+                  onChange={(e) => handleInputChange('code', e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
+                  placeholder="VD: BG001"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  ID Khách hàng <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.customerId}
+                  onChange={(e) => handleInputChange('customerId', e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
+                  placeholder="UUID của khách hàng"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Có hiệu lực đến <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Calendar size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="date"
+                    value={formData.validUntil}
+                    onChange={(e) => handleInputChange('validUntil', e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Trạng thái
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => handleInputChange('status', e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-bold transition-all"
+                >
+                  <option value="DRAFT">📝 Bản nháp</option>
+                  <option value="SENT">📤 Đã gửi</option>
+                  <option value="APPROVED">✅ Đã duyệt</option>
+                  <option value="REJECTED">❌ Bị từ chối</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Quotation Details */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100 animate-scaleIn">
+            <QuotationDetailForm 
+              details={formData.quotationDetails} 
+              onChange={handleDetailsChange} 
             />
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={() => navigate('/evm-staff/quotations')}
-            className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-          >
-            Hủy
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium"
-          >
-            {isSubmitting ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                Đang xử lý...
-              </>
-            ) : (
-              <>
-                <Save size={18} />
-                {isEditMode ? 'Cập nhật báo giá' : 'Tạo báo giá'}
-              </>
-            )}
-          </button>
-        </div>
-      </form>
+          {/* Additional Info */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100 animate-scaleIn">
+            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <FileText size={20} className="text-white" />
+              </div>
+              Thông tin bổ sung
+            </h3>
+            
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Ghi chú
+              </label>
+              <textarea
+                value={formData.note}
+                onChange={(e) => handleInputChange('note', e.target.value)}
+                rows={4}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all"
+                placeholder="Ghi chú thêm về báo giá, điều khoản đặc biệt..."
+              />
+            </div>
+          </div>
+
+          {/* Info Card */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200 shadow-lg animate-slideIn">
+            <div className="flex items-start gap-3">
+              <AlertCircle size={24} className="text-blue-600 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="font-bold text-blue-900 mb-2">Lưu ý khi tạo báo giá:</h3>
+                <ul className="text-sm text-blue-800 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">•</span>
+                    <span>Kiểm tra kỹ thông tin khách hàng và phiên bản xe trước khi tạo</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">•</span>
+                    <span>Đảm bảo giá và chiết khấu được tính toán chính xác</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">•</span>
+                    <span>Ngày hiệu lực nên đủ thời gian để khách hàng xem xét</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">•</span>
+                    <span>Ghi chú rõ ràng các điều khoản và điều kiện áp dụng</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-4 animate-slideIn">
+            <button
+              type="button"
+              onClick={() => navigate('/evm-staff/quotations')}
+              className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
+            >
+              Hủy bỏ
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2 font-bold shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <Save size={20} />
+                  {isEditMode ? 'Cập nhật báo giá' : 'Tạo báo giá'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
