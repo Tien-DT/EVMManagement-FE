@@ -52,6 +52,8 @@ import CreateTimeSlotPage from "../features/dealer-manager/pages/CreateTimeSlotP
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
 import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
+import VehicleModelsPage from "../features/dealer-staff/pages/VehicleModelsPage";
+import VehicleVariantsPage from "../features/dealer-staff/pages/VehicleVariantsPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 import QuotationDetailPage from "../features/dealer-staff/pages/QuotationDetailPage";
@@ -208,6 +210,16 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/customers/:id"
               element={<CustomerDetailPage />}
+            />
+
+            {/* Vehicle Routes */}
+            <Route
+              path="/dealer-staff/vehicles/models"
+              element={<VehicleModelsPage />}
+            />
+            <Route
+              path="/dealer-staff/vehicles/models/:modelId/variants"
+              element={<VehicleVariantsPage />}
             />
 
             {/* Quotation Routes */}

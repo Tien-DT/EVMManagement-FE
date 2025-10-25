@@ -90,6 +90,12 @@ const endpoints = {
     updateStatus: (id) => `/v1/TestDriveVehicles/${id}/status`,
     delete: (id) => `/v1/TestDriveVehicles/${id}`,
   },
+
+  // Vehicle endpoints for dealer staff
+  vehicles: {
+    getModelsByDealer: (dealerId) => `/v1/Vehicles/dealer/${dealerId}/models`,
+    getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/Vehicles/dealer/${dealerId}/models/${modelId}/variants`,
+  },
 };
 
 export default endpoints;
