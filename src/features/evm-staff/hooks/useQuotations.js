@@ -1,124 +1,174 @@
 // src/features/evm-staff/hooks/useQuotations.js
-import { useState, useEffect, useCallback } from "react";
-import { quotationService } from "../services/quotationService";
+import { useState, useEffect } from "react";
+import quotationService from "../services/quotationService";
 
 const useQuotations = (dealerId = null) => {
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
 
-  // Fetch all quotations or by dealer
-  const fetchQuotations = useCallback(async (pageNumber = 1, pageSize = 10) => {
+  // Fetch all quotations or by dealer with pagination
+  const fetchQuotations = async (params = {}) => {
     setLoading(true);
     setError(null);
     try {
+      console.log('Hook: Fetching quotations with params:', params);
       const response = dealerId 
-        ? await quotationService.getQuotationsByDealerId(dealerId, pageNumber, pageSize)
-        : await quotationService.getAllQuotations(pageNumber, pageSize);
+        ? await quotationService.getQuotationsByDealerId(dealerId, params)
+        : await quotationService.getAllQuotations(params);
       
-      console.log("📊 Full API response:", response);
-      console.log("📊 Response.data:", response?.data);
+      console.log('Hook: Quotations response:', response);
       
-      const data = response?.data?.items || [];
-      console.log("📊 Parsed quotations data:", data);
-      console.log("📊 Total quotations:", data.length);
+      // axiosInstance already returns response.data, so response is { items: [...], totalCount, ... }
+      const quotationsData = response.data || response;
       
-      setQuotations(data);
-      return data;
+      setQuotations(quotationsData.items || []);
+      setPagination({
+        pageNumber: quotationsData.pageNumber || 1,
+        pageSize: quotationsData.pageSize || 10,
+        totalCount: quotationsData.totalCount || 0,
+        totalPages: quotationsData.totalPages || 0,
+        hasNextPage: quotationsData.hasNextPage || false,
+        hasPreviousPage: quotationsData.hasPreviousPage || false
+      });
+      return response;
     } catch (err) {
-      const errorMessage = err.message || "Failed to fetch quotations";
-      setError(errorMessage);
-      console.error("❌ Error fetching quotations:", err);
-      
-      // Set empty array on error để tránh crash UI
+      console.error('Hook: Error fetching quotations:', err);
+      setError(err.message || 'Có lỗi xảy ra khi tải danh sách báo giá');
       setQuotations([]);
-      return null;
+      throw err;
     } finally {
       setLoading(false);
     }
-  }, [dealerId]);
+  };
 
   // Get quotation by ID
-  const getQuotationById = useCallback(async (id) => {
+  const getQuotationById = async (id) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await quotationService.getQuotationById(id);
-      return data;
+      const response = await quotationService.getQuotationById(id);
+      return response;
     } catch (err) {
-      setError(err.message || "Failed to fetch quotation");
-      console.error("Error fetching quotation:", err);
-      return null;
+      setError(err.response?.data?.message || 'Có lỗi xảy ra khi tải thông tin báo giá');
+      throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   // Create quotation
-  const createQuotation = useCallback(async (quotationData) => {
+  const createQuotation = async (quotationData) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await quotationService.createQuotation(quotationData);
-      await fetchQuotations(); // Refresh list
-      return data;
+      console.log('Hook: Creating quotation with data:', quotationData);
+      const response = await quotationService.createQuotation(quotationData);
+      console.log('Hook: Quotation created successfully:', response);
+      // Refresh quotations list
+      await fetchQuotations();
+      return response;
     } catch (err) {
-      setError(err.message || "Failed to create quotation");
-      console.error("Error creating quotation:", err);
+      console.error('Hook: Error creating quotation:', err);
+      setError(err.message || 'Có lỗi xảy ra khi tạo báo giá');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [fetchQuotations]);
+  };
 
   // Update quotation
-  const updateQuotation = useCallback(async (id, quotationData) => {
+  const updateQuotation = async (id, quotationData) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await quotationService.updateQuotation(id, quotationData);
-      await fetchQuotations(); // Refresh list
-      return data;
+      const response = await quotationService.updateQuotation(id, quotationData);
+      // Refresh quotations list
+      await fetchQuotations();
+      return response;
     } catch (err) {
-      setError(err.message || "Failed to update quotation");
-      console.error("Error updating quotation:", err);
+      setError(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật báo giá');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [fetchQuotations]);
+  };
 
   // Delete quotation
-  const deleteQuotation = useCallback(async (id) => {
+  const deleteQuotation = async (id) => {
     setLoading(true);
     setError(null);
     try {
-      await quotationService.deleteQuotation(id);
-      await fetchQuotations(); // Refresh list
-      return true;
+      const response = await quotationService.deleteQuotation(id);
+      // Refresh quotations list
+      await fetchQuotations();
+      return response;
     } catch (err) {
-      setError(err.message || "Failed to delete quotation");
-      console.error("Error deleting quotation:", err);
+      setError(err.response?.data?.message || 'Có lỗi xảy ra khi xóa báo giá');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [fetchQuotations]);
+  };
 
-  // Auto-fetch on mount
+  // Update quotation status
+  const updateQuotationStatus = async (id, status) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await quotationService.updateQuotationStatus(id, status);
+      // Refresh quotations list
+      await fetchQuotations();
+      return response;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái báo giá');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get specific quotation by ID
+  const getSpecificQuotation = async (quotationId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await quotationService.getSpecificQuotation(quotationId);
+      return response;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Có lỗi xảy ra khi tải thông tin báo giá cụ thể');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchQuotations();
-  }, [fetchQuotations]);
+    fetchQuotations().catch(err => {
+      console.error('Initial fetch quotations failed:', err);
+    });
+  }, []);
 
   return {
     quotations,
     loading,
     error,
+    pagination,
     fetchQuotations,
     getQuotationById,
     createQuotation,
     updateQuotation,
     deleteQuotation,
+    updateQuotationStatus,
+    getSpecificQuotation
   };
 };
 

@@ -74,6 +74,7 @@ import EvmStaffCreateDealerContractPage from "../features/evm-staff/pages/EvmSta
 import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
 import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
 import EvmStaffCustomersPage from "../features/evm-staff/pages/EvmStaffCustomersPage";
+import HandoverRecordsPage from "../features/evm-staff/pages/HandoverRecordsPage";
 
 const AppRouter = () => (
   <Router>
@@ -254,6 +255,11 @@ const AppRouter = () => (
               path="/evm-staff/customers"
               element={<EvmStaffCustomersPage />}
             />
+            
+            {/* Handover Records Routes */}
+            <Route path="/evm-staff/handover-records" element={<HandoverRecordsPage />} />
+            <Route path="/evm-staff/handover-records/:id" element={<HandoverRecordsPage />} />
+            
             <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>
         </Route>

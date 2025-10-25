@@ -10,10 +10,16 @@ import {
   AlertCircle,
   DollarSign,
   ShoppingCart,
-  Activity
+  Activity,
+  Truck,
+  Calendar
 } from 'lucide-react';
+import useHandoverRecords from '../hooks/useHandoverRecords';
 
 const EvmStaffDashboardPage = () => {
+  // Fetch handover records data
+  const { handoverRecords } = useHandoverRecords();
+  
   // Mock data - thay bằng API call thực tế
   const [stats, setStats] = useState({
     totalVehicles: 156,
@@ -92,7 +98,7 @@ const EvmStaffDashboardPage = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {/* Total Vehicles Card */}
         <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-4">
@@ -152,6 +158,22 @@ const EvmStaffDashboardPage = () => {
           <p className="text-2xl font-bold text-gray-900">{stats.pendingOrders} đơn</p>
           <div className="flex items-center mt-3 text-xs text-gray-500">
             <span>{stats.completedOrders} hoàn thành, {stats.canceledOrders} hủy</span>
+          </div>
+        </div>
+
+        {/* Handover Records Card */}
+        <div className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <Truck size={24} />
+            </div>
+            <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded">BÀN GIAO</span>
+          </div>
+          <h3 className="text-sm font-medium opacity-90 mb-1">Bàn Giao Xe</h3>
+          <p className="text-2xl font-bold">{handoverRecords.length} xe</p>
+          <div className="flex items-center mt-3 text-xs">
+            <CheckCircle size={14} className="mr-1" />
+            <span>{handoverRecords.filter(r => r.isAccepted).length} đã chấp nhận</span>
           </div>
         </div>
       </div>
@@ -218,7 +240,7 @@ const EvmStaffDashboardPage = () => {
         </div>
       </div>
 
-      {/* Order Statistics & Recent Activities */}
+      {/* Order Statistics & Handover Statistics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Order Statistics */}
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
@@ -251,6 +273,63 @@ const EvmStaffDashboardPage = () => {
                   <p className="text-2xl font-bold text-red-900">{stats.canceledOrders}</p>
                 </div>
                 <XCircle size={32} className="text-red-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Handover Statistics */}
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Tình Trạng Bàn Giao</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-cyan-700 font-medium mb-1">Tổng Bàn Giao</p>
+                  <p className="text-2xl font-bold text-cyan-900">{handoverRecords.length}</p>
+                </div>
+                <Truck size={32} className="text-cyan-600" />
+              </div>
+            </div>
+            
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-700 font-medium mb-1">Đã Chấp Nhận</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    {handoverRecords.filter(r => r.isAccepted).length}
+                  </p>
+                </div>
+                <CheckCircle size={32} className="text-green-600" />
+              </div>
+            </div>
+            
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-yellow-700 font-medium mb-1">Chờ Xác Nhận</p>
+                  <p className="text-2xl font-bold text-yellow-900">
+                    {handoverRecords.filter(r => !r.isAccepted).length}
+                  </p>
+                </div>
+                <Clock size={32} className="text-yellow-600" />
+              </div>
+            </div>
+            
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-700 font-medium mb-1">Tháng Này</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {handoverRecords.filter(r => {
+                      const recordDate = new Date(r.handoverDate);
+                      const now = new Date();
+                      return recordDate.getMonth() === now.getMonth() && 
+                             recordDate.getFullYear() === now.getFullYear();
+                    }).length}
+                  </p>
+                </div>
+                <Calendar size={32} className="text-blue-600" />
               </div>
             </div>
           </div>

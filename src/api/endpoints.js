@@ -81,6 +81,15 @@ const endpoints = {
     update: (id) => `/v1/Orders/${id}`,
     delete: (id) => `/v1/Orders/${id}`,
   },
+  
+  // Handover Records endpoints
+  handoverRecords: {
+    getAll: "/v1/HandoverRecords",
+    getById: (id) => `/v1/HandoverRecords/${id}`,
+    create: "/v1/HandoverRecords",
+    update: (id) => `/v1/HandoverRecords/${id}`,
+    delete: (id) => `/v1/HandoverRecords/${id}`,
+  },
 };
 
 export default endpoints;

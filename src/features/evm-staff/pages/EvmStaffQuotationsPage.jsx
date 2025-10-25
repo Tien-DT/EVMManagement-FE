@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
   Search, 
   Filter, 
   Eye,
-  Edit,
   Trash2,
   CheckCircle,
   Clock,
@@ -13,8 +12,9 @@ import {
   AlertCircle,
   Calendar,
   User,
-  Car,
-  Plus
+  DollarSign,
+  Plus,
+  Send
 } from 'lucide-react';
 import useQuotations from '../hooks/useQuotations';
 import { useNotification } from '../../../context/NotificationContext';
@@ -29,6 +29,7 @@ const EvmStaffQuotationsPage = () => {
     quotations, 
     loading, 
     error, 
+    fetchQuotations,
     deleteQuotation 
   } = useQuotations();
 
@@ -89,17 +90,13 @@ const EvmStaffQuotationsPage = () => {
         await deleteQuotation(id);
         showSuccess('Xóa báo giá thành công!');
       } catch (error) {
-        showError('Có lỗi xảy ra khi xóa báo giá');
+        showError(error.message || 'Có lỗi xảy ra khi xóa báo giá');
       }
     }
   };
 
   const handleViewDetail = (id) => {
     navigate(`/evm-staff/quotations/${id}`);
-  };
-
-  const handleEdit = (id) => {
-    navigate(`/evm-staff/quotations/edit/${id}`);
   };
 
   return (
@@ -132,19 +129,21 @@ const EvmStaffQuotationsPage = () => {
             </div>
           </div>
         </div>
+        
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Clock size={20} className="text-yellow-600" />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Send size={20} className="text-blue-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Chờ duyệt</p>
+              <p className="text-sm text-gray-600">Đã gửi</p>
               <p className="text-xl font-bold text-gray-900">
                 {quotations.filter(q => q.status?.toUpperCase() === 'SENT').length}
               </p>
             </div>
           </div>
         </div>
+        
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -158,6 +157,7 @@ const EvmStaffQuotationsPage = () => {
             </div>
           </div>
         </div>
+        
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
             <div className="p-2 bg-red-100 rounded-lg">
@@ -175,19 +175,20 @@ const EvmStaffQuotationsPage = () => {
 
       {/* Search and Filters */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Tìm kiếm báo giá..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo mã, khách hàng..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Filter size={20} className="text-gray-400" />
+          <div className="flex gap-2">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -200,6 +201,10 @@ const EvmStaffQuotationsPage = () => {
               <option value="REJECTED">Bị từ chối</option>
               <option value="EXPIRED">Hết hạn</option>
             </select>
+            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center">
+              <Filter size={20} className="mr-2" />
+              Bộ lọc
+            </button>
           </div>
         </div>
       </div>
@@ -226,16 +231,19 @@ const EvmStaffQuotationsPage = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mã báo giá
+                    Báo giá
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Khách hàng
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
+                    Đại lý
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Hiệu lực đến
+                    Tổng giá trị
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trạng thái
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ngày tạo
@@ -249,7 +257,7 @@ const EvmStaffQuotationsPage = () => {
                 {filteredQuotations.map((quotation) => (
                   <tr key={quotation.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{quotation.code || quotation.id}</div>
+                      <div className="text-sm font-medium text-gray-900">{quotation.id}</div>
                       <div className="text-xs text-gray-500">{quotation.note || ''}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -258,10 +266,17 @@ const EvmStaffQuotationsPage = () => {
                           <User size={16} className="text-emerald-600" />
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900 truncate max-w-xs" title={quotation.customerId}>
-                            {quotation.customerId}
-                          </div>
+                          <div className="text-sm font-medium text-gray-900">{quotation.customerName || quotation.customerId}</div>
+                          <div className="text-sm text-gray-500">{quotation.customerEmail || ''}</div>
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{quotation.dealerName || quotation.dealerId || '-'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {quotation.totalValue ? formatCurrency(quotation.totalValue) : '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -273,13 +288,8 @@ const EvmStaffQuotationsPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-500">
                         <Calendar size={16} className="mr-2" />
-                        {quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('vi-VN') : '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Calendar size={16} className="mr-2" />
-                        {quotation.createdDate ? new Date(quotation.createdDate).toLocaleDateString('vi-VN') : '-'}
+                        {quotation.createdDate ? new Date(quotation.createdDate).toLocaleDateString('vi-VN') : 
+                         quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString('vi-VN') : '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -289,13 +299,6 @@ const EvmStaffQuotationsPage = () => {
                         title="Xem chi tiết"
                       >
                         <Eye size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleEdit(quotation.id)}
-                        className="text-emerald-600 hover:text-emerald-900 mr-3"
-                        title="Chỉnh sửa"
-                      >
-                        <Edit size={16} />
                       </button>
                       <button 
                         onClick={() => handleDelete(quotation.id)}

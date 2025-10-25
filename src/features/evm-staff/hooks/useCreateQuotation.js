@@ -1,6 +1,6 @@
 // src/features/evm-staff/hooks/useCreateQuotation.js
 import { useState } from "react";
-import { quotationService } from "../services/quotationService";
+import quotationService from "../services/quotationService";
 import { useAuth } from "../../../hooks/useAuth";
 
 export const useCreateQuotation = () => {
