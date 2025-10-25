@@ -101,12 +101,12 @@ const useHandoverRecords = () => {
   };
 
   // Delete handover record
-  const deleteRecord = async (id) => {
+  const deleteRecord = async (id, isDeleted = true) => {
     setLoading(true);
     setError(null);
     try {
       // Service returns HandoverRecordResponseDto
-      const deleted = await handoverRecordService.deleteHandoverRecord(id);
+      const deleted = await handoverRecordService.deleteHandoverRecord(id, isDeleted);
       console.log('Hook: Deleted record:', deleted);
       await fetchRecords(); // Refresh list
       return deleted;

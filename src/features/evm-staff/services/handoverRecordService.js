@@ -67,14 +67,19 @@ const handoverRecordService = {
     }
   },
 
-  // Soft delete handover record (PATCH /is-deleted)
-  deleteHandoverRecord: async (id, isDeleted = true) => {
+  // Delete handover record
+  deleteHandoverRecord: async (id, isDeleted) => {
     try {
       console.log('Service: Deleting handover record ID:', id);
-      const url = `${endpoints.handoverRecords.delete(id)}/is-deleted?isDeleted=${isDeleted}`;
+      
+      // Build params object for query parameters
+      const params = {};
+      if (isDeleted !== undefined) {
+        params.isDeleted = isDeleted;
+      }
       
       // axiosInstance already returns response.data (ApiResponse wrapper)
-      const apiResponse = await axiosInstance.patch(url);
+      const apiResponse = await axiosInstance.delete(endpoints.handoverRecords.delete(id), { params });
       console.log('Service: API Response:', apiResponse);
       
       // Extract data from ApiResponse<HandoverRecordResponseDto>
