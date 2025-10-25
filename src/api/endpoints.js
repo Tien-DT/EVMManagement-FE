@@ -80,6 +80,16 @@ const endpoints = {
     update: (id) => `/v1/MasterTimeSlots/${id}`,
     delete: (id) => `/v1/MasterTimeSlots/${id}`,
   },
+  
+  // Test Drive Vehicles endpoints
+  testDriveVehicles: {
+    getAll: "/v1/TestDriveVehicles",
+    getByDealer: (dealerId) => `/v1/TestDriveVehicles/dealer/${dealerId}`,
+    create: "/v1/TestDriveVehicles",
+    update: (id) => `/v1/TestDriveVehicles/${id}`,
+    updateStatus: (id) => `/v1/TestDriveVehicles/${id}/status`,
+    delete: (id) => `/v1/TestDriveVehicles/${id}`,
+  },
 };
 
 export default endpoints;

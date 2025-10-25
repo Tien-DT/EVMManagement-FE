@@ -13,7 +13,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EVMStaffLayout"; 
+import EVMStaffLayout from "../layouts/EVMStaffLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -63,6 +63,10 @@ import OrderDetailPage from "../features/dealer-staff/pages/OrderDetailPage";
 import ContractsPage from "../features/dealer-staff/pages/ContractsPage";
 import CreateContractPage from "../features/dealer-staff/pages/CreateContractPage";
 import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPage";
+
+// Test Drive Pages
+import { TestDriveVehiclesPage } from "../features/dealer-manager/pages/TestDriveVehiclesPage";
+import { AddVehicleToSlotPage } from "../features/dealer-manager/pages/AddVehicleToSlotPage";
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
@@ -170,10 +174,23 @@ const AppRouter = () => (
               path="/dealer/register-staff"
               element={<RegisterStaffPage />}
             />
-            
+
             {/* Time Slots Routes */}
             <Route path="/dealer/time-slots" element={<TimeSlotsPage />} />
-            <Route path="/dealer/time-slots/create" element={<CreateTimeSlotPage />} />
+            <Route
+              path="/dealer/time-slots/create"
+              element={<CreateTimeSlotPage />}
+            />
+
+            {/* Test Drive Routes */}
+            <Route
+              path="/dealer/test-drive-vehicles"
+              element={<TestDriveVehiclesPage />}
+            />
+            <Route
+              path="/dealer/test-drive-vehicles/add"
+              element={<AddVehicleToSlotPage />}
+            />
           </Route>
         </Route>
       </Route>
@@ -236,12 +253,27 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["evm-staff"]} />}>
           <Route element={<EVMStaffLayout />}>
-            <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
-            <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
+            <Route
+              path="/evm-staff/dashboard"
+              element={<EvmStaffDashboardPage />}
+            />
+            <Route
+              path="/evm-staff/order-requests"
+              element={<EvmStaffOrderRequestsPage />}
+            />
             <Route path="/evm-staff/quotations" element={<QuotationsPage />} />
-            <Route path="/evm-staff/quotations/create/:requestId" element={<EvmStaffCreateQuotationPage />} />
-            <Route path="/evm-staff/contracts" element={<EvmStaffContractsPage />} />
-            <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
+            <Route
+              path="/evm-staff/quotations/create/:requestId"
+              element={<EvmStaffCreateQuotationPage />}
+            />
+            <Route
+              path="/evm-staff/contracts"
+              element={<EvmStaffContractsPage />}
+            />
+            <Route
+              path="/evm-staff/vehicles"
+              element={<EvmStaffVehiclesPage />}
+            />
             <Route path="/evm-staff/orders" element={<EvmStaffOrdersPage />} />
             <Route
               path="/evm-staff/customers"

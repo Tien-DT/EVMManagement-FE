@@ -1,65 +1,24 @@
 // src/features/dealer-manager/pages/TimeSlotsPage.jsx
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, Plus, Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
-import { masterTimeSlotService } from "../services/masterTimeSlotService";
+import { useTimeSlots } from "../hooks/useTimeSlots";
 import { getStartTime, getEndTime } from "../../../utils/timeUtils";
 
 const TimeSlotsPage = () => {
   const navigate = useNavigate();
-  const [timeSlots, setTimeSlots] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    pageNumber: 1,
-    pageSize: 10,
-    totalCount: 0,
-    totalPages: 0,
-  });
-
-  useEffect(() => {
-    fetchTimeSlots();
-  }, [pagination.pageNumber]);
-
-  const fetchTimeSlots = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await masterTimeSlotService.getAll(
-        pagination.pageNumber,
-        pagination.pageSize
-      );
-      
-      setTimeSlots(response.data || []);
-      setPagination({
-        pageNumber: response.pageNumber || 1,
-        pageSize: response.pageSize || 10,
-        totalCount: response.totalCount || 0,
-        totalPages: response.totalPages || 0,
-      });
-    } catch (err) {
-      setError(err.message || "Không thể tải danh sách slot");
-      console.error("Fetch time slots error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { timeSlots, loading, error, pagination, deleteTimeSlot, changePage } =
+    useTimeSlots(10);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa slot này?")) {
       return;
     }
 
-    try {
-      await masterTimeSlotService.delete(id);
-      fetchTimeSlots();
-    } catch (err) {
-      alert(err.message || "Không thể xóa slot");
+    const result = await deleteTimeSlot(id);
+    if (!result.success) {
+      alert(result.error);
     }
-  };
-
-  const handlePageChange = (newPage) => {
-    setPagination((prev) => ({ ...prev, pageNumber: newPage }));
   };
 
   if (loading) {
@@ -128,15 +87,23 @@ const TimeSlotsPage = () => {
             <tbody className="divide-y divide-gray-200">
               {timeSlots.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                  <td
+                    colSpan="5"
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
                     Không có slot nào
                   </td>
                 </tr>
               ) : (
                 timeSlots.map((slot) => (
-                  <tr key={slot.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={slot.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4">
-                      <span className="font-semibold text-gray-900">{slot.code}</span>
+                      <span className="font-semibold text-gray-900">
+                        {slot.code}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-gray-700">
@@ -145,7 +112,10 @@ const TimeSlotsPage = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-gray-700">
-                        {getEndTime(slot.startOffsetMinutes, slot.durationMinutes)}
+                        {getEndTime(
+                          slot.startOffsetMinutes,
+                          slot.durationMinutes
+                        )}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -164,7 +134,9 @@ const TimeSlotsPage = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => navigate(`/dealer/time-slots/${slot.id}`)}
+                          onClick={() =>
+                            navigate(`/dealer/time-slots/${slot.id}`)
+                          }
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Xem chi tiết"
                         >
@@ -190,12 +162,13 @@ const TimeSlotsPage = () => {
         {pagination.totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Hiển thị <span className="font-medium">{timeSlots.length}</span> trong tổng số{" "}
+              Hiển thị <span className="font-medium">{timeSlots.length}</span>{" "}
+              trong tổng số{" "}
               <span className="font-medium">{pagination.totalCount}</span> slots
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => handlePageChange(pagination.pageNumber - 1)}
+                onClick={() => changePage(pagination.pageNumber - 1)}
                 disabled={pagination.pageNumber === 1}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -205,7 +178,7 @@ const TimeSlotsPage = () => {
                 {pagination.pageNumber} / {pagination.totalPages}
               </span>
               <button
-                onClick={() => handlePageChange(pagination.pageNumber + 1)}
+                onClick={() => changePage(pagination.pageNumber + 1)}
                 disabled={pagination.pageNumber === pagination.totalPages}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
