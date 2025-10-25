@@ -1,5 +1,5 @@
 // src/layouts/Sidebar/EVMStaffSidebar.jsx
-import React, { useMemo } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -9,56 +9,55 @@ import {
   Users,
   Settings,
   FileText,
+  Truck,
+  Receipt,
 } from "lucide-react";
 
 const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
   const { user } = useAuth();
-
-  const menuItems = useMemo(
-    () => [
-      {
-        name: "Dashboard",
-        path: "/evm-staff/dashboard",
-        icon: <LayoutDashboard size={20} />,
-      },
-      {
-        name: "Yêu cầu đặt hàng",
-        path: "/evm-staff/order-requests",
-        icon: <ShoppingCart size={20} />,
-      },
-      {
-        name: "Báo giá",
-        path: "/evm-staff/quotations",
-        icon: <FileText size={20} />,
-      },
-      {
-        name: "Hợp đồng",
-        path: "/evm-staff/contracts",
-        icon: <FileText size={20} />,
-      },
-      {
-        name: "Xe điện",
-        path: "/evm-staff/vehicles",
-        icon: <Car size={20} />,
-      },
-      {
-        name: "Đơn hàng",
-        path: "/evm-staff/orders",
-        icon: <ShoppingCart size={20} />,
-      },
-      {
-        name: "Khách hàng",
-        path: "/evm-staff/customers",
-        icon: <Users size={20} />,
-      },
-      {
-        name: "Cài đặt",
-        path: "/evm-staff/settings",
-        icon: <Settings size={20} />,
-      },
-    ],
-    []
-  );
+  
+  const menuItems = [
+    {
+      name: "Dashboard",
+      path: "/evm-staff/dashboard",
+      icon: <LayoutDashboard size={20} />,
+    },
+    {
+      name: "Báo giá",
+      path: "/evm-staff/quotations",
+      icon: <Receipt size={20} />,
+    },
+    {
+      name: "Yêu cầu đặt hàng",
+      path: "/evm-staff/order-requests",
+      icon: <ShoppingCart size={20} />,
+    },
+    {
+      name: "Hợp đồng",
+      path: "/evm-staff/contracts",
+      icon: <FileText size={20} />,
+    },
+    {
+      name: "Xe điện",
+      path: "/evm-staff/vehicles",
+      icon: <Car size={20} />,
+    },
+    {
+      name: "Đơn hàng",
+      path: "/evm-staff/orders",
+      icon: <ShoppingCart size={20} />,
+    },
+    {
+      name: "Khách hàng",
+      path: "/evm-staff/customers",
+      icon: <Users size={20} />,
+    },
+    {
+      name: "Bàn giao xe",
+      path: "/evm-staff/handover-records",
+      icon: <Truck size={20} />,
+    },
+  ];
 
   return (
     <div

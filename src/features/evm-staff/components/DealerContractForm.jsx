@@ -3,11 +3,12 @@ import {
   FileText, 
   Calendar, 
   User, 
-  Building, 
+  Package,
   Save, 
   X,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Link as LinkIcon
 } from 'lucide-react';
 
 const DealerContractForm = ({ 
@@ -15,15 +16,17 @@ const DealerContractForm = ({
   onCancel, 
   initialData = null, 
   loading = false,
-  dealers = [] 
+  orders = [],
+  customers = []
 }) => {
   const [formData, setFormData] = useState({
-    dealerId: '',
-    contractCode: '',
+    code: '',
+    orderId: '',
+    customerId: '',
     terms: '',
-    effectiveDate: '',
-    expirationDate: '',
-    status: 'DRAFT'
+    status: 'DRAFT',
+    signedAt: '',
+    contractLink: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -32,14 +35,15 @@ const DealerContractForm = ({
   useEffect(() => {
     if (initialData) {
       setFormData({
-        dealerId: initialData.dealerId || '',
-        contractCode: initialData.contractCode || '',
+        code: initialData.code || '',
+        orderId: initialData.orderId || '',
+        customerId: initialData.customerId || '',
         terms: initialData.terms || '',
-        effectiveDate: initialData.effectiveDate ? 
-          new Date(initialData.effectiveDate).toISOString().split('T')[0] : '',
-        expirationDate: initialData.expirationDate ? 
-          new Date(initialData.expirationDate).toISOString().split('T')[0] : '',
-        status: initialData.status || 'DRAFT'
+        status: initialData.status || 'DRAFT',
+        signedAt: initialData.signedAt ? 
+          new Date(initialData.signedAt).toISOString().split('T')[0] + 'T' + 
+          new Date(initialData.signedAt).toISOString().split('T')[1].substring(0, 5) : '',
+        contractLink: initialData.contractLink || ''
       });
     }
   }, [initialData]);
@@ -47,29 +51,20 @@ const DealerContractForm = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.dealerId) {
-      newErrors.dealerId = 'Vui lòng chọn đại lý';
+    if (!formData.code.trim()) {
+      newErrors.code = 'Vui lòng nhập mã hợp đồng';
     }
 
-    if (!formData.contractCode.trim()) {
-      newErrors.contractCode = 'Vui lòng nhập mã hợp đồng';
+    if (!formData.orderId) {
+      newErrors.orderId = 'Vui lòng chọn đơn hàng';
     }
 
-    if (!formData.effectiveDate) {
-      newErrors.effectiveDate = 'Vui lòng chọn ngày hiệu lực';
+    if (!formData.customerId) {
+      newErrors.customerId = 'Vui lòng chọn khách hàng';
     }
 
-    if (!formData.expirationDate) {
-      newErrors.expirationDate = 'Vui lòng chọn ngày hết hạn';
-    }
-
-    if (formData.effectiveDate && formData.expirationDate) {
-      const effectiveDate = new Date(formData.effectiveDate);
-      const expirationDate = new Date(formData.expirationDate);
-      
-      if (expirationDate <= effectiveDate) {
-        newErrors.expirationDate = 'Ngày hết hạn phải sau ngày hiệu lực';
-      }
+    if (!formData.terms.trim()) {
+      newErrors.terms = 'Vui lòng nhập điều khoản hợp đồng';
     }
 
     setErrors(newErrors);
@@ -86,9 +81,13 @@ const DealerContractForm = ({
     setIsSubmitting(true);
     try {
       const submitData = {
-        ...formData,
-        effectiveDate: new Date(formData.effectiveDate).toISOString(),
-        expirationDate: new Date(formData.expirationDate).toISOString()
+        code: formData.code,
+        orderId: formData.orderId,
+        customerId: formData.customerId,
+        terms: formData.terms,
+        status: formData.status,
+        ...(formData.signedAt && { signedAt: new Date(formData.signedAt).toISOString() }),
+        ...(formData.contractLink && { contractLink: formData.contractLink })
       };
       
       await onSubmit(submitData);
@@ -120,215 +119,267 @@ const DealerContractForm = ({
     const randomCode = Math.random().toString(36).substring(2, 5).toUpperCase();
     setFormData(prev => ({
       ...prev,
-      contractCode: `CTR-DEALER-${timestamp}`
+      code: `CTR-${timestamp}-${randomCode}`
     }));
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
+    <div className="max-w-4xl mx-auto animate-fadeIn">
+      <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+        {/* Header with Gradient */}
+        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="p-2 bg-emerald-100 rounded-lg mr-3">
-                <FileText size={20} className="text-emerald-600" />
+            <div className="flex items-center text-white">
+              <div className="p-3 bg-white/20 rounded-lg mr-4 backdrop-blur-sm">
+                <FileText size={24} />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-2xl font-bold mb-1">
                   {initialData ? 'Chỉnh sửa hợp đồng' : 'Tạo hợp đồng mới'}
                 </h2>
-                <p className="text-sm text-gray-600">
-                  {initialData ? 'Cập nhật thông tin hợp đồng đại lý' : 'Tạo hợp đồng cho đại lý'}
+                <p className="text-purple-100">
+                  {initialData ? 'Cập nhật thông tin hợp đồng' : 'Tạo hợp đồng cho đơn hàng'}
                 </p>
               </div>
             </div>
             <button
               onClick={onCancel}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all duration-200"
             >
-              <X size={20} />
+              <X size={24} />
             </button>
           </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Dealer Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <User size={16} className="inline mr-2" />
-              Đại lý *
-            </label>
-            <select
-              name="dealerId"
-              value={formData.dealerId}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
-                errors.dealerId ? 'border-red-300' : 'border-gray-300'
-              }`}
-              disabled={loading}
-            >
-              <option value="">Chọn đại lý</option>
-              {dealers.map((dealer) => (
-                <option key={dealer.id} value={dealer.id}>
-                  {dealer.name} - {dealer.email}
-                </option>
-              ))}
-            </select>
-            {errors.dealerId && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <AlertCircle size={14} className="mr-1" />
-                {errors.dealerId}
-              </p>
-            )}
-          </div>
-
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
           {/* Contract Code */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <FileText size={16} className="inline mr-2" />
+          <div className="group">
+            <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+              <div className="p-1.5 bg-indigo-100 rounded-lg mr-2 group-hover:bg-indigo-200 transition-colors">
+                <FileText size={16} className="text-indigo-600" />
+              </div>
               Mã hợp đồng *
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <input
                 type="text"
-                name="contractCode"
-                value={formData.contractCode}
+                name="code"
+                value={formData.code}
                 onChange={handleInputChange}
                 placeholder="Nhập mã hợp đồng"
-                className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
-                  errors.contractCode ? 'border-red-300' : 'border-gray-300'
+                className={`flex-1 px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 ${
+                  errors.code ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                 }`}
                 disabled={loading}
               />
               <button
                 type="button"
                 onClick={generateContractCode}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-6 py-3 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 rounded-xl hover:from-purple-200 hover:to-indigo-200 transition-all duration-200 font-semibold shadow-sm hover:shadow-md transform hover:scale-105"
                 disabled={loading}
               >
                 Tạo mã
               </button>
             </div>
-            {errors.contractCode && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
+            {errors.code && (
+              <p className="mt-2 text-sm text-red-600 flex items-center">
                 <AlertCircle size={14} className="mr-1" />
-                {errors.contractCode}
+                {errors.code}
               </p>
             )}
           </div>
 
+          {/* Order and Customer Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Order Selection */}
+            <div className="group">
+              <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <div className="p-1.5 bg-blue-100 rounded-lg mr-2 group-hover:bg-blue-200 transition-colors">
+                  <Package size={16} className="text-blue-600" />
+                </div>
+                Đơn hàng *
+              </label>
+              <select
+                name="orderId"
+                value={formData.orderId}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 ${
+                  errors.orderId ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+                disabled={loading}
+              >
+                <option value="">Chọn đơn hàng ({orders.length} đơn)</option>
+                {orders.length === 0 ? (
+                  <option disabled>Không có đơn hàng nào</option>
+                ) : (
+                  orders.map((order) => (
+                    <option key={order.id} value={order.id}>
+                      {order.orderCode || order.code || `Đơn hàng ${order.id?.substring(0, 8)}...`}
+                      {order.customerId && ` - KH: ${order.customerId.substring(0, 8)}...`}
+                    </option>
+                  ))
+                )}
+              </select>
+              {errors.orderId && (
+                <p className="mt-2 text-sm text-red-600 flex items-center">
+                  <AlertCircle size={14} className="mr-1" />
+                  {errors.orderId}
+                </p>
+              )}
+            </div>
+
+            {/* Customer Selection */}
+            <div className="group">
+              <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <div className="p-1.5 bg-purple-100 rounded-lg mr-2 group-hover:bg-purple-200 transition-colors">
+                  <User size={16} className="text-purple-600" />
+                </div>
+                Khách hàng *
+              </label>
+              <select
+                name="customerId"
+                value={formData.customerId}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 ${
+                  errors.customerId ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+                disabled={loading}
+              >
+                <option value="">Chọn khách hàng ({customers.length} khách hàng)</option>
+                {customers.length === 0 ? (
+                  <option disabled>Không có khách hàng nào</option>
+                ) : (
+                  customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.fullName || customer.name || customer.customerName || `Khách hàng ${customer.id?.substring(0, 8)}...`}
+                      {customer.phoneNumber && ` - ${customer.phoneNumber}`}
+                      {customer.phone && ` - ${customer.phone}`}
+                    </option>
+                  ))
+                )}
+              </select>
+              {errors.customerId && (
+                <p className="mt-2 text-sm text-red-600 flex items-center">
+                  <AlertCircle size={14} className="mr-1" />
+                  {errors.customerId}
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* Terms */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <FileText size={16} className="inline mr-2" />
-              Điều khoản hợp đồng
+          <div className="group">
+            <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+              <div className="p-1.5 bg-emerald-100 rounded-lg mr-2 group-hover:bg-emerald-200 transition-colors">
+                <FileText size={16} className="text-emerald-600" />
+              </div>
+              Điều khoản hợp đồng *
             </label>
             <textarea
               name="terms"
               value={formData.terms}
               onChange={handleInputChange}
-              placeholder="Nhập điều khoản hợp đồng..."
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              placeholder="Nhập các điều khoản và điều kiện của hợp đồng..."
+              rows={5}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 hover:border-gray-300 transition-all duration-200 resize-none ${
+                errors.terms ? 'border-red-500 bg-red-50' : 'border-gray-200'
+              }`}
               disabled={loading}
             />
+            {errors.terms && (
+              <p className="mt-2 text-sm text-red-600 flex items-center">
+                <AlertCircle size={14} className="mr-1" />
+                {errors.terms}
+              </p>
+            )}
           </div>
 
-          {/* Date Range */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar size={16} className="inline mr-2" />
-                Ngày hiệu lực *
+          {/* Signed At & Contract Link */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="group">
+              <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <div className="p-1.5 bg-green-100 rounded-lg mr-2 group-hover:bg-green-200 transition-colors">
+                  <Calendar size={16} className="text-green-600" />
+                </div>
+                Ngày ký
               </label>
               <input
-                type="date"
-                name="effectiveDate"
-                value={formData.effectiveDate}
+                type="datetime-local"
+                name="signedAt"
+                value={formData.signedAt}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
-                  errors.effectiveDate ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 hover:border-gray-300 transition-all duration-200"
                 disabled={loading}
               />
-              {errors.effectiveDate && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <AlertCircle size={14} className="mr-1" />
-                  {errors.effectiveDate}
-                </p>
-              )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar size={16} className="inline mr-2" />
-                Ngày hết hạn *
+            <div className="group">
+              <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <div className="p-1.5 bg-cyan-100 rounded-lg mr-2 group-hover:bg-cyan-200 transition-colors">
+                  <LinkIcon size={16} className="text-cyan-600" />
+                </div>
+                Link hợp đồng
               </label>
               <input
-                type="date"
-                name="expirationDate"
-                value={formData.expirationDate}
+                type="url"
+                name="contractLink"
+                value={formData.contractLink}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
-                  errors.expirationDate ? 'border-red-300' : 'border-gray-300'
-                }`}
+                placeholder="https://..."
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 hover:border-gray-300 transition-all duration-200"
                 disabled={loading}
               />
-              {errors.expirationDate && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <AlertCircle size={14} className="mr-1" />
-                  {errors.expirationDate}
-                </p>
-              )}
             </div>
           </div>
 
           {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <CheckCircle size={16} className="inline mr-2" />
+          <div className="group">
+            <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+              <div className="p-1.5 bg-yellow-100 rounded-lg mr-2 group-hover:bg-yellow-200 transition-colors">
+                <CheckCircle size={16} className="text-yellow-600" />
+              </div>
               Trạng thái
             </label>
             <select
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 hover:border-gray-300 transition-all duration-200"
               disabled={loading}
             >
-              <option value="DRAFT">Bản nháp</option>
-              <option value="ACTIVE">Hoạt động</option>
-              <option value="EXPIRED">Hết hạn</option>
-              <option value="CANCELLED">Đã hủy</option>
+              <option value="DRAFT">📝 Bản nháp</option>
+              <option value="PENDING_SIGNATURE">✍️ Chờ ký</option>
+              <option value="ACTIVE">✓ Đang hoạt động</option>
+              <option value="CANCELED">❌ Đã hủy</option>
             </select>
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          {/* Actions with Gradient Buttons */}
+          <div className="flex justify-end gap-4 pt-6 border-t-2 border-gray-100">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 flex items-center font-semibold hover:scale-105"
               disabled={loading || isSubmitting}
             >
+              <X size={18} className="mr-2" />
               Hủy
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center"
+              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 flex items-center font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
               disabled={loading || isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   Đang xử lý...
                 </>
               ) : (
                 <>
-                  <Save size={16} className="mr-2" />
-                  {initialData ? 'Cập nhật' : 'Tạo hợp đồng'}
+                  <Save size={18} className="mr-2" />
+                  {initialData ? 'Cập nhật hợp đồng' : 'Tạo hợp đồng'}
                 </>
               )}
             </button>
