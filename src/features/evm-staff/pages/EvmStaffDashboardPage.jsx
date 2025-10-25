@@ -18,7 +18,7 @@ import useHandoverRecords from '../hooks/useHandoverRecords';
 
 const EvmStaffDashboardPage = () => {
   // Fetch handover records data
-  const { handoverRecords } = useHandoverRecords();
+  const { records: handoverRecords } = useHandoverRecords();
   
   // Mock data - thay bằng API call thực tế
   const [stats, setStats] = useState({
@@ -170,10 +170,10 @@ const EvmStaffDashboardPage = () => {
             <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded">BÀN GIAO</span>
           </div>
           <h3 className="text-sm font-medium opacity-90 mb-1">Bàn Giao Xe</h3>
-          <p className="text-2xl font-bold">{handoverRecords.length} xe</p>
+          <p className="text-2xl font-bold">{handoverRecords?.length || 0} xe</p>
           <div className="flex items-center mt-3 text-xs">
             <CheckCircle size={14} className="mr-1" />
-            <span>{handoverRecords.filter(r => r.isAccepted).length} đã chấp nhận</span>
+            <span>{handoverRecords?.filter(r => r.isAccepted).length || 0} đã chấp nhận</span>
           </div>
         </div>
       </div>
@@ -286,7 +286,7 @@ const EvmStaffDashboardPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-cyan-700 font-medium mb-1">Tổng Bàn Giao</p>
-                  <p className="text-2xl font-bold text-cyan-900">{handoverRecords.length}</p>
+                  <p className="text-2xl font-bold text-cyan-900">{handoverRecords?.length || 0}</p>
                 </div>
                 <Truck size={32} className="text-cyan-600" />
               </div>
@@ -297,7 +297,7 @@ const EvmStaffDashboardPage = () => {
                 <div>
                   <p className="text-sm text-green-700 font-medium mb-1">Đã Chấp Nhận</p>
                   <p className="text-2xl font-bold text-green-900">
-                    {handoverRecords.filter(r => r.isAccepted).length}
+                    {handoverRecords?.filter(r => r.isAccepted).length || 0}
                   </p>
                 </div>
                 <CheckCircle size={32} className="text-green-600" />
@@ -309,7 +309,7 @@ const EvmStaffDashboardPage = () => {
                 <div>
                   <p className="text-sm text-yellow-700 font-medium mb-1">Chờ Xác Nhận</p>
                   <p className="text-2xl font-bold text-yellow-900">
-                    {handoverRecords.filter(r => !r.isAccepted).length}
+                    {handoverRecords?.filter(r => !r.isAccepted).length || 0}
                   </p>
                 </div>
                 <Clock size={32} className="text-yellow-600" />
@@ -321,12 +321,13 @@ const EvmStaffDashboardPage = () => {
                 <div>
                   <p className="text-sm text-blue-700 font-medium mb-1">Tháng Này</p>
                   <p className="text-2xl font-bold text-blue-900">
-                    {handoverRecords.filter(r => {
+                    {handoverRecords?.filter(r => {
+                      if (!r.handoverDate) return false;
                       const recordDate = new Date(r.handoverDate);
                       const now = new Date();
                       return recordDate.getMonth() === now.getMonth() && 
                              recordDate.getFullYear() === now.getFullYear();
-                    }).length}
+                    }).length || 0}
                   </p>
                 </div>
                 <Calendar size={32} className="text-blue-600" />

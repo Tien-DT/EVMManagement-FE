@@ -1,9 +1,9 @@
 // src/features/evm-staff/hooks/useHandoverRecords.js
-import { useState, useEffect } from "react";
-import handoverRecordService from "../services/handoverRecordService";
+import { useState, useEffect } from 'react';
+import handoverRecordService from '../services/handoverRecordService';
 
 const useHandoverRecords = () => {
-  const [handoverRecords, setHandoverRecords] = useState([]);
+  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
@@ -15,32 +15,29 @@ const useHandoverRecords = () => {
     hasPreviousPage: false
   });
 
-  // Fetch all handover records with pagination
-  const fetchHandoverRecords = async (params = {}) => {
+  // Fetch all handover records
+  const fetchRecords = async (params = {}) => {
     setLoading(true);
     setError(null);
     try {
-      console.log('Hook: Fetching handover records with params:', params);
-      const response = await handoverRecordService.getAllHandoverRecords(params);
+      // Service returns PagedResult<HandoverRecordResponseDto>
+      const pagedResult = await handoverRecordService.getAllHandoverRecords(params);
+      console.log('Hook: Fetched paged result:', pagedResult);
       
-      console.log('Hook: Handover records response:', response);
-      
-      const recordsData = response.data || response;
-      
-      setHandoverRecords(recordsData.items || []);
+      setRecords(pagedResult.items || []);
       setPagination({
-        pageNumber: recordsData.pageNumber || 1,
-        pageSize: recordsData.pageSize || 10,
-        totalCount: recordsData.totalCount || 0,
-        totalPages: recordsData.totalPages || 0,
-        hasNextPage: recordsData.hasNextPage || false,
-        hasPreviousPage: recordsData.hasPreviousPage || false
+        pageNumber: pagedResult.pageNumber || 1,
+        pageSize: pagedResult.pageSize || 10,
+        totalCount: pagedResult.totalCount || 0,
+        totalPages: pagedResult.totalPages || 0,
+        hasNextPage: pagedResult.hasNextPage || false,
+        hasPreviousPage: pagedResult.hasPreviousPage || false
       });
-      return response;
+      
+      return pagedResult;
     } catch (err) {
-      console.error('Hook: Error fetching handover records:', err);
+      console.error('Hook: Error fetching records:', err);
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách bàn giao');
-      setHandoverRecords([]);
       throw err;
     } finally {
       setLoading(false);
@@ -48,14 +45,17 @@ const useHandoverRecords = () => {
   };
 
   // Get handover record by ID
-  const getHandoverRecordById = async (id) => {
+  const getRecordById = async (id) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await handoverRecordService.getHandoverRecordById(id);
-      return response;
+      // Service returns HandoverRecordResponseDto
+      const record = await handoverRecordService.getHandoverRecordById(id);
+      console.log('Hook: Fetched record:', record);
+      return record;
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi tải thông tin bàn giao');
+      console.error('Hook: Error getting record:', err);
+      setError(err.message || 'Có lỗi xảy ra khi tải thông tin bàn giao');
       throw err;
     } finally {
       setLoading(false);
@@ -63,18 +63,17 @@ const useHandoverRecords = () => {
   };
 
   // Create handover record
-  const createHandoverRecord = async (recordData) => {
+  const createRecord = async (data) => {
     setLoading(true);
     setError(null);
     try {
-      console.log('Hook: Creating handover record with data:', recordData);
-      const response = await handoverRecordService.createHandoverRecord(recordData);
-      console.log('Hook: Handover record created successfully:', response);
-      // Refresh handover records list
-      await fetchHandoverRecords();
-      return response;
+      // Service returns HandoverRecordResponseDto
+      const created = await handoverRecordService.createHandoverRecord(data);
+      console.log('Hook: Created record:', created);
+      await fetchRecords(); // Refresh list
+      return created;
     } catch (err) {
-      console.error('Hook: Error creating handover record:', err);
+      console.error('Hook: Error creating record:', err);
       setError(err.message || 'Có lỗi xảy ra khi tạo bàn giao');
       throw err;
     } finally {
@@ -83,16 +82,18 @@ const useHandoverRecords = () => {
   };
 
   // Update handover record
-  const updateHandoverRecord = async (id, recordData) => {
+  const updateRecord = async (id, data) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await handoverRecordService.updateHandoverRecord(id, recordData);
-      // Refresh handover records list
-      await fetchHandoverRecords();
-      return response;
+      // Service returns HandoverRecordResponseDto
+      const updated = await handoverRecordService.updateHandoverRecord(id, data);
+      console.log('Hook: Updated record:', updated);
+      await fetchRecords(); // Refresh list
+      return updated;
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bàn giao');
+      console.error('Hook: Error updating record:', err);
+      setError(err.message || 'Có lỗi xảy ra khi cập nhật bàn giao');
       throw err;
     } finally {
       setLoading(false);
@@ -100,33 +101,18 @@ const useHandoverRecords = () => {
   };
 
   // Delete handover record
-  const deleteHandoverRecord = async (id) => {
+  const deleteRecord = async (id) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await handoverRecordService.deleteHandoverRecord(id);
-      // Refresh handover records list
-      await fetchHandoverRecords();
-      return response;
+      // Service returns HandoverRecordResponseDto
+      const deleted = await handoverRecordService.deleteHandoverRecord(id);
+      console.log('Hook: Deleted record:', deleted);
+      await fetchRecords(); // Refresh list
+      return deleted;
     } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi xóa bàn giao');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update handover record status (accept/reject)
-  const updateHandoverRecordStatus = async (id, isAccepted) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await handoverRecordService.updateHandoverRecordStatus(id, isAccepted);
-      // Refresh handover records list
-      await fetchHandoverRecords();
-      return response;
-    } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái bàn giao');
+      console.error('Hook: Error deleting record:', err);
+      setError(err.message || 'Có lỗi xảy ra khi xóa bàn giao');
       throw err;
     } finally {
       setLoading(false);
@@ -134,22 +120,21 @@ const useHandoverRecords = () => {
   };
 
   useEffect(() => {
-    fetchHandoverRecords().catch(err => {
-      console.error('Initial fetch handover records failed:', err);
+    fetchRecords().catch(err => {
+      console.error('Initial fetch failed:', err);
     });
   }, []);
 
   return {
-    handoverRecords,
+    records,
     loading,
     error,
     pagination,
-    fetchHandoverRecords,
-    getHandoverRecordById,
-    createHandoverRecord,
-    updateHandoverRecord,
-    deleteHandoverRecord,
-    updateHandoverRecordStatus
+    fetchRecords,
+    getRecordById,
+    createRecord,
+    updateRecord,
+    deleteRecord
   };
 };
 
