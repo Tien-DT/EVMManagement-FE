@@ -1,89 +1,31 @@
 // src/features/dealer-staff/pages/VehicleModelsPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Car, Search, Loader2, AlertCircle, Calendar, Package } from "lucide-react";
+import { Car, Search, Loader2, AlertCircle, Calendar } from "lucide-react";
 import { vehicleService } from "../services/vehicleService";
 
 const VehicleModelsPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [dealerId, setDealerId] = useState(null);
   const [models, setModels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Get dealerId from sessionStorage
-  useEffect(() => {
-    const fetchDealerId = async () => {
-      try {
-        const cachedDealerId = sessionStorage.getItem("dealerId");
-        if (cachedDealerId) {
-          console.log("✅ Using cached dealerId:", cachedDealerId);
-          setDealerId(cachedDealerId);
-          return;
-        }
-
-        const userStr = sessionStorage.getItem("user");
-        if (!userStr) {
-          console.error("❌ No user found in sessionStorage");
-          setDealerId(null);
-          return;
-        }
-
-        const user = JSON.parse(userStr);
-        const accountId = user.accountId || user.id;
-
-        if (!accountId) {
-          console.error("❌ No accountId found in user");
-          setDealerId(null);
-          return;
-        }
-
-        console.log("🔍 Fetching dealerId for accountId:", accountId);
-
-        const { dealerService } = await import(
-          "../../dealer-manager/services/dealerService"
-        );
-
-        const userProfile = await dealerService.getUserProfile(accountId);
-        console.log("📦 User profile response:", userProfile);
-
-        if (userProfile.success && userProfile.data?.dealerId) {
-          const fetchedDealerId = userProfile.data.dealerId;
-          console.log("✅ DealerId fetched from API:", fetchedDealerId);
-
-          sessionStorage.setItem("userProfile", JSON.stringify(userProfile.data));
-          sessionStorage.setItem("dealerId", fetchedDealerId);
-
-          setDealerId(fetchedDealerId);
-        } else {
-          console.error("❌ No dealerId found in user profile");
-          setDealerId(null);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching dealerId:", error);
-        setDealerId(null);
-      }
-    };
-
-    fetchDealerId();
-  }, []);
-
-  // Fetch vehicle models when dealerId is available
+  // Fetch vehicle models
   useEffect(() => {
     const fetchModels = async () => {
-      if (!dealerId) return;
-
       setIsLoading(true);
       setError(null);
 
       try {
-        console.log("🚗 Fetching models for dealer:", dealerId);
-        const response = await vehicleService.getModelsByDealer(dealerId);
+        console.log("🚗 Fetching models...");
+        const response = await vehicleService.getModels();
         
         if (response.success && response.data) {
           console.log("✅ Models fetched:", response.data);
-          setModels(response.data);
+          // Check if data is paginated or direct array
+          const modelsList = response.data.items || response.data;
+          setModels(modelsList);
         } else {
           throw new Error(response.message || "Không thể tải danh sách model xe");
         }
@@ -96,12 +38,12 @@ const VehicleModelsPage = () => {
     };
 
     fetchModels();
-  }, [dealerId]);
+  }, []);
 
   // Filter models based on search
   const filteredModels = models.filter((model) =>
-    model.modelName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    model.modelCode?.toLowerCase().includes(searchTerm.toLowerCase())
+    model.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    model.code?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatDate = (dateString) => {
@@ -174,8 +116,8 @@ const VehicleModelsPage = () => {
         {filteredModels.length > 0 ? (
           filteredModels.map((model) => (
             <div
-              key={model.modelId}
-              onClick={() => navigate(`/dealer-staff/vehicles/models/${model.modelId}/variants`)}
+              key={model.id}
+              onClick={() => navigate(`/dealer-staff/vehicles/models/${model.id}/variants`)}
               className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
             >
               {/* Model Image */}
@@ -183,7 +125,7 @@ const VehicleModelsPage = () => {
                 {model.imageUrl ? (
                   <img
                     src={model.imageUrl}
-                    alt={model.modelName}
+                    alt={model.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
@@ -198,10 +140,10 @@ const VehicleModelsPage = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {model.modelName || "N/A"}
+                      {model.name || "N/A"}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      Mã: {model.modelCode || "N/A"}
+                      Mã: {model.code || "N/A"}
                     </p>
                   </div>
                   {model.ranking && (
@@ -224,12 +166,6 @@ const VehicleModelsPage = () => {
                       <span>Ra mắt: {formatDate(model.launchDate)}</span>
                     </div>
                   )}
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Package size={16} className="mr-2 text-gray-400" />
-                    <span className="font-medium text-blue-600">
-                      {model.availableQuantity || 0} xe có sẵn
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>

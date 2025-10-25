@@ -1,67 +1,45 @@
 // src/features/dealer-staff/pages/VehicleVariantsPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { 
-  Car, 
-  ArrowLeft, 
-  Loader2, 
-  AlertCircle, 
-  DollarSign, 
-  Gauge, 
-  Battery, 
-  Package 
+import {
+  Car,
+  ArrowLeft,
+  Loader2,
+  AlertCircle,
+  DollarSign,
+  Gauge,
+  Battery,
 } from "lucide-react";
 import { vehicleService } from "../services/vehicleService";
 
 const VehicleVariantsPage = () => {
   const navigate = useNavigate();
   const { modelId } = useParams();
-  const [dealerId, setDealerId] = useState(null);
   const [variants, setVariants] = useState([]);
-  const [modelInfo, setModelInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Get dealerId from sessionStorage
-  useEffect(() => {
-    const cachedDealerId = sessionStorage.getItem("dealerId");
-    if (cachedDealerId) {
-      setDealerId(cachedDealerId);
-    } else {
-      console.error("❌ No dealerId found in sessionStorage");
-      navigate("/dealer-staff/vehicles/models");
-    }
-  }, [navigate]);
-
-  // Fetch variants when dealerId and modelId are available
+  // Fetch variants when modelId is available
   useEffect(() => {
     const fetchVariants = async () => {
-      if (!dealerId || !modelId) return;
+      if (!modelId) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
-        console.log("🔧 Fetching variants for dealer:", dealerId, "model:", modelId);
-        const response = await vehicleService.getVariantsByDealerAndModel(
-          dealerId,
-          modelId
-        );
+        console.log("🔧 Fetching variants for model:", modelId);
+        const response = await vehicleService.getVariantsByModel(modelId);
 
         if (response.success && response.data) {
           console.log("✅ Variants fetched:", response.data);
-          setVariants(response.data);
-          
-          // Extract model info from first variant if available
-          if (response.data.length > 0) {
-            const firstVariant = response.data[0];
-            setModelInfo({
-              modelName: firstVariant.modelName,
-              modelCode: firstVariant.modelCode,
-            });
-          }
+          // Check if data is paginated or direct array
+          const variantsList = response.data.items || response.data;
+          setVariants(variantsList);
         } else {
-          throw new Error(response.message || "Không thể tải danh sách variant");
+          throw new Error(
+            response.message || "Không thể tải danh sách variant"
+          );
         }
       } catch (error) {
         console.error("❌ Error fetching variants:", error);
@@ -72,7 +50,7 @@ const VehicleVariantsPage = () => {
     };
 
     fetchVariants();
-  }, [dealerId, modelId]);
+  }, [modelId]);
 
   const formatPrice = (price) => {
     if (!price) return "Liên hệ";
@@ -100,7 +78,9 @@ const VehicleVariantsPage = () => {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Có lỗi xảy ra</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Có lỗi xảy ra
+          </h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => navigate("/dealer-staff/vehicles/models")}
@@ -127,12 +107,9 @@ const VehicleVariantsPage = () => {
 
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {modelInfo?.modelName || "Danh sách Variant"}
+            Danh sách Variant
           </h1>
-          <p className="text-gray-600 mt-1">
-            {modelInfo?.modelCode && `Mã model: ${modelInfo.modelCode} • `}
-            Chọn variant để xem chi tiết
-          </p>
+          <p className="text-gray-600 mt-1">Chọn variant để xem chi tiết</p>
         </div>
       </div>
 
@@ -141,7 +118,7 @@ const VehicleVariantsPage = () => {
         {variants.length > 0 ? (
           variants.map((variant) => (
             <div
-              key={variant.variantId}
+              key={variant.id}
               className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all group"
             >
               {/* Variant Image */}
@@ -175,15 +152,6 @@ const VehicleVariantsPage = () => {
                     </div>
                     <div className="text-2xl font-bold text-blue-600">
                       {formatPrice(variant.price)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center text-sm text-gray-500 mb-1">
-                      <Package size={16} className="mr-1" />
-                      <span>Tồn kho</span>
-                    </div>
-                    <div className="text-xl font-bold text-green-600">
-                      {variant.availableQuantity || 0}
                     </div>
                   </div>
                 </div>
@@ -257,7 +225,7 @@ const VehicleVariantsPage = () => {
 
                     {variant.weight && (
                       <div className="flex items-start space-x-2">
-                        <Package size={16} className="text-gray-400 mt-0.5" />
+                        <Gauge size={16} className="text-gray-400 mt-0.5" />
                         <div>
                           <p className="text-xs text-gray-500">Trọng lượng</p>
                           <p className="text-sm font-medium text-gray-900">

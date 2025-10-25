@@ -16,7 +16,7 @@ const endpoints = {
     resetPassword: "/v1/Auth/reset-password",
     changePassword: "/v1/Auth/change-password",
   },
-  
+
   admin: {
     dashboard: "/v1/Admin/dashboard",
     users: "/v1/UserProfile",
@@ -25,7 +25,7 @@ const endpoints = {
     vehicleVariants: "/v1/VehicleVariants",
     promotions: "/v1/Promotions",
   },
-  
+
   dealer: {
     vehicles: "/v1/Dealer/vehicles",
     orders: "/v1/Dealer/orders",
@@ -33,13 +33,13 @@ const endpoints = {
     warehousesByDealer: (dealerId) => `/v1/Warehouses/dealer/${dealerId}`,
     registerStaff: "/v1/Auth/register-dealer",
   },
-  
+
   // User Profile endpoints
   userProfile: {
     getByAccount: (accId) => `/v1/UserProfile/by-account/${accId}`,
     byAccount: (accountId) => `/v1/UserProfile/by-account/${accountId}`,
   },
-  
+
   // Customer endpoints
   customers: {
     getAll: "/v1/Customers",
@@ -50,7 +50,7 @@ const endpoints = {
     delete: (id) => `/v1/Customers/${id}`,
     search: "/v1/Customers/search",
   },
-  
+
   // Quotation endpoints
   quotations: {
     getAll: "/v1/Quotations",
@@ -61,7 +61,7 @@ const endpoints = {
     update: (id) => `/v1/Quotations/${id}`,
     delete: (id) => `/v1/Quotations/${id}`,
   },
-  
+
   // Order endpoints
   orders: {
     getAll: "/v1/Orders",
@@ -80,7 +80,7 @@ const endpoints = {
     update: (id) => `/v1/MasterTimeSlots/${id}`,
     delete: (id) => `/v1/MasterTimeSlots/${id}`,
   },
-  
+
   // Test Drive Vehicles endpoints
   testDriveVehicles: {
     getAll: "/v1/TestDriveVehicles",
@@ -90,11 +90,10 @@ const endpoints = {
     updateStatus: (id) => `/v1/TestDriveVehicles/${id}/status`,
     delete: (id) => `/v1/TestDriveVehicles/${id}`,
   },
-
   // Vehicle endpoints for dealer staff
   vehicles: {
-    getModelsByDealer: (dealerId) => `/v1/Vehicles/dealer/${dealerId}/models`,
-    getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/Vehicles/dealer/${dealerId}/models/${modelId}/variants`,
+    getModels: "/v1/VehicleModels",
+    getVariantsByModel: (modelId) => `/v1/VehicleVariants/by-model/${modelId}`,
   },
 };
 
