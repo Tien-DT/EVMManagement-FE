@@ -113,56 +113,58 @@ const EvmStaffCreateQuotationPage = () => {
   if (isSubmitting) {
     return (
       <div className="flex justify-center items-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-900 border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-8 border border-gray-200">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center mb-6">
+      <div className="flex items-center gap-4">
         <button
           onClick={() => navigate('/evm-staff/quotations')}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors mr-4"
+          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
         >
-          <ArrowLeft size={20} className="mr-2" />
-          Quay lại
+          <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {isEditMode ? 'Chỉnh sửa báo giá' : 'Tạo báo giá mới'}
-        </h1>
+        <div>
+          <h1 className="text-3xl font-semibold text-gray-900">
+            {isEditMode ? 'Chỉnh Sửa Báo Giá' : 'Tạo Báo Giá Mới'}
+          </h1>
+          <p className="text-gray-500 mt-1">Nhập thông tin báo giá cho khách hàng</p>
+        </div>
       </div>
 
       {/* Order Request Info - Show only if creating from request */}
       {orderRequest && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
-            <FileText size={20} className="mr-2" />
+        <div className="bg-white border border-blue-200 rounded-lg p-5">
+          <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <FileText size={18} className="text-blue-600" />
             Thông tin yêu cầu
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center">
-              <User size={16} className="text-blue-600 mr-2" />
-              <span className="text-sm text-blue-800">
-                <strong>Đại lý:</strong> {orderRequest.dealerName}
+            <div className="flex items-center gap-2">
+              <User size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-700">
+                <span className="font-medium">Đại lý:</span> {orderRequest.dealerName}
               </span>
             </div>
-            <div className="flex items-center">
-              <Car size={16} className="text-blue-600 mr-2" />
-              <span className="text-sm text-blue-800">
-                <strong>Xe:</strong> {orderRequest.vehicleModel} - {orderRequest.vehicleVariant}
+            <div className="flex items-center gap-2">
+              <Car size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-700">
+                <span className="font-medium">Xe:</span> {orderRequest.vehicleModel} - {orderRequest.vehicleVariant}
               </span>
             </div>
-            <div className="flex items-center">
-              <Calculator size={16} className="text-blue-600 mr-2" />
-              <span className="text-sm text-blue-800">
-                <strong>Số lượng:</strong> {orderRequest.quantity}
+            <div className="flex items-center gap-2">
+              <Calculator size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-700">
+                <span className="font-medium">Số lượng:</span> {orderRequest.quantity}
               </span>
             </div>
-            <div className="flex items-center">
-              <span className="text-sm text-blue-800">
-                <strong>Ngày yêu cầu:</strong> {new Date(orderRequest.requestedAt).toLocaleDateString('vi-VN')}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">
+                <span className="font-medium">Ngày yêu cầu:</span> {new Date(orderRequest.requestedAt).toLocaleDateString('vi-VN')}
               </span>
             </div>
           </div>
@@ -170,64 +172,67 @@ const EvmStaffCreateQuotationPage = () => {
       )}
 
       {/* Quotation Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
         {/* Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mã báo giá <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.code}
-              onChange={(e) => handleInputChange('code', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder="VD: BG001"
-              required
-            />
-          </div>
+        <div>
+          <h3 className="text-base font-semibold text-gray-900 mb-4">Thông tin cơ bản</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mã báo giá <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.code}
+                onChange={(e) => handleInputChange('code', e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
+                placeholder="VD: BG001"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ID Khách hàng <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.customerId}
-              onChange={(e) => handleInputChange('customerId', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder="UUID của khách hàng"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Có hiệu lực đến <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              value={formData.validUntil}
-              onChange={(e) => handleInputChange('validUntil', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              required
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ID Khách hàng <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.customerId}
+                onChange={(e) => handleInputChange('customerId', e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
+                placeholder="UUID của khách hàng"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Có hiệu lực đến <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={formData.validUntil}
+                onChange={(e) => handleInputChange('validUntil', e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Trạng thái
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => handleInputChange('status', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            >
-              <option value="DRAFT">Bản nháp</option>
-              <option value="SENT">Đã gửi</option>
-              <option value="APPROVED">Đã duyệt</option>
-              <option value="REJECTED">Bị từ chối</option>
-            </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Trạng thái
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => handleInputChange('status', e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
+              >
+                <option value="DRAFT">Bản nháp</option>
+                <option value="SENT">Đã gửi</option>
+                <option value="APPROVED">Đã duyệt</option>
+                <option value="REJECTED">Bị từ chối</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -238,43 +243,48 @@ const EvmStaffCreateQuotationPage = () => {
         />
 
         {/* Additional Info */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Thông tin bổ sung</h3>
+        <div className="space-y-4 pt-6 border-t border-gray-200">
+          <h3 className="text-base font-semibold text-gray-900">Thông tin bổ sung</h3>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Ghi chú
             </label>
             <textarea
               value={formData.note}
               onChange={(e) => handleInputChange('note', e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
               placeholder="Ghi chú thêm về báo giá..."
             />
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+        <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
           <button
             type="button"
             onClick={() => navigate('/evm-staff/quotations')}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
           >
             Hủy
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+            className="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium"
           >
             {isSubmitting ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                Đang xử lý...
+              </>
             ) : (
-              <Save size={16} className="mr-2" />
+              <>
+                <Save size={18} />
+                {isEditMode ? 'Cập nhật báo giá' : 'Tạo báo giá'}
+              </>
             )}
-            {isEditMode ? 'Cập nhật báo giá' : 'Tạo báo giá'}
           </button>
         </div>
       </form>

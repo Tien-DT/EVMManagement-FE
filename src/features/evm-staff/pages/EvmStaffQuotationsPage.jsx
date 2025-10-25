@@ -102,177 +102,171 @@ const EvmStaffQuotationsPage = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Báo Giá</h1>
-          <p className="text-gray-600 mt-1">Quản lý báo giá cho các đại lý</p>
+          <h1 className="text-3xl font-semibold text-gray-900">Báo Giá</h1>
+          <p className="text-gray-500 mt-1">Quản lý báo giá cho các đại lý</p>
         </div>
         <button
           onClick={() => navigate('/evm-staff/quotations/create')}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center"
+          className="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 font-medium"
         >
-          <Plus size={16} className="mr-2" />
-          Tạo báo giá mới
+          <Plus size={18} />
+          Tạo báo giá
         </button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <FileText size={20} className="text-blue-600" />
+        <div className="bg-white p-5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Tổng báo giá</p>
+              <p className="text-2xl font-semibold text-gray-900">{quotations.length}</p>
             </div>
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Tổng báo giá</p>
-              <p className="text-xl font-bold text-gray-900">{quotations.length}</p>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <FileText size={24} className="text-gray-600" />
             </div>
           </div>
         </div>
         
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Send size={20} className="text-blue-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Đã gửi</p>
-              <p className="text-xl font-bold text-gray-900">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Đã gửi</p>
+              <p className="text-2xl font-semibold text-gray-900">
                 {quotations.filter(q => q.status?.toUpperCase() === 'SENT').length}
               </p>
             </div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <Send size={24} className="text-blue-600" />
+            </div>
           </div>
         </div>
         
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle size={20} className="text-green-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Đã duyệt</p>
-              <p className="text-xl font-bold text-gray-900">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Đã duyệt</p>
+              <p className="text-2xl font-semibold text-gray-900">
                 {quotations.filter(q => q.status?.toUpperCase() === 'APPROVED').length}
               </p>
             </div>
+            <div className="p-3 bg-green-50 rounded-lg">
+              <CheckCircle size={24} className="text-green-600" />
+            </div>
           </div>
         </div>
         
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <XCircle size={20} className="text-red-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Bị từ chối</p>
-              <p className="text-xl font-bold text-gray-900">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Bị từ chối</p>
+              <p className="text-2xl font-semibold text-gray-900">
                 {quotations.filter(q => q.status?.toUpperCase() === 'REJECTED').length}
               </p>
+            </div>
+            <div className="p-3 bg-red-50 rounded-lg">
+              <XCircle size={24} className="text-red-600" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <div className="relative">
-              <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Tìm kiếm theo mã, khách hàng..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
               />
             </div>
           </div>
-          <div className="flex gap-2">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="DRAFT">Bản nháp</option>
-              <option value="SENT">Đã gửi</option>
-              <option value="APPROVED">Đã duyệt</option>
-              <option value="REJECTED">Bị từ chối</option>
-              <option value="EXPIRED">Hết hạn</option>
-            </select>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center">
-              <Filter size={20} className="mr-2" />
-              Bộ lọc
-            </button>
-          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="DRAFT">Bản nháp</option>
+            <option value="SENT">Đã gửi</option>
+            <option value="APPROVED">Đã duyệt</option>
+            <option value="REJECTED">Bị từ chối</option>
+            <option value="EXPIRED">Hết hạn</option>
+          </select>
         </div>
       </div>
 
       {/* Error State */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <AlertCircle size={20} className="text-red-600 mr-2" />
-            <p className="text-red-800">{error}</p>
+          <div className="flex items-center gap-3">
+            <AlertCircle size={20} className="text-red-600" />
+            <p className="text-sm text-red-800">{error}</p>
           </div>
         </div>
       )}
 
       {/* Quotations Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-900 border-t-transparent"></div>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Báo giá
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Khách hàng
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Đại lý
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Tổng giá trị
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Trạng thái
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Ngày tạo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Thao tác
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredQuotations.map((quotation) => (
-                  <tr key={quotation.id} className="hover:bg-gray-50">
+                  <tr key={quotation.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{quotation.id}</div>
-                      <div className="text-xs text-gray-500">{quotation.note || ''}</div>
+                      {quotation.note && <div className="text-xs text-gray-500 mt-0.5">{quotation.note}</div>}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                          <User size={16} className="text-emerald-600" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center">
+                          <User size={18} className="text-gray-600" />
                         </div>
-                        <div className="ml-3">
+                        <div>
                           <div className="text-sm font-medium text-gray-900">{quotation.customerName || quotation.customerId}</div>
-                          <div className="text-sm text-gray-500">{quotation.customerEmail || ''}</div>
+                          {quotation.customerEmail && <div className="text-xs text-gray-500">{quotation.customerEmail}</div>}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{quotation.dealerName || quotation.dealerId || '-'}</div>
+                      <div className="text-sm text-gray-700">{quotation.dealerName || quotation.dealerId || '-'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
@@ -280,33 +274,35 @@ const EvmStaffQuotationsPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(quotation.status)}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(quotation.status)}`}>
                         {getStatusIcon(quotation.status)}
-                        <span className="ml-1">{getStatusText(quotation.status)}</span>
+                        {getStatusText(quotation.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Calendar size={16} className="mr-2" />
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar size={16} />
                         {quotation.createdDate ? new Date(quotation.createdDate).toLocaleDateString('vi-VN') : 
                          quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString('vi-VN') : '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button 
-                        onClick={() => handleViewDetail(quotation.id)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                        title="Xem chi tiết"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(quotation.id)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Xóa"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleViewDetail(quotation.id)}
+                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Xem chi tiết"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(quotation.id)}
+                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Xóa"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -318,10 +314,14 @@ const EvmStaffQuotationsPage = () => {
 
       {/* Empty State */}
       {!loading && filteredQuotations.length === 0 && (
-        <div className="text-center py-12">
-          <FileText size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Không có báo giá nào</h3>
-          <p className="text-gray-600">Chưa có báo giá nào được tạo</p>
+        <div className="bg-white rounded-lg border border-gray-200 py-16">
+          <div className="text-center">
+            <div className="inline-flex p-4 bg-gray-100 rounded-full mb-4">
+              <FileText size={32} className="text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Không có báo giá nào</h3>
+            <p className="text-gray-500 text-sm">Chưa có báo giá nào được tạo</p>
+          </div>
         </div>
       )}
     </div>
