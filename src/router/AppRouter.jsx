@@ -14,7 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EvmStaffLayout"; 
+import EVMStaffLayout from "../layouts/EVMStaffLayout"; 
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -54,6 +54,8 @@ import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPag
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
 import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
+import DealerVehicleModelsPage from "../features/dealer-staff/pages/DealerVehicleModelsPage";
+import DealerVehicleVariantsPage from "../features/dealer-staff/pages/DealerVehicleVariantsPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 import QuotationDetailPage from "../features/dealer-staff/pages/QuotationDetailPage";
@@ -195,6 +197,10 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["dealer-staff"]} />}>
           <Route element={<DealerStaffLayout />}>
+            {/* Vehicle Routes */}
+            <Route path="/dealer-staff/vehicles" element={<DealerVehicleModelsPage />} />
+            <Route path="/dealer-staff/vehicles/:modelId/variants" element={<DealerVehicleVariantsPage />} />
+            
             {/* Customer Routes */}
             <Route path="/dealer-staff/customers" element={<CustomersPage />} />
             <Route

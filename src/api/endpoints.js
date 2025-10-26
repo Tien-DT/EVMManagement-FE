@@ -103,6 +103,36 @@ const endpoints = {
     update: (id) => `/v1/HandoverRecords/${id}`,
     delete: (id) => `/v1/HandoverRecords/${id}`,
   },
+  
+  vehicleModels: {
+    getAll: "/v1/VehicleModels",
+    getById: (id) => `/v1/VehicleModels/${id}`,
+    getByDealer: (dealerId) => `/v1/VehicleModels/dealer/${dealerId}/models`,
+    getAllWithStock: (dealerId) => `/v1/VehicleModels/with-stock?dealerId=${dealerId}`,
+    create: "/v1/VehicleModels",
+    update: (id) => `/v1/VehicleModels/${id}`,
+    delete: (id) => `/v1/VehicleModels/${id}`,
+  },
+  
+  vehicleVariants: {
+    getAll: "/v1/VehicleVariants",
+    getById: (id) => `/v1/VehicleVariants/${id}`,
+    getByModel: (modelId) => `/v1/VehicleVariants/by-model/${modelId}`,
+    getByDealerAndModel: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants`,
+    getByDealerAndModelWithStock: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants-with-stock`,
+    create: "/v1/VehicleVariants",
+    update: (id) => `/v1/VehicleVariants/${id}`,
+    delete: (id) => `/v1/VehicleVariants/${id}`,
+  },
+
+  vehicles: {
+    getAll: "/v1/Vehicles",
+    getById: (id) => `/v1/Vehicles/${id}`,
+    getByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
+    create: "/v1/Vehicles",
+    update: (id) => `/v1/Vehicles/${id}`,
+    delete: (id) => `/v1/Vehicles/${id}`,
+  },
 };
 
 export default endpoints;
