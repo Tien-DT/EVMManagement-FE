@@ -1,4 +1,3 @@
-// src/router/AppRouter.jsx
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -14,7 +13,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EvmStaffLayout"; 
+import EVMStaffLayout from "../layouts/EVMStaffLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -49,11 +48,17 @@ import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerM
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
+import TimeSlotsPage from "../features/dealer-manager/pages/TimeSlotsPage";
+import CreateTimeSlotPage from "../features/dealer-manager/pages/CreateTimeSlotPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
 import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
+import VehicleModelsPage from "../features/dealer-staff/pages/VehicleModelsPage";
+import VehicleVariantsPage from "../features/dealer-staff/pages/VehicleVariantsPage";
+import VehicleDetailPage from "../features/dealer-staff/pages/VehicleDetailPage";
+import CartPage from "../features/dealer-staff/pages/CartPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 import QuotationDetailPage from "../features/dealer-staff/pages/QuotationDetailPage";
@@ -65,6 +70,10 @@ import OrderDetailPage from "../features/dealer-staff/pages/OrderDetailPage";
 import ContractsPage from "../features/dealer-staff/pages/ContractsPage";
 import CreateContractPage from "../features/dealer-staff/pages/CreateContractPage";
 import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPage";
+
+// Test Drive Pages
+import { TestDriveVehiclesPage } from "../features/dealer-manager/pages/TestDriveVehiclesPage";
+import { AddVehicleToSlotPage } from "../features/dealer-manager/pages/AddVehicleToSlotPage";
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
@@ -113,7 +122,7 @@ const AppRouter = () => (
         }
       />
 
-      {/* Admin Routes - ✅ Support EVM_ADMIN role */}
+      {/* Admin Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
@@ -187,6 +196,23 @@ const AppRouter = () => (
               path="/dealer/register-staff"
               element={<RegisterStaffPage />}
             />
+
+            {/* Time Slots Routes */}
+            <Route path="/dealer/time-slots" element={<TimeSlotsPage />} />
+            <Route
+              path="/dealer/time-slots/create"
+              element={<CreateTimeSlotPage />}
+            />
+
+            {/* Test Drive Routes */}
+            <Route
+              path="/dealer/test-drive-vehicles"
+              element={<TestDriveVehiclesPage />}
+            />
+            <Route
+              path="/dealer/test-drive-vehicles/add"
+              element={<AddVehicleToSlotPage />}
+            />
           </Route>
         </Route>
       </Route>
@@ -205,6 +231,23 @@ const AppRouter = () => (
               path="/dealer-staff/customers/:id"
               element={<CustomerDetailPage />}
             />
+
+            {/* Vehicle Routes */}
+            <Route
+              path="/dealer-staff/vehicles/models"
+              element={<VehicleModelsPage />}
+            />
+            <Route
+              path="/dealer-staff/vehicles/models/:modelId/variants"
+              element={<VehicleVariantsPage />}
+            />
+            <Route
+              path="/dealer-staff/vehicles/models/:modelId/variants/:variantId/vehicles"
+              element={<VehicleDetailPage />}
+            />
+
+            {/* Cart Route */}
+            <Route path="/dealer-staff/cart" element={<CartPage />} />
 
             {/* Quotation Routes */}
             <Route
@@ -288,7 +331,7 @@ const AppRouter = () => (
         </Route>
       </Route>
 
-      {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
+      {/* Root redirect */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Catch all - redirect to login */}
