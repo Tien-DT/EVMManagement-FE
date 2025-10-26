@@ -3,15 +3,13 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import DealerManagerSidebar from "./sidebar/DealerManagerSidebar";
 import { useAuth } from "../context/AuthContext";
-import { authService } from "../features/auth/services/authService";
 
 const DealerManagerLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await authService.logout();
       logout();
       navigate("/login");
     } catch (error) {
