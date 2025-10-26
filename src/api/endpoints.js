@@ -94,6 +94,9 @@ const endpoints = {
   vehicles: {
     getModels: "/v1/VehicleModels",
     getVariantsByModel: (modelId) => `/v1/VehicleVariants/by-model/${modelId}`,
+    getModelsByDealer: (dealerId) => `/v1/VehicleModels/dealer/${dealerId}/models`,
+    getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants`,
+    getVehiclesByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
   },
 };
 

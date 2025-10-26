@@ -4,6 +4,7 @@ import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../features/auth/services/authService";
 import DealerStaffSidebar from "./Sidebar/DealerStaffSidebar";
+import CartIcon from "../features/dealer-staff/components/CartIcon";
 
 const DealerStaffLayout = () => {
   const { user, logout } = useAuth();
@@ -70,8 +71,12 @@ const DealerStaffLayout = () => {
               </h1>
             </div>
 
-            {/* User Menu */}
-            <div className="flex items-center">
+            {/* User Menu and Cart */}
+            <div className="flex items-center gap-2">
+              {/* Cart Icon */}
+              <CartIcon />
+
+              {/* User Dropdown */}
               <Dropdown
                 menu={{ items: userMenuItems }}
                 placement="bottomRight"

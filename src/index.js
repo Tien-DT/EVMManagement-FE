@@ -5,6 +5,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { CartProvider } from "./context/CartContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Tạo một instance của QueryClient
@@ -16,7 +17,9 @@ root.render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <NotificationProvider>
-          <App />
+          <CartProvider>
+            <App />
+          </CartProvider>
         </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>

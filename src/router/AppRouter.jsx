@@ -54,6 +54,8 @@ import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPag
 import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
 import VehicleModelsPage from "../features/dealer-staff/pages/VehicleModelsPage";
 import VehicleVariantsPage from "../features/dealer-staff/pages/VehicleVariantsPage";
+import VehicleDetailPage from "../features/dealer-staff/pages/VehicleDetailPage";
+import CartPage from "../features/dealer-staff/pages/CartPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 import QuotationDetailPage from "../features/dealer-staff/pages/QuotationDetailPage";
@@ -221,6 +223,13 @@ const AppRouter = () => (
               path="/dealer-staff/vehicles/models/:modelId/variants"
               element={<VehicleVariantsPage />}
             />
+            <Route
+              path="/dealer-staff/vehicles/models/:modelId/variants/:variantId/vehicles"
+              element={<VehicleDetailPage />}
+            />
+
+            {/* Cart Route */}
+            <Route path="/dealer-staff/cart" element={<CartPage />} />
 
             {/* Quotation Routes */}
             <Route

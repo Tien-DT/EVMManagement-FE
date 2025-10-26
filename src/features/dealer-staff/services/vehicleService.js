@@ -39,4 +39,64 @@ export const vehicleService = {
       throw error;
     }
   },
+
+  // Get vehicle models by dealer ID with pagination
+  getModelsByDealer: async (dealerId, pageNumber = 1, pageSize = 100) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.vehicles.getModelsByDealer(dealerId),
+        {
+          params: {
+            pageNumber,
+            pageSize,
+          },
+        }
+      );
+      console.log("Get models by dealer response:", response);
+      return response;
+    } catch (error) {
+      console.error("Get models by dealer error:", error);
+      throw error;
+    }
+  },
+
+  // Get variants by dealer and model ID with pagination
+  getVariantsByDealerAndModel: async (dealerId, modelId, pageNumber = 1, pageSize = 100) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.vehicles.getVariantsByDealerAndModel(dealerId, modelId),
+        {
+          params: {
+            pageNumber,
+            pageSize,
+          },
+        }
+      );
+      console.log("Get variants by dealer and model response:", response);
+      return response;
+    } catch (error) {
+      console.error("Get variants by dealer and model error:", error);
+      throw error;
+    }
+  },
+
+  // Get vehicles by dealer and variant ID with pagination
+  getVehiclesByDealerAndVariant: async (dealerId, variantId, pageNumber = 1, pageSize = 100) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.vehicles.getVehiclesByDealerAndVariant(dealerId, variantId),
+        {
+          params: {
+            pageNumber,
+            pageSize,
+          },
+        }
+      );
+      console.log("Get vehicles by dealer and variant response:", response);
+      return response;
+    } catch (error) {
+      console.error("Get vehicles by dealer and variant error:", error);
+      throw error;
+    }
+  },
 };

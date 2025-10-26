@@ -18,18 +18,79 @@ const VehicleVariantsPage = () => {
   const [variants, setVariants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dealerId, setDealerId] = useState(null);
 
-  // Fetch variants when modelId is available
+  // Fetch dealerId from sessionStorage or API
+  useEffect(() => {
+    const fetchDealerId = async () => {
+      try {
+        // Check if dealerId already in sessionStorage
+        const cachedDealerId = sessionStorage.getItem("dealerId");
+        if (cachedDealerId) {
+          console.log("✅ Using cached dealerId:", cachedDealerId);
+          setDealerId(cachedDealerId);
+          return;
+        }
+
+        // Get user from sessionStorage
+        const userStr = sessionStorage.getItem("user");
+        if (!userStr) {
+          console.error("❌ No user found in sessionStorage");
+          setError("Không tìm thấy thông tin người dùng");
+          return;
+        }
+
+        const user = JSON.parse(userStr);
+        const accountId = user.id;
+
+        if (!accountId) {
+          console.error("❌ No accountId found in user");
+          setError("Không tìm thấy ID tài khoản");
+          return;
+        }
+
+        console.log("🔍 Fetching dealerId for accountId:", accountId);
+
+        // Import dealerService dynamically
+        const { dealerService } = await import(
+          "../../dealer-manager/services/dealerService"
+        );
+
+        // Fetch user profile to get dealerId
+        const userProfile = await dealerService.getUserProfile(accountId);
+        console.log("📦 User profile response:", userProfile);
+
+        if (userProfile.success && userProfile.data?.dealerId) {
+          const fetchedDealerId = userProfile.data.dealerId;
+          console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+          // Save to sessionStorage for future use
+          sessionStorage.setItem("dealerId", fetchedDealerId);
+          setDealerId(fetchedDealerId);
+        } else {
+          console.error("❌ No dealerId found in user profile");
+          setError("Không tìm thấy thông tin dealer");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching dealerId:", error);
+        setError("Có lỗi khi tải thông tin dealer");
+      }
+    };
+
+    fetchDealerId();
+  }, []);
+
+  // Fetch variants when dealerId and modelId are available
   useEffect(() => {
     const fetchVariants = async () => {
-      if (!modelId) return;
+      if (!dealerId || !modelId) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
-        console.log("🔧 Fetching variants for model:", modelId);
-        const response = await vehicleService.getVariantsByModel(modelId);
+        console.log("🔧 Fetching variants for dealer:", dealerId, "and model:", modelId);
+        const response = await vehicleService.getVariantsByDealerAndModel(dealerId, modelId);
 
         if (response.success && response.data) {
           console.log("✅ Variants fetched:", response.data);
@@ -50,7 +111,7 @@ const VehicleVariantsPage = () => {
     };
 
     fetchVariants();
-  }, [modelId]);
+  }, [dealerId, modelId]);
 
   const formatPrice = (price) => {
     if (!price) return "Liên hệ";
@@ -109,7 +170,7 @@ const VehicleVariantsPage = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             Danh sách Variant
           </h1>
-          <p className="text-gray-600 mt-1">Chọn variant để xem chi tiết</p>
+          <p className="text-gray-600 mt-1">Chọn variant để xem danh sách xe cụ thể</p>
         </div>
       </div>
 
@@ -119,7 +180,8 @@ const VehicleVariantsPage = () => {
           variants.map((variant) => (
             <div
               key={variant.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all group"
+              onClick={() => navigate(`/dealer-staff/vehicles/models/${modelId}/variants/${variant.id}/vehicles`)}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all group cursor-pointer"
             >
               {/* Variant Image */}
               <div className="relative h-56 bg-gradient-to-br from-blue-50 to-cyan-50 overflow-hidden">

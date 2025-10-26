@@ -14,19 +14,76 @@ import {
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import { orderService } from "../services/orderService";
+import { customerService } from "../services/customerService";
+import { useCart } from "../../../context/CartContext";
 import moment from "moment";
 
 const { Option } = Select;
 
-const OrderForm = ({ user, onFormResult }) => {
+const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [quotations, setQuotations] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [totalAmount, setTotalAmount] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [finalAmount, setFinalAmount] = useState(0);
+  const [dealerId, setDealerId] = useState(null);
+
+  // Fetch dealerId and customers
+  useEffect(() => {
+    const fetchDealerAndCustomers = async () => {
+      try {
+        // Get dealerId from sessionStorage
+        const cachedDealerId = sessionStorage.getItem("dealerId");
+        if (cachedDealerId) {
+          setDealerId(cachedDealerId);
+          
+          // Fetch customers by dealer
+          const customerResponse = await customerService.getCustomersByDealer(
+            cachedDealerId,
+            1,
+            100
+          );
+          
+          if (customerResponse.success && customerResponse.data) {
+            const customersList = customerResponse.data.items || customerResponse.data;
+            setCustomers(customersList);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      }
+    };
+
+    fetchDealerAndCustomers();
+  }, []);
+
+  // Calculate total from cart if coming from cart
+  useEffect(() => {
+    if (fromCart && cartItems && cartItems.length > 0) {
+      const calculatedTotal = cartItems.reduce((sum, item) => {
+        return (
+          sum +
+          item.variant.price *
+            item.quantity *
+            ((100 - item.discountPercent) / 100)
+        );
+      }, 0);
+
+      setTotalAmount(calculatedTotal);
+      setFinalAmount(calculatedTotal);
+      
+      form.setFieldsValue({
+        totalAmount: calculatedTotal,
+        finalAmount: calculatedTotal,
+        discountAmount: 0,
+      });
+    }
+  }, [fromCart, cartItems, form]);
 
   // Lấy danh sách báo giá khi component mount
   useEffect(() => {
@@ -131,13 +188,35 @@ const OrderForm = ({ user, onFormResult }) => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      // Validate required fields
+      if (!values.code || !values.customerId || !values.status || 
+          !values.expectedDeliveryAt || !values.orderType) {
+        message.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+        setLoading(false);
+        return;
+      }
+
+      // Validate amounts
+      if (!values.totalAmount || values.totalAmount <= 0) {
+        message.error("Tổng tiền phải lớn hơn 0");
+        setLoading(false);
+        return;
+      }
+
+      if (!values.finalAmount || values.finalAmount <= 0) {
+        message.error("Thành tiền phải lớn hơn 0");
+        setLoading(false);
+        return;
+      }
+
       // Lấy thông tin từ sessionStorage
       const userStr = sessionStorage.getItem("user");
       const userProfileStr = sessionStorage.getItem("userProfile");
+      const cachedDealerId = sessionStorage.getItem("dealerId");
 
       let accountId = null;
       let userProfileId = null;
-      let dealerId = null;
+      let dealerIdToUse = cachedDealerId;
 
       // Lấy accountId từ user
       if (userStr) {
@@ -150,14 +229,12 @@ const OrderForm = ({ user, onFormResult }) => {
         }
       }
 
-      // Lấy userProfileId và dealerId từ userProfile
+      // Lấy userProfileId từ userProfile
       if (userProfileStr) {
         try {
           const userProfile = JSON.parse(userProfileStr);
           userProfileId = userProfile.id;
-          dealerId = userProfile.dealerId;
           console.log("✅ Lấy userProfileId từ userProfile:", userProfileId);
-          console.log("✅ Lấy dealerId từ userProfile:", dealerId);
         } catch (err) {
           console.error("❌ Lỗi khi parse userProfile:", err);
         }
@@ -169,10 +246,13 @@ const OrderForm = ({ user, onFormResult }) => {
         console.log("⚠️ Sử dụng accountId làm userProfileId:", userProfileId);
       }
 
-      // Nếu không có dealerId, sử dụng dealerId từ form
-      if (!dealerId && values.dealerId) {
-        dealerId = values.dealerId;
-        console.log("⚠️ Sử dụng dealerId từ form:", dealerId);
+      // Validate GUID format
+      const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      
+      if (!values.customerId || !guidRegex.test(values.customerId)) {
+        message.error("Customer ID không hợp lệ. Vui lòng chọn lại khách hàng.");
+        setLoading(false);
+        return;
       }
 
       // Validate thông tin cần thiết
@@ -187,7 +267,15 @@ const OrderForm = ({ user, onFormResult }) => {
         return;
       }
 
-      if (!dealerId) {
+      if (!guidRegex.test(userProfileId)) {
+        const errorMsg = "User Profile ID không hợp lệ. Vui lòng đăng nhập lại.";
+        console.error(errorMsg);
+        message.error(errorMsg);
+        setLoading(false);
+        return;
+      }
+
+      if (!dealerIdToUse) {
         const errorMsg =
           "Không tìm thấy thông tin Dealer. Vui lòng đăng nhập lại.";
         console.error(errorMsg);
@@ -198,52 +286,154 @@ const OrderForm = ({ user, onFormResult }) => {
         return;
       }
 
+      if (!guidRegex.test(dealerIdToUse)) {
+        const errorMsg = "Dealer ID không hợp lệ. Vui lòng đăng nhập lại.";
+        console.error(errorMsg);
+        message.error(errorMsg);
+        setLoading(false);
+        return;
+      }
+      
+      console.log("✅ All IDs validated as proper GUIDs");
+      console.log("- customerId:", values.customerId);
+      console.log("- dealerId:", dealerIdToUse);
+      console.log("- userProfileId:", userProfileId);
+
+      // Format expectedDeliveryAt properly
+      let expectedDeliveryDate;
+      try {
+        if (moment.isMoment(values.expectedDeliveryAt)) {
+          expectedDeliveryDate = values.expectedDeliveryAt.toISOString();
+        } else if (values.expectedDeliveryAt instanceof Date) {
+          expectedDeliveryDate = values.expectedDeliveryAt.toISOString();
+        } else {
+          expectedDeliveryDate = new Date(values.expectedDeliveryAt).toISOString();
+        }
+      } catch (dateError) {
+        console.error("Error formatting date:", dateError);
+        message.error("Ngày giao dự kiến không hợp lệ");
+        setLoading(false);
+        return;
+      }
+
       // Chuẩn bị dữ liệu order
       const orderData = {
-        code: values.code,
-        quotationId: values.quotationId,
+        code: values.code.trim(),
         customerId: values.customerId,
-        dealerId: dealerId,
+        dealerId: dealerIdToUse,
         createdByUserId: userProfileId,
         status: values.status,
-        totalAmount: values.totalAmount,
-        discountAmount: values.discountAmount,
-        finalAmount: values.finalAmount,
-        expectedDeliveryAt: values.expectedDeliveryAt.toISOString(),
+        totalAmount: Number(values.totalAmount),
+        discountAmount: Number(values.discountAmount || 0),
+        finalAmount: Number(values.finalAmount),
+        expectedDeliveryAt: expectedDeliveryDate,
         orderType: values.orderType,
-        isFinanced: values.isFinanced || false,
+        isFinanced: Boolean(values.isFinanced),
       };
 
-      console.log("📤 Creating order with data:", orderData);
+      // Only add quotationId if it exists and is not null
+      if (values.quotationId) {
+        orderData.quotationId = values.quotationId;
+      }
 
-      const response = await orderService.createOrder(orderData);
+      console.log("📤 Creating order with data:", JSON.stringify(orderData, null, 2));
+      console.log("📤 Request will be sent to:", process.env.REACT_APP_API_BASE_URL + "/v1/Orders");
 
-      console.log("📥 Create order response:", response);
-
-      // Xử lý response
-      if (response && (response.success || response.data)) {
-        message.success("Tạo đơn hàng thành công");
-        if (onFormResult) {
-          onFormResult({ success: true, message: "Tạo đơn hàng thành công" });
+      // If coming from cart, create order with details
+      if (fromCart && cartItems && cartItems.length > 0) {
+        console.log("🛒 Creating order from cart with items:", cartItems);
+        
+        // Validate cart items
+        if (!cartItems[0].variant?.id || !cartItems[0].vehicle?.id) {
+          message.error("Thông tin xe trong giỏ hàng không đầy đủ");
+          setLoading(false);
+          return;
         }
-        // Chờ 500ms để user thấy message success
-        setTimeout(() => {
-          navigate("/dealer-staff/orders");
-        }, 500);
+        
+        // Prepare order details from cart (only first item for now as per requirement)
+        const firstItem = cartItems[0];
+        const orderDetails = [{
+          vehicleVariantId: firstItem.variant.id,
+          vehicleId: firstItem.vehicle.id,
+          quantity: Number(firstItem.quantity) || 1,
+          unitPrice: Number(firstItem.variant.price) || 0,
+          discountPercent: Number(firstItem.discountPercent) || 0,
+          note: String(firstItem.note || ""),
+        }];
+
+        console.log("📤 Order details to create:", JSON.stringify(orderDetails, null, 2));
+
+        const response = await orderService.createOrderWithDetails(
+          orderData,
+          orderDetails
+        );
+
+        console.log("📥 Create order with details response:", response);
+
+        if (response && response.success) {
+          message.success("Tạo đơn hàng thành công");
+          clearCart(); // Clear cart after successful order
+          
+          if (onFormResult) {
+            onFormResult({ success: true, message: "Tạo đơn hàng thành công" });
+          }
+          
+          setTimeout(() => {
+            navigate("/dealer-staff/orders");
+          }, 500);
+        } else {
+          const errorMsg = response?.message || "Tạo đơn hàng thất bại";
+          message.error(errorMsg);
+          if (onFormResult) {
+            onFormResult({ success: false, message: errorMsg });
+          }
+        }
       } else {
-        const errorMsg = response?.message || "Tạo đơn hàng thất bại";
-        message.error(errorMsg);
-        if (onFormResult) {
-          onFormResult({ success: false, message: errorMsg });
+        // Normal order creation without cart
+        const response = await orderService.createOrder(orderData);
+
+        console.log("📥 Create order response:", response);
+
+        if (response && (response.success || response.data)) {
+          message.success("Tạo đơn hàng thành công");
+          if (onFormResult) {
+            onFormResult({ success: true, message: "Tạo đơn hàng thành công" });
+          }
+          setTimeout(() => {
+            navigate("/dealer-staff/orders");
+          }, 500);
+        } else {
+          const errorMsg = response?.message || "Tạo đơn hàng thất bại";
+          message.error(errorMsg);
+          if (onFormResult) {
+            onFormResult({ success: false, message: errorMsg });
+          }
         }
       }
     } catch (error) {
       console.error("❌ Error creating order:", error);
-      const errorMsg =
-        error.response?.data?.message ||
-        error.message ||
-        "Lỗi khi tạo đơn hàng";
-      message.error(errorMsg);
+      
+      // Extract detailed error message
+      let errorMsg = "Lỗi khi tạo đơn hàng";
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Check for validation errors
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorMsg = errorData.errors.join(", ");
+        } else if (errorData.message) {
+          errorMsg = errorData.message;
+        } else if (typeof errorData === 'string') {
+          errorMsg = errorData;
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      console.error("Final error message:", errorMsg);
+      message.error(errorMsg, 5); // Show for 5 seconds
+      
       if (onFormResult) {
         onFormResult({ success: false, message: errorMsg });
       }
@@ -283,28 +473,46 @@ const OrderForm = ({ user, onFormResult }) => {
         <Input placeholder="Nhập mã đơn hàng" />
       </Form.Item>
 
-      <Form.Item
-        name="quotationId"
-        label="Báo giá"
-        rules={[{ required: true, message: "Vui lòng chọn báo giá" }]}
+      {!fromCart && (
+        <Form.Item
+          name="quotationId"
+          label="Báo giá"
+          rules={[{ required: !fromCart, message: "Vui lòng chọn báo giá" }]}
+        >
+          <Select
+            placeholder="Chọn báo giá"
+            onChange={handleQuotationChange}
+            loading={loading}
+            notFoundContent={loading ? <Spin size="small" /> : "Không có báo giá"}
+          >
+            {quotations.map((quotation) => (
+              <Option key={quotation.id} value={quotation.id}>
+                {quotation.code} -{" "}
+                {quotation.customerName || "Không có tên khách hàng"}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+      )}
+
+      <Form.Item 
+        name="customerId" 
+        label="Khách hàng"
+        rules={[{ required: true, message: "Vui lòng chọn khách hàng" }]}
       >
         <Select
-          placeholder="Chọn báo giá"
-          onChange={handleQuotationChange}
-          loading={loading}
-          notFoundContent={loading ? <Spin size="small" /> : "Không có báo giá"}
+          placeholder="Chọn khách hàng"
+          showSearch
+          filterOption={(input, option) =>
+            option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+          }
         >
-          {quotations.map((quotation) => (
-            <Option key={quotation.id} value={quotation.id}>
-              {quotation.code} -{" "}
-              {quotation.customerName || "Không có tên khách hàng"}
+          {customers.map((customer) => (
+            <Option key={customer.id} value={customer.id}>
+              {customer.fullName} - {customer.phoneNumber}
             </Option>
           ))}
         </Select>
-      </Form.Item>
-
-      <Form.Item name="customerId" label="Khách hàng" hidden>
-        <Input />
       </Form.Item>
 
       <Form.Item name="dealerId" label="Đại lý" hidden>
@@ -343,7 +551,7 @@ const OrderForm = ({ user, onFormResult }) => {
             `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-          disabled
+          disabled={fromCart}
         />
       </Form.Item>
 

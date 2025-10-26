@@ -10,16 +10,79 @@ const VehicleModelsPage = () => {
   const [models, setModels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dealerId, setDealerId] = useState(null);
 
-  // Fetch vehicle models
+  // Fetch dealerId from sessionStorage or API
+  useEffect(() => {
+    const fetchDealerId = async () => {
+      try {
+        // Check if dealerId already in sessionStorage
+        const cachedDealerId = sessionStorage.getItem("dealerId");
+        if (cachedDealerId) {
+          console.log("✅ Using cached dealerId:", cachedDealerId);
+          setDealerId(cachedDealerId);
+          return;
+        }
+
+        // Get user from sessionStorage
+        const userStr = sessionStorage.getItem("user");
+        if (!userStr) {
+          console.error("❌ No user found in sessionStorage");
+          setError("Không tìm thấy thông tin người dùng");
+          return;
+        }
+
+        const user = JSON.parse(userStr);
+        const accountId = user.id;
+
+        if (!accountId) {
+          console.error("❌ No accountId found in user");
+          setError("Không tìm thấy ID tài khoản");
+          return;
+        }
+
+        console.log("🔍 Fetching dealerId for accountId:", accountId);
+
+        // Import dealerService dynamically
+        const { dealerService } = await import(
+          "../../dealer-manager/services/dealerService"
+        );
+
+        // Fetch user profile to get dealerId
+        const userProfile = await dealerService.getUserProfile(accountId);
+        console.log("📦 User profile response:", userProfile);
+
+        if (userProfile.success && userProfile.data?.dealerId) {
+          const fetchedDealerId = userProfile.data.dealerId;
+          console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+          // Save to sessionStorage for future use
+          sessionStorage.setItem("dealerId", fetchedDealerId);
+          setDealerId(fetchedDealerId);
+        } else {
+          console.error("❌ No dealerId found in user profile");
+          setError("Không tìm thấy thông tin dealer");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching dealerId:", error);
+        setError("Có lỗi khi tải thông tin dealer");
+      }
+    };
+
+    fetchDealerId();
+  }, []);
+
+  // Fetch vehicle models by dealer
   useEffect(() => {
     const fetchModels = async () => {
+      if (!dealerId) return;
+
       setIsLoading(true);
       setError(null);
 
       try {
-        console.log("🚗 Fetching models...");
-        const response = await vehicleService.getModels();
+        console.log("🚗 Fetching models for dealer:", dealerId);
+        const response = await vehicleService.getModelsByDealer(dealerId);
         
         if (response.success && response.data) {
           console.log("✅ Models fetched:", response.data);
@@ -38,7 +101,7 @@ const VehicleModelsPage = () => {
     };
 
     fetchModels();
-  }, []);
+  }, [dealerId]);
 
   // Filter models based on search
   const filteredModels = models.filter((model) =>
