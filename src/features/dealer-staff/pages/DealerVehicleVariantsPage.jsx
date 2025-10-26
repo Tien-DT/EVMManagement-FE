@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Spin, Empty, Card, Button, Badge, Breadcrumb } from "antd";
+import { Row, Col, Spin, Empty, Card, Button, Badge, Breadcrumb, message } from "antd";
 import { ShoppingCartOutlined, HomeOutlined, CarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { useDealerVehicleVariants } from "../hooks/useDealerVehicleVariants";
 import VehicleVariantCard from "../components/VehicleVariantCard";
 import VehicleVariantDetailModal from "../components/VehicleVariantDetailModal";
+import PreOrderModal from "../components/PreOrderModal";
 import OrderCart from "../components/OrderCart";
+import { orderService } from "../services/orderService";
 import "./DealerVehicleVariantsPage.css";
 
 const DealerVehicleVariantsPage = () => {
@@ -19,6 +21,8 @@ const DealerVehicleVariantsPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [preOrderModalVisible, setPreOrderModalVisible] = useState(false);
+  const [preOrderVariant, setPreOrderVariant] = useState(null);
   const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
@@ -84,6 +88,57 @@ const DealerVehicleVariantsPage = () => {
     });
   };
 
+  const handlePreOrder = (variant) => {
+    setPreOrderVariant(variant);
+    setPreOrderModalVisible(true);
+  };
+
+  const handlePreOrderSuccess = async (preOrderData) => {
+    try {
+      // Add dealer and user info to pre-order data
+      const completePreOrderData = {
+        ...preOrderData,
+        dealerId: dealerId,
+        createdByUserId: userId,
+        price: preOrderVariant.price,
+      };
+      
+      const result = await orderService.createPreOrder(completePreOrderData);
+      
+      // Check if result exists and has success flag
+      if (result && result.success === true) {
+        // Close modal first
+        setPreOrderModalVisible(false);
+        
+        // Then show success message with order details
+        const orderCode = result.order?.code || result.order?.id || 'N/A';
+        const successMessage = `✅ Đặt trước thành công! Mã đơn hàng: ${orderCode}. Đã đặt cọc 10%.`;
+        
+        message.success({
+          content: successMessage,
+          duration: 6,
+          style: {
+            marginTop: '20vh',
+            fontSize: '16px',
+          },
+        });
+        
+        // Optionally reload variants to update stock status
+        // window.location.reload();
+      } else {
+        throw new Error("Không nhận được kết quả thành công từ server");
+      }
+      
+      // Return the result to the modal
+      return result;
+    } catch (error) {
+      console.error("Pre-order error:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Có lỗi xảy ra khi đặt trước";
+      message.error(errorMessage, 5);
+      throw error;
+    }
+  };
+
   return (
     <div style={{ padding: "24px" }}>
       <Breadcrumb style={{ marginBottom: 24 }}>
@@ -146,6 +201,7 @@ const DealerVehicleVariantsPage = () => {
                 <VehicleVariantCard
                   variant={variant}
                   onClick={handleVariantClick}
+                  onPreOrder={handlePreOrder}
                 />
               </Col>
             ))}
@@ -159,6 +215,14 @@ const DealerVehicleVariantsPage = () => {
         variant={selectedVariant}
         dealerId={dealerId}
         onAddVehicleToCart={handleAddVehicleToCart}
+      />
+
+      <PreOrderModal
+        visible={preOrderModalVisible}
+        onClose={() => setPreOrderModalVisible(false)}
+        variant={preOrderVariant}
+        dealerId={dealerId}
+        onSuccess={handlePreOrderSuccess}
       />
 
       <OrderCart

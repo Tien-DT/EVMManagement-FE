@@ -17,9 +17,11 @@ import {
 import { 
   ArrowLeftOutlined, 
   EditOutlined, 
-  DeleteOutlined 
+  DeleteOutlined,
+  DollarOutlined 
 } from "@ant-design/icons";
 import { orderService } from "../services/orderService";
+import RemainingPaymentModal from "../components/RemainingPaymentModal";
 import moment from "moment";
 
 const { Title, Text } = Typography;
@@ -29,6 +31,7 @@ const OrderDetailPage = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
 
   useEffect(() => {
     fetchOrderDetails();
@@ -94,6 +97,17 @@ const OrderDetailPage = () => {
     }
   };
 
+  const handlePaymentSuccess = (result) => {
+    message.success("Thanh toán thành công!");
+    fetchOrderDetails(); // Reload order details
+  };
+
+  const canShowPaymentButton = () => {
+    // Show payment button if order is IN_PROGRESS (has deposit) 
+    // and has vehicles ready
+    return order?.status === "IN_PROGRESS" || order?.status === 2;
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "50px" }}>
@@ -135,6 +149,16 @@ const OrderDetailPage = () => {
               >
                 Quay lại
               </Button>
+              {canShowPaymentButton() && (
+                <Button 
+                  type="primary"
+                  icon={<DollarOutlined />}
+                  onClick={() => setPaymentModalVisible(true)}
+                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                >
+                  Thanh toán còn lại
+                </Button>
+              )}
               <Button 
                 type="primary" 
                 icon={<EditOutlined />} 
@@ -209,6 +233,13 @@ const OrderDetailPage = () => {
           </Col>
         </Row>
       </Card>
+
+      <RemainingPaymentModal
+        visible={paymentModalVisible}
+        onClose={() => setPaymentModalVisible(false)}
+        order={order}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

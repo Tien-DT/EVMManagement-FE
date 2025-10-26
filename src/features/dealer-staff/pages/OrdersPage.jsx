@@ -226,11 +226,12 @@ const OrdersPage = () => {
     },
     {
       title: "Khách hàng",
-      dataIndex: "customerName",
-      key: "customerName",
+      key: "customer",
       width: 160,
       ellipsis: true,
-      render: (text) => text || <span style={{ color: "#999" }}>N/A</span>,
+      render: (_, record) => {
+        return record.customer?.fullName || <span style={{ color: "#999" }}>N/A</span>;
+      },
     },
     {
       title: "Tổng tiền",
@@ -273,6 +274,84 @@ const OrdersPage = () => {
           {amount ? `${amount.toLocaleString()}` : "0"}
         </span>
       ),
+    },
+    {
+      title: "Loại đơn",
+      dataIndex: "orderType",
+      key: "orderType",
+      width: 100,
+      align: "center",
+      render: (orderType) => {
+        if (orderType === 2 || orderType === "B2C_P") { // B2C_P
+          return (
+            <Tag color="orange" style={{ fontWeight: 500 }}>
+              Đặt trước
+            </Tag>
+          );
+        } else if (orderType === 1 || orderType === "B2B") { // B2B
+          return (
+            <Tag color="blue" style={{ fontWeight: 500 }}>
+              B2B
+            </Tag>
+          );
+        } else { // B2C
+          return (
+            <Tag color="green" style={{ fontWeight: 500 }}>
+              B2C
+            </Tag>
+          );
+        }
+      },
+    },
+    {
+      title: "Đã cọc",
+      key: "depositAmount",
+      width: 110,
+      align: "right",
+      render: (_, record) => {
+        console.log("Order record:", record); // DEBUG
+        console.log("Order type:", record.orderType); // DEBUG
+        console.log("Deposits:", record.deposits); // DEBUG
+        
+        if (record.orderType === 2 || record.orderType === "B2C_P") { // B2C_P - Pre-order
+          // Calculate total deposit amount from deposits array
+          const totalDeposit = record.deposits?.reduce((sum, deposit) => {
+            return sum + (deposit.amount || 0);
+          }, 0) || 0;
+          
+          console.log("Total deposit calculated:", totalDeposit); // DEBUG
+          
+          return (
+            <span style={{ color: "#52c41a", fontWeight: 500 }}>
+              {totalDeposit.toLocaleString()}
+            </span>
+          );
+        }
+        return <span style={{ color: "#999" }}>-</span>;
+      },
+    },
+    {
+      title: "Còn lại",
+      key: "remainingAmount",
+      width: 120,
+      align: "right",
+      render: (_, record) => {
+        if (record.orderType === 2 || record.orderType === "B2C_P") { // B2C_P - Pre-order
+          // Calculate total deposit amount from deposits array
+          const totalDeposit = record.deposits?.reduce((sum, deposit) => {
+            return sum + (deposit.amount || 0);
+          }, 0) || 0;
+          
+          const remainingAmount = (record.finalAmount || 0) - totalDeposit;
+          
+          return (
+            <span style={{ color: "#fa8c16", fontWeight: 500 }}>
+              {remainingAmount.toLocaleString()}
+            </span>
+          );
+        }
+        return <span style={{ color: "#999" }}>-</span>;
+      },
     },
     {
       title: "Ngày giao",
@@ -541,7 +620,7 @@ const OrdersPage = () => {
             dataSource={orders}
             rowKey="id"
             loading={isLoading}
-            scroll={{ x: 1200 }}
+            scroll={{ x: 1600 }}
             pagination={{
               current: pagination.currentPage,
               pageSize: pagination.pageSize,

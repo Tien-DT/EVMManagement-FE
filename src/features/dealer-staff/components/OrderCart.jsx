@@ -16,10 +16,13 @@ import {
   Switch,
   Divider,
   Input,
+  Select,
+  Spin,
 } from "antd";
 import { DeleteOutlined, ShoppingCartOutlined, CarOutlined, ClearOutlined } from "@ant-design/icons";
 import moment from "moment";
 import { vehicleService } from "../services/vehicleService";
+import { customerService } from "../services/customerService";
 
 const { Panel } = Collapse;
 
@@ -28,6 +31,8 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isFinanced, setIsFinanced] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
 
   const formatPrice = (price) => {
     if (!price) return "0 ₫";
@@ -70,6 +75,26 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
     message.success("Đã xóa tất cả xe khỏi giỏ hàng");
   };
 
+  const fetchCustomers = async () => {
+    if (!dealerId) return;
+    
+    setLoadingCustomers(true);
+    try {
+      const response = await customerService.getCustomersByDealer(dealerId, 1, 1000);
+      if (response.success && response.data) {
+        const customersList = Array.isArray(response.data) 
+          ? response.data 
+          : response.data.items || [];
+        setCustomers(customersList);
+      }
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      message.error("Không thể tải danh sách khách hàng");
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
+
   const calculateTotal = () => {
     return cartItems.reduce((sum, item) => {
       return sum + (item.price || 0);
@@ -81,6 +106,7 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
       message.warning("Giỏ hàng trống");
       return;
     }
+    fetchCustomers(); // Fetch customers when opening modal
     setShowOrderModal(true);
   };
 
@@ -112,6 +138,7 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
 
       const orderData = {
         code: orderCode,
+        customerId: values.customerId || null, // Add customer ID
         dealerId: dealerId,
         createdByUserId: userId,
         status: 0,
@@ -308,6 +335,31 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
           layout="vertical"
           onFinish={handleSubmitOrder}
         >
+          <Form.Item
+            name="customerId"
+            label="Khách hàng"
+            rules={[{ required: true, message: "Vui lòng chọn khách hàng" }]}
+          >
+            <Select
+              showSearch
+              placeholder="Chọn khách hàng cho đơn hàng"
+              loading={loadingCustomers}
+              filterOption={(input, option) =>
+                option.children.toLowerCase().includes(input.toLowerCase())
+              }
+              notFoundContent={loadingCustomers ? <Spin size="small" /> : "Không có dữ liệu"}
+            >
+              {customers.map((customer) => (
+                <Select.Option key={customer.id} value={customer.id}>
+                  {customer.fullName || customer.phone} - {customer.phone}
+                  {customer.email && ` (${customer.email})`}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Divider style={{ margin: "16px 0" }} />
+
           <Form.Item
             name="cartTotal"
             label="Tổng tiền hàng"

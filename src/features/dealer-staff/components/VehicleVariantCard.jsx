@@ -1,7 +1,8 @@
 import React from "react";
-import { Card, Tag } from "antd";
+import { Card, Tag, Button } from "antd";
+import { ShoppingCartOutlined, CalendarOutlined } from "@ant-design/icons";
 
-const VehicleVariantCard = ({ variant, onClick }) => {
+const VehicleVariantCard = ({ variant, onClick, onPreOrder }) => {
   const isOutOfStock = !variant.availableStock || variant.availableStock === 0;
 
   const formatPrice = (price) => {
@@ -18,7 +19,7 @@ const VehicleVariantCard = ({ variant, onClick }) => {
       onClick={isOutOfStock ? undefined : () => onClick(variant)}
       style={{
         opacity: isOutOfStock ? 0.6 : 1,
-        cursor: isOutOfStock ? "not-allowed" : "pointer",
+        cursor: isOutOfStock ? "default" : "pointer",
       }}
       cover={
         <div
@@ -95,9 +96,34 @@ const VehicleVariantCard = ({ variant, onClick }) => {
             <div style={{ fontSize: 14, fontWeight: 600, color: isOutOfStock ? "#ff4d4f" : "#52c41a", marginTop: 8 }}>
               {isOutOfStock ? "Hết hàng" : `Có sẵn: ${variant.availableStock} xe`}
             </div>
-            <div style={{ fontSize: 13, color: "#999", marginTop: 4, fontStyle: "italic" }}>
-              Nhấn để xem chi tiết và chọn xe
-            </div>
+            
+            {isOutOfStock ? (
+              <div style={{ marginTop: 12 }}>
+                <Button
+                  type="primary"
+                  icon={<CalendarOutlined />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPreOrder && onPreOrder(variant);
+                  }}
+                  block
+                  style={{
+                    backgroundColor: "#fa8c16",
+                    borderColor: "#fa8c16",
+                    fontWeight: 600,
+                  }}
+                >
+                  Đặt trước
+                </Button>
+                <div style={{ fontSize: 12, color: "#999", marginTop: 6, textAlign: "center", fontStyle: "italic" }}>
+                  Đặt cọc 10% để giữ xe khi có hàng
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: "#999", marginTop: 8, fontStyle: "italic" }}>
+                Nhấn để xem chi tiết và chọn xe
+              </div>
+            )}
           </div>
         }
       />

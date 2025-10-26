@@ -91,8 +91,11 @@ const endpoints = {
     getById: (id) => `/v1/Orders/${id}`,
     getByDealer: (dealerId) => `/v1/Orders/dealer/${dealerId}`,
     create: "/v1/Orders",
+    createWithDetails: "/v1/Orders/with-details",
     update: (id) => `/v1/Orders/${id}`,
     delete: (id) => `/v1/Orders/${id}`,
+    createPreOrderDeposit: (orderId) => `/v1/Orders/${orderId}/deposits/preorder`,
+    confirmPayment: (orderId) => `/v1/Orders/${orderId}/confirm-payment`,
   },
   
   // Handover Records endpoints
