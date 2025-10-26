@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShoppingCart, 
@@ -18,6 +18,7 @@ import {
 import useOrders from '../hooks/useOrders';
 import { useNotification } from '../../../context/NotificationContext';
 import orderService from '../services/orderService';
+import customerService from '../services/customerService';
 
 const EvmStaffOrdersPage = () => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const EvmStaffOrdersPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { orders, loading, error, deleteOrder } = useOrders();
+  const [customerCache, setCustomerCache] = useState({});
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -70,10 +72,87 @@ const EvmStaffOrdersPage = () => {
     }
   };
 
+  // Fetch customer info for orders (parallel for better performance)
+  useEffect(() => {
+    const fetchCustomerInfo = async () => {
+      // Get unique customer IDs that need to be fetched
+      const customerIds = [...new Set(
+        orders
+          .filter(order => order.customerId && !order.customerName)
+          .map(order => order.customerId)
+      )];
+
+      // Filter out already cached customers
+      const idsToFetch = customerIds.filter(id => !customerCache[id]);
+
+      if (idsToFetch.length === 0) return;
+
+      // Fetch all customers in parallel using Promise.all
+      const fetchPromises = idsToFetch.map(async (customerId) => {
+        try {
+          const response = await customerService.getCustomerById(customerId);
+          const customerData = response.data || response;
+          return {
+            id: customerId,
+            data: {
+              name: customerData.name || customerData.fullName || 'N/A',
+              email: customerData.email || '',
+              phone: customerData.phoneNumber || customerData.phone || ''
+            }
+          };
+        } catch (error) {
+          console.error(`Error fetching customer ${customerId}:`, error);
+          return {
+            id: customerId,
+            data: { name: 'N/A', email: '', phone: '' }
+          };
+        }
+      });
+
+      // Wait for all fetches to complete
+      const results = await Promise.all(fetchPromises);
+
+      // Update cache once with all results
+      const newCache = {};
+      results.forEach(result => {
+        newCache[result.id] = result.data;
+      });
+
+      setCustomerCache(prev => ({
+        ...prev,
+        ...newCache
+      }));
+    };
+
+    if (orders.length > 0) {
+      fetchCustomerInfo();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders]);
+
+  // Helper function to get customer name
+  const getCustomerName = (order) => {
+    if (order.customerName) return order.customerName;
+    if (order.customerId && customerCache[order.customerId]) {
+      return customerCache[order.customerId].name;
+    }
+    return 'N/A';
+  };
+
+  // Helper function to get customer email
+  const getCustomerEmail = (order) => {
+    if (order.customerEmail) return order.customerEmail;
+    if (order.customerId && customerCache[order.customerId]) {
+      return customerCache[order.customerId].email;
+    }
+    return '-';
+  };
+
   const filteredOrders = orders.filter(order => {
     const orderCode = order.code || orderService.generateOrderCode(order.id);
+    const customerName = getCustomerName(order);
     const matchesSearch = orderCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.dealerName?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || order.status?.toUpperCase() === filterStatus.toUpperCase();
     return matchesSearch && matchesFilter;
@@ -256,8 +335,8 @@ const EvmStaffOrdersPage = () => {
                           <User size={16} className="text-emerald-600" />
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{order.customerName || 'N/A'}</div>
-                          <div className="text-sm text-gray-500">{order.customerEmail || '-'}</div>
+                          <div className="text-sm font-medium text-gray-900">{getCustomerName(order)}</div>
+                          <div className="text-sm text-gray-500">{getCustomerEmail(order)}</div>
                         </div>
                       </div>
                     </td>

@@ -268,7 +268,7 @@ const EvmStaffQuotationsPage = () => {
                       Đại lý
                     </th>
                     <th className="w-40 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Tổng giá trị
+                      Tổng
                     </th>
                     <th className="w-36 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                       Trạng thái
@@ -313,7 +313,9 @@ const EvmStaffQuotationsPage = () => {
                         <div className="flex items-center justify-center gap-1.5">
                           <DollarSign size={15} className="text-emerald-600 flex-shrink-0" />
                           <span className="text-sm font-bold text-emerald-600 truncate">
-                            {quotation.totalValue ? formatCurrency(quotation.totalValue) : '-'}
+                            {quotation.total || quotation.Total || quotation.totalValue || quotation.totalAmount 
+                              ? formatCurrency(quotation.total || quotation.Total || quotation.totalValue || quotation.totalAmount) 
+                              : '-'}
                           </span>
                         </div>
                       </td>
