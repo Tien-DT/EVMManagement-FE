@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import vehicleService from "../services/vehicleService";
 import { useNotification } from "../../../context/NotificationContext";
+import ImageUpload from "../../../components/ImageUpload";
 
 const emptyForm = {
   code: "",
@@ -145,38 +146,12 @@ export default function VehicleFormPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-          <div className="space-y-3">
-            <input 
-              name="imageUrl" 
-              value={form.imageUrl} 
-              onChange={handleChange} 
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors" 
-              placeholder="https://example.com/image.jpg"
-            />
-            <p className="text-sm text-gray-500">
-              Note: Image URL field is for display only. The backend API doesn't currently support saving image URLs.
-            </p>
-            {form.imageUrl && (
-              <div className="mt-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
-                <div className="w-32 h-24 border border-gray-300 rounded-lg overflow-hidden">
-                  <img 
-                    src={form.imageUrl} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm hidden">
-                    Invalid URL
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Model Image</label>
+          <ImageUpload
+            value={form.imageUrl}
+            onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
+            disabled={loading}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

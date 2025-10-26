@@ -7,6 +7,13 @@ const endpoints = {
     update: (id) => `/v1/Contracts/${id}`,
     delete: (id) => `/v1/Contracts/${id}`,
   },
+  dealerContracts: {
+    getAll: "/v1/DealerContracts",
+    getById: (id) => `/v1/DealerContracts/${id}`,
+    getByDealer: (dealerId) => `/v1/DealerContracts/dealer/${dealerId}`,
+    create: "/v1/DealerContracts",
+    verifyOtp: (dealerId) => `/v1/DealerContracts/${dealerId}/verify-otp`,
+  },
   auth: {
     signup: "/v1/Auth/accounts",
     login: "/v1/Auth/login",
@@ -36,8 +43,14 @@ const endpoints = {
 
   // User Profile endpoints
   userProfile: {
+    getAll: "/v1/UserProfile",
+    getById: (id) => `/v1/UserProfile/${id}`,
     getByAccount: (accId) => `/v1/UserProfile/by-account/${accId}`,
-    byAccount: (accountId) => `/v1/UserProfile/by-account/${accountId}`,
+    getByRole: "/v1/UserProfile/by-role",
+    getByDealer: (dealerId) => `/v1/UserProfile/by-dealer/${dealerId}`,
+    update: (id) => `/v1/UserProfile/${id}`, // PATCH
+    updateByAccount: (accId) => `/v1/UserProfile/${accId}`, // PUT
+    byAccount: (accountId) => `/v1/UserProfile/by-account/${accountId}`, // Alias
   },
 
   // Customer endpoints
@@ -61,7 +74,17 @@ const endpoints = {
     update: (id) => `/v1/Quotations/${id}`,
     delete: (id) => `/v1/Quotations/${id}`,
   },
-
+  
+  // Quotation Details endpoints
+  quotationDetails: {
+    getAll: "/v1/QuotationDetails",
+    getById: (id) => `/v1/QuotationDetails/${id}`,
+    getByQuotationId: (quotationId) => `/v1/QuotationDetails/quotation/${quotationId}`,
+    create: "/v1/QuotationDetails",
+    update: (id) => `/v1/QuotationDetails/${id}`,
+    delete: (id) => `/v1/QuotationDetails/${id}`,
+  },
+  
   // Order endpoints
   orders: {
     getAll: "/v1/Orders",
@@ -97,6 +120,14 @@ const endpoints = {
     getModelsByDealer: (dealerId) => `/v1/VehicleModels/dealer/${dealerId}/models`,
     getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants`,
     getVehiclesByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
+  
+  // Handover Records endpoints
+  handoverRecords: {
+    getAll: "/v1/HandoverRecords",
+    getById: (id) => `/v1/HandoverRecords/${id}`,
+    create: "/v1/HandoverRecords",
+    update: (id) => `/v1/HandoverRecords/${id}`,
+    delete: (id) => `/v1/HandoverRecords/${id}`,
   },
 };
 

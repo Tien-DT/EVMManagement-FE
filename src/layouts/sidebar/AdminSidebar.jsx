@@ -9,7 +9,8 @@ import {
   User,
   Building2,
   Car,
-  Tag
+  Tag,
+  UserCog
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -28,6 +29,11 @@ const AdminSidebar = () => {
       label: 'Dealers'
     },
     {
+      path: '/admin/register-dealer-manager',
+      icon: UserCog,
+      label: 'Register Dealer Manager'
+    },
+    {
       path: '/admin/vehiclemodels',
       icon: Car,
       label: 'Vehicle Models'
@@ -40,7 +46,7 @@ const AdminSidebar = () => {
     {
       path: '/admin/register',
       icon: UserPlus,
-      label: 'Register'
+      label: 'Register EVM Staff'
     },
     {
       path: '/admin/profile',

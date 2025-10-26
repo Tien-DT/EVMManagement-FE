@@ -44,6 +44,42 @@ export function useVehicleVariants(initialQuery = {}) {
   );
 }
 
+export function useVehicleVariantDetail(id) {
+  const [variant, setVariant] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!id) return;
+    
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await variantService.getById(id);
+        setVariant(res?.data || res);
+      } catch (e) {
+        setError(e);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
+
+  const reload = useCallback(() => {
+    if (!id) return;
+    
+    setLoading(true);
+    setError(null);
+    variantService.getById(id)
+      .then((res) => setVariant(res?.data || res))
+      .catch((e) => setError(e))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  return { variant, loading, error, reload };
+}
+
 export function useVariantMutations() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, 
   Search, 
-  Filter, 
   Eye,
   CheckCircle,
   Clock,
@@ -160,23 +159,17 @@ const EvmStaffOrderRequestsPage = () => {
               />
             </div>
           </div>
-          <div className="flex gap-2">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="pending">Chờ báo giá</option>
-              <option value="quoted">Đã báo giá</option>
-              <option value="confirmed">Đã xác nhận</option>
-              <option value="rejected">Đã từ chối</option>
-            </select>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center">
-              <Filter size={20} className="mr-2" />
-              Bộ lọc
-            </button>
-          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="pending">Chờ báo giá</option>
+            <option value="quoted">Đã báo giá</option>
+            <option value="confirmed">Đã xác nhận</option>
+            <option value="rejected">Đã từ chối</option>
+          </select>
         </div>
       </div>
 

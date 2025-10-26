@@ -10,9 +10,8 @@ const EVMStaffLayout = () => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await authService.logout();
       logout();
       navigate("/login");
     } catch (error) {
@@ -23,17 +22,30 @@ const EVMStaffLayout = () => {
   const userMenuItems = useMemo(
     () => [
       {
+        key: "user-info",
+        label: (
+          <div className="px-2 py-1">
+            <div className="text-sm font-medium text-gray-800">
+              {user?.fullName || "User"}
+            </div>
+            <div className="text-xs text-gray-500">{user?.email || ""}</div>
+          </div>
+        ),
+        disabled: true,
+      },
+      { type: "divider" },
+      {
         key: "profile",
-        label: "Hồ sơ",
+        label: "Profile",
         onClick: () => navigate("/evm-staff/profile"),
       },
       {
         key: "logout",
-        label: "Đăng xuất",
+        label: <span className="text-red-600">Logout</span>,
         onClick: handleLogout,
       },
     ],
-    [navigate]
+    [navigate, user]
   );
 
   return (

@@ -1,0 +1,116 @@
+// src/features/evm-staff/services/dealerContractService.js
+import axiosInstance from '../../../api/axiosInstance';
+import endpoints from '../../../api/endpoints';
+
+const dealerContractService = {
+  /**
+   * GET /api/v1/DealerContracts
+   * Get all dealer contracts with pagination
+   * @param {Object} params - { pageNumber, pageSize }
+   */
+  getAllContracts: async (params = {}) => {
+    try {
+      const { pageNumber = 1, pageSize = 10 } = params;
+      console.log('Service: Fetching dealer contracts with params:', { pageNumber, pageSize });
+      const response = await axiosInstance.get(endpoints.dealerContracts.getAll, {
+        params: { pageNumber, pageSize }
+      });
+      console.log('Service: Dealer contracts response:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error fetching dealer contracts:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * GET /api/v1/DealerContracts/{id}
+   * Get dealer contract by ID
+   * @param {string} id - Contract UUID
+   */
+  getContractById: async (id) => {
+    try {
+      console.log('Service: Fetching dealer contract by ID:', id);
+      const response = await axiosInstance.get(endpoints.dealerContracts.getById(id));
+      console.log('Service: Dealer contract response:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error fetching dealer contract by ID:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * GET /api/v1/DealerContracts/dealer/{dealerId}
+   * Get contracts by dealer ID
+   * @param {string} dealerId - Dealer UUID
+   */
+  getContractsByDealer: async (dealerId) => {
+    try {
+      console.log('Service: Fetching contracts by dealer ID:', dealerId);
+      const response = await axiosInstance.get(endpoints.dealerContracts.getByDealer(dealerId));
+      console.log('Service: Dealer contracts response:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error fetching contracts by dealer:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/DealerContracts
+   * Create new dealer contract
+   * @param {Object} contractData
+   * {
+   *   dealerId: uuid,
+   *   contractCode: string,
+   *   terms: string,
+   *   status: "DRAFT" | "PENDING_SIGNATURE" | "ACTIVE" | "CANCELED",
+   *   effectiveDate: datetime,
+   *   expirationDate: datetime,
+   *   contractLink: string (optional)
+   * }
+   */
+  createContract: async (contractData) => {
+    try {
+      console.log('Service: Creating dealer contract with data:', contractData);
+      const response = await axiosInstance.post(endpoints.dealerContracts.create, contractData);
+      console.log('Service: Dealer contract created:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error creating dealer contract:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/DealerContracts/{dealerId}/verify-otp
+   * Verify OTP for dealer contract
+   * @param {string} dealerId - Dealer UUID
+   * @param {Object} otpData - { otp: string }
+   */
+  verifyContractOTP: async (dealerId, otpData) => {
+    try {
+      console.log('Service: Verifying OTP for dealer:', dealerId);
+      const response = await axiosInstance.post(endpoints.dealerContracts.verifyOtp(dealerId), otpData);
+      console.log('Service: OTP verified:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error verifying OTP:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Generate contract code from UUID
+   * @param {string} uuid - Contract UUID
+   * @returns {string} Contract code (CNT-XXXXXXXX)
+   */
+  generateContractCode: (uuid) => {
+    if (!uuid) return 'N/A';
+    const shortId = uuid.slice(-8).toUpperCase();
+    return `CNT-${shortId}`;
+  }
+};
+
+export default dealerContractService;
