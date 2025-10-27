@@ -56,11 +56,11 @@ const EvmStaffOrderRequestsPage = () => {
 
   const getStatusText = (status) => {
     switch(status) {
-      case 'pending': return 'Chờ báo giá';
-      case 'quoted': return 'Đã báo giá';
-      case 'confirmed': return 'Đã xác nhận';
-      case 'rejected': return 'Đã từ chối';
-      default: return 'Không xác định';
+      case 'pending': return 'Pending Quote';
+      case 'quoted': return 'Quoted';
+      case 'confirmed': return 'Confirmed';
+      case 'rejected': return 'Rejected';
+      default: return 'Unknown';
     }
   };
 
@@ -82,8 +82,8 @@ const EvmStaffOrderRequestsPage = () => {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Yêu Cầu Đặt Hàng</h1>
-          <p className="text-gray-600 mt-1">Quản lý yêu cầu đặt hàng từ các đại lý</p>
+          <h1 className="text-2xl font-bold text-gray-900">Order Requests</h1>
+          <p className="text-gray-600 mt-1">Manage order requests from dealers</p>
         </div>
       </div>
 
@@ -95,7 +95,7 @@ const EvmStaffOrderRequestsPage = () => {
               <ShoppingCart size={20} className="text-blue-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Tổng yêu cầu</p>
+              <p className="text-sm text-gray-600">Total Requests</p>
               <p className="text-xl font-bold text-gray-900">{orderRequests.length}</p>
             </div>
           </div>
@@ -107,7 +107,7 @@ const EvmStaffOrderRequestsPage = () => {
               <Clock size={20} className="text-yellow-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Chờ báo giá</p>
+              <p className="text-sm text-gray-600">Pending Quote</p>
               <p className="text-xl font-bold text-gray-900">
                 {orderRequests.filter(r => r.status === 'pending').length}
               </p>
@@ -121,7 +121,7 @@ const EvmStaffOrderRequestsPage = () => {
               <FileText size={20} className="text-blue-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Đã báo giá</p>
+              <p className="text-sm text-gray-600">Quoted</p>
               <p className="text-xl font-bold text-gray-900">
                 {orderRequests.filter(r => r.status === 'quoted').length}
               </p>
@@ -135,7 +135,7 @@ const EvmStaffOrderRequestsPage = () => {
               <CheckCircle size={20} className="text-green-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Đã xác nhận</p>
+              <p className="text-sm text-gray-600">Confirmed</p>
               <p className="text-xl font-bold text-gray-900">
                 {orderRequests.filter(r => r.status === 'confirmed').length}
               </p>
@@ -152,7 +152,7 @@ const EvmStaffOrderRequestsPage = () => {
               <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm theo ID, đại lý hoặc xe..."
+                placeholder="Search by ID, dealer or vehicle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -164,11 +164,11 @@ const EvmStaffOrderRequestsPage = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="pending">Chờ báo giá</option>
-            <option value="quoted">Đã báo giá</option>
-            <option value="confirmed">Đã xác nhận</option>
-            <option value="rejected">Đã từ chối</option>
+            <option value="all">All Status</option>
+            <option value="pending">Pending Quote</option>
+            <option value="quoted">Quoted</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="rejected">Rejected</option>
           </select>
         </div>
       </div>
@@ -185,25 +185,25 @@ const EvmStaffOrderRequestsPage = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Yêu cầu
+                    Request
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Đại lý
+                    Dealer
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Xe
+                    Vehicle
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Số lượng
+                    Quantity
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
+                    Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ngày tạo
+                    Created Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -272,8 +272,8 @@ const EvmStaffOrderRequestsPage = () => {
       {!loading && filteredRequests.length === 0 && (
         <div className="text-center py-12">
           <ShoppingCart size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Không có yêu cầu nào</h3>
-          <p className="text-gray-600">Chưa có yêu cầu đặt hàng nào từ các đại lý</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Order Requests</h3>
+          <p className="text-gray-600">No order requests from dealers yet</p>
         </div>
       )}
     </div>

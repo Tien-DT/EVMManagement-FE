@@ -2,19 +2,29 @@ import React, { useMemo, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
-import EVMStaffSidebar from "./sidebar/EVMStaffSidebar";
+import { authService } from "../features/auth/services/authService";
+import EVMStaffSidebar from "./Sidebar/EVMStaffSidebar";
 
 const EVMStaffLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async() => {
     try {
-      logout();
+
+      // Try to call logout API
+      await authService.logout();
+
       navigate("/login");
+
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout API error:", error);
+      // Continue with logout even if API fails
+    } finally {
+      // Always clear local state and redirect
+      logout();
+      navigate("/login", { replace: true });
     }
   };
 

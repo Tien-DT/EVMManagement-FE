@@ -71,12 +71,12 @@ const EvmStaffQuotationsPage = () => {
   const getStatusText = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'DRAFT': return 'Bản nháp';
-      case 'SENT': return 'Đã gửi';
-      case 'APPROVED': return 'Đã duyệt';
-      case 'REJECTED': return 'Bị từ chối';
-      case 'EXPIRED': return 'Hết hạn';
-      default: return 'Không xác định';
+      case 'DRAFT': return 'Draft';
+      case 'SENT': return 'Sent';
+      case 'APPROVED': return 'Approved';
+      case 'REJECTED': return 'Rejected';
+      case 'EXPIRED': return 'Expired';
+      default: return 'Unknown';
     }
   };
 
@@ -99,11 +99,11 @@ const EvmStaffQuotationsPage = () => {
     setIsDeleting(true);
     try {
       await deleteQuotation(quotationToDelete.id);
-      showSuccess('Xóa báo giá thành công!');
+      showSuccess('Quotation deleted successfully!');
       setShowDeleteModal(false);
       setQuotationToDelete(null);
     } catch (error) {
-      showError(error.message || 'Có lỗi xảy ra khi xóa báo giá');
+      showError(error.message || 'Error occurred while deleting quotation');
     } finally {
       setIsDeleting(false);
     }
@@ -120,16 +120,16 @@ const EvmStaffQuotationsPage = () => {
         <div className="flex justify-between items-center animate-slideIn">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Quản Lý Báo Giá
+              Quotation Management
             </h1>
-            <p className="text-gray-600 mt-2 text-lg">Tạo và theo dõi báo giá cho khách hàng</p>
+            <p className="text-gray-600 mt-2 text-lg">Create and track quotations for customers</p>
           </div>
           <button
             onClick={() => navigate('/evm-staff/quotations/create')}
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <Plus size={20} />
-            Tạo báo giá mới
+            Create New Quotation
           </button>
         </div>
 
@@ -138,11 +138,11 @@ const EvmStaffQuotationsPage = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-gray-100 hover:border-blue-300 transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Tổng báo giá</p>
+                <p className="text-sm font-medium text-gray-500 mb-1">Total Quotations</p>
                 <p className="text-3xl font-bold text-gray-900">{quotations.length}</p>
                 <div className="flex items-center gap-1 mt-2">
                   <TrendingUp size={14} className="text-blue-600" />
-                  <span className="text-xs text-blue-600 font-medium">Hoạt động</span>
+                  <span className="text-xs text-blue-600 font-medium">Active</span>
                 </div>
               </div>
               <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -154,13 +154,13 @@ const EvmStaffQuotationsPage = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-blue-100 hover:border-blue-300 transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Đã gửi</p>
+                <p className="text-sm font-medium text-gray-500 mb-1">Sent</p>
                 <p className="text-3xl font-bold text-blue-600">
                   {quotations.filter(q => q.status?.toUpperCase() === 'SENT').length}
                 </p>
                 <div className="flex items-center gap-1 mt-2">
                   <Clock size={14} className="text-blue-500" />
-                  <span className="text-xs text-blue-500 font-medium">Chờ phản hồi</span>
+                  <span className="text-xs text-blue-500 font-medium">Awaiting Response</span>
                 </div>
               </div>
               <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -172,13 +172,13 @@ const EvmStaffQuotationsPage = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-emerald-100 hover:border-emerald-300 transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Đã duyệt</p>
+                <p className="text-sm font-medium text-gray-500 mb-1">Approved</p>
                 <p className="text-3xl font-bold text-emerald-600">
                   {quotations.filter(q => q.status?.toUpperCase() === 'APPROVED').length}
                 </p>
                 <div className="flex items-center gap-1 mt-2">
                   <CheckCircle size={14} className="text-emerald-500" />
-                  <span className="text-xs text-emerald-500 font-medium">Thành công</span>
+                  <span className="text-xs text-emerald-500 font-medium">Success</span>
                 </div>
               </div>
               <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -190,13 +190,13 @@ const EvmStaffQuotationsPage = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-red-100 hover:border-red-300 transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">Bị từ chối</p>
+                <p className="text-sm font-medium text-gray-500 mb-1">Rejected</p>
                 <p className="text-3xl font-bold text-red-600">
                   {quotations.filter(q => q.status?.toUpperCase() === 'REJECTED').length}
                 </p>
                 <div className="flex items-center gap-1 mt-2">
                   <XCircle size={14} className="text-red-500" />
-                  <span className="text-xs text-red-500 font-medium">Cần xem lại</span>
+                  <span className="text-xs text-red-500 font-medium">Needs Review</span>
                 </div>
               </div>
               <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -214,7 +214,7 @@ const EvmStaffQuotationsPage = () => {
                 <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Tìm kiếm theo mã báo giá, khách hàng..."
+                  placeholder="Search by quotation code, customer..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all"
@@ -226,12 +226,12 @@ const EvmStaffQuotationsPage = () => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-6 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="DRAFT">Bản nháp</option>
-              <option value="SENT">Đã gửi</option>
-              <option value="APPROVED">Đã duyệt</option>
-              <option value="REJECTED">Bị từ chối</option>
-              <option value="EXPIRED">Hết hạn</option>
+              <option value="all">All Status</option>
+              <option value="DRAFT">Draft</option>
+              <option value="SENT">Sent</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="EXPIRED">Expired</option>
             </select>
           </div>
         </div>
@@ -251,7 +251,7 @@ const EvmStaffQuotationsPage = () => {
           {loading ? (
             <div className="flex flex-col justify-center items-center py-24">
               <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mb-4"></div>
-              <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
+              <p className="text-gray-500 font-medium">Loading data...</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -259,25 +259,25 @@ const EvmStaffQuotationsPage = () => {
                 <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200">
                   <tr>
                     <th className="w-48 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Mã báo giá
+                      Quotation Code
                     </th>
                     <th className="w-56 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Khách hàng
+                      Customer
                     </th>
                     <th className="w-44 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Đại lý
+                      Dealer
                     </th>
                     <th className="w-40 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Tổng
+                      Total
                     </th>
                     <th className="w-36 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Trạng thái
+                      Status
                     </th>
                     <th className="w-32 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Ngày tạo
+                      Created Date
                     </th>
                     <th className="w-40 px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Thao tác
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -341,18 +341,18 @@ const EvmStaffQuotationsPage = () => {
                           <button 
                             onClick={() => handleViewDetail(quotation.id)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100 rounded-lg transition-colors font-medium"
-                            title="Xem chi tiết"
+                            title="View Details"
                           >
                             <Eye size={15} />
-                            Xem
+                            View
                           </button>
                           <button 
                             onClick={() => handleDeleteClick(quotation)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
-                            title="Xóa"
+                            title="Delete"
                           >
                             <Trash2 size={15} />
-                            Xóa
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -371,14 +371,14 @@ const EvmStaffQuotationsPage = () => {
               <div className="inline-flex p-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl mb-6 shadow-lg">
                 <FileText size={48} className="text-blue-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Không có báo giá nào</h3>
-              <p className="text-gray-500 mb-6">Chưa có báo giá nào được tạo. Hãy tạo báo giá đầu tiên!</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No Quotations Found</h3>
+              <p className="text-gray-500 mb-6">No quotations have been created yet. Create your first quotation!</p>
               <button
                 onClick={() => navigate('/evm-staff/quotations/create')}
                 className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 mx-auto"
               >
                 <Plus size={20} />
-                Tạo báo giá mới
+                Create New Quotation
               </button>
             </div>
           </div>
@@ -392,16 +392,16 @@ const EvmStaffQuotationsPage = () => {
                 <div className="p-3 bg-red-100 rounded-full">
                   <Trash2 size={24} className="text-red-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">Xóa Báo Giá</h3>
+                <h3 className="text-xl font-bold text-gray-900">Delete Quotation</h3>
               </div>
               
               <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                Bạn có chắc chắn muốn xóa báo giá{' '}
+                Are you sure you want to delete quotation{' '}
                 <strong className="font-bold text-gray-900">{quotationToDelete.code || quotationToDelete.id}</strong>
                 {quotationToDelete.customerName && (
-                  <> cho khách hàng <strong className="font-bold text-gray-900">{quotationToDelete.customerName}</strong></>
+                  <> for customer <strong className="font-bold text-gray-900">{quotationToDelete.customerName}</strong></>
                 )}? 
-                <br /><span className="text-red-600 font-medium">Hành động này không thể hoàn tác.</span>
+                <br /><span className="text-red-600 font-medium">This action cannot be undone.</span>
               </p>
 
               <div className="flex justify-end gap-3">
@@ -413,7 +413,7 @@ const EvmStaffQuotationsPage = () => {
                   disabled={isDeleting}
                   className="px-5 py-2.5 text-sm text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-50 font-medium transition-colors"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
@@ -423,12 +423,12 @@ const EvmStaffQuotationsPage = () => {
                   {isDeleting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      Đang xóa...
+                      Deleting...
                     </>
                   ) : (
                     <>
                       <Trash2 size={16} />
-                      Xóa Báo Giá
+                      Delete Quotation
                     </>
                   )}
                 </button>
