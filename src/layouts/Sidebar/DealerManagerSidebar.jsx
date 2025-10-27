@@ -4,9 +4,11 @@ import {
   LayoutDashboard,
   Warehouse,
   UserPlus,
+  Clock,
   ChevronRight,
   Menu,
   X,
+  Car,
 } from "lucide-react";
 
 const DealerManagerSidebar = () => {
@@ -23,6 +25,16 @@ const DealerManagerSidebar = () => {
       path: "/dealer/warehouses",
       icon: Warehouse,
       label: "Warehouses",
+    },
+    {
+      path: "/dealer/time-slots",
+      icon: Clock,
+      label: "Time Slots",
+    },
+    {
+      path: "/dealer/test-drive-vehicles",
+      icon: Car,
+      label: "Test Drive Vehicles",
     },
     {
       path: "/dealer/register-staff",

@@ -169,7 +169,13 @@ export default function VehicleModelDetailPage() {
                   <div className="text-2xl font-bold text-teal-600">
                     {v.price != null ? `${v.price.toLocaleString()} ₫` : "—"}
                   </div>
-                  <div className="pt-4 border-t border-gray-100">
+                  <div className="pt-4 border-t border-gray-100 space-y-2">
+                    <Link
+                      to={`/admin/vehiclemodels/${id}/variants/${v.id}`}
+                      className="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium text-center block"
+                    >
+                      View Details
+                    </Link>
                     <Link
                       to={`/admin/vehiclemodels/${id}/variants/${v.id}/edit`}
                       className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium text-center block"

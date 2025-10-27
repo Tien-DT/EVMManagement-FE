@@ -1,4 +1,3 @@
-// src/router/AppRouter.jsx
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -14,21 +13,24 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EvmStaffLayout"; 
+import EVMStaffLayout from "../layouts/EVMStaffLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
+import RegisterDealerManagerPage from "../features/admin/pages/RegisterDealerManagerPage";
 
 // Dealer Pages
 import DealerListPage from "../features/dealer/pages/DealerListPage";
 import DealerFormPage from "../features/dealer/pages/DealerFormPage";
+import DealerDetailPage from "../features/dealer/pages/DealerDetailPage";
 
 // Vehicle Pages
 import VehicleListPage from "../features/vehicle/pages/VehicleListPage";
 import VehicleFormPage from "../features/vehicle/pages/VehicleFormPage";
 import VehicleModelDetailPage from "../features/vehicle/pages/VehicleModelDetailPage";
 import VehicleVariantFormPage from "../features/vehicle/pages/VehicleVariantFormPage";
+import VehicleVariantDetailPage from "../features/vehicle/pages/VehicleVariantDetailPage";
 
 // Promotion Pages
 import PromotionListPage from "../features/promotion/pages/PromotionListPage";
@@ -46,11 +48,17 @@ import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerM
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
+import TimeSlotsPage from "../features/dealer-manager/pages/TimeSlotsPage";
+import CreateTimeSlotPage from "../features/dealer-manager/pages/CreateTimeSlotPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
 import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
+import VehicleModelsPage from "../features/dealer-staff/pages/VehicleModelsPage";
+import VehicleVariantsPage from "../features/dealer-staff/pages/VehicleVariantsPage";
+import VehicleDetailPage from "../features/dealer-staff/pages/VehicleDetailPage";
+import CartPage from "../features/dealer-staff/pages/CartPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 import QuotationDetailPage from "../features/dealer-staff/pages/QuotationDetailPage";
@@ -63,15 +71,27 @@ import ContractsPage from "../features/dealer-staff/pages/ContractsPage";
 import CreateContractPage from "../features/dealer-staff/pages/CreateContractPage";
 import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPage";
 
+// Test Drive Pages
+import { TestDriveVehiclesPage } from "../features/dealer-manager/pages/TestDriveVehiclesPage";
+import { AddVehicleToSlotPage } from "../features/dealer-manager/pages/AddVehicleToSlotPage";
+
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
 import EvmStaffOrderRequestsPage from "../features/evm-staff/pages/EvmStaffOrderRequestsPage";
+import EvmStaffQuotationsPage from "../features/evm-staff/pages/EvmStaffQuotationsPage";
 import EvmStaffCreateQuotationPage from "../features/evm-staff/pages/EvmStaffCreateQuotationPage";
+import EvmStaffQuotationDetailPage from "../features/evm-staff/pages/EvmStaffQuotationDetailPage";
 import EvmStaffContractsPage from "../features/evm-staff/pages/EvmStaffContractsPage";
+import EvmStaffContractDetailPage from "../features/evm-staff/pages/EvmStaffContractDetailPage";
 import EvmStaffCreateDealerContractPage from "../features/evm-staff/pages/EvmStaffCreateDealerContractPage";
 import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
 import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
+import EvmStaffOrderDetailPage from "../features/evm-staff/pages/EvmStaffOrderDetailPage";
+import EvmStaffOrderFormPage from "../features/evm-staff/pages/EvmStaffOrderFormPage";
 import EvmStaffCustomersPage from "../features/evm-staff/pages/EvmStaffCustomersPage";
+import HandoverRecordsPage from "../features/evm-staff/pages/HandoverRecordsPage";
+import CreateHandoverRecordPage from "../features/evm-staff/pages/CreateHandoverRecordPage";
+import HandoverRecordDetailPage from "../features/evm-staff/pages/HandoverRecordDetailPage";
 
 const AppRouter = () => (
   <Router>
@@ -102,15 +122,17 @@ const AppRouter = () => (
         }
       />
 
-      {/* Admin Routes - ✅ Support EVM_ADMIN role */}
+      {/* Admin Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
+            <Route path="/admin/register-dealer-manager" element={<RegisterDealerManagerPage />} />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
+            <Route path="/admin/dealers/:id" element={<DealerDetailPage />} />
             <Route
               path="/admin/dealers/:id/edit"
               element={<DealerFormPage />}
@@ -131,6 +153,10 @@ const AppRouter = () => (
             <Route
               path="/admin/vehiclemodels/:id/variants/new"
               element={<VehicleVariantFormPage />}
+            />
+            <Route
+              path="/admin/vehiclemodels/:id/variants/:variantId"
+              element={<VehicleVariantDetailPage />}
             />
             <Route
               path="/admin/vehiclemodels/:id/variants/:variantId/edit"
@@ -170,6 +196,23 @@ const AppRouter = () => (
               path="/dealer/register-staff"
               element={<RegisterStaffPage />}
             />
+
+            {/* Time Slots Routes */}
+            <Route path="/dealer/time-slots" element={<TimeSlotsPage />} />
+            <Route
+              path="/dealer/time-slots/create"
+              element={<CreateTimeSlotPage />}
+            />
+
+            {/* Test Drive Routes */}
+            <Route
+              path="/dealer/test-drive-vehicles"
+              element={<TestDriveVehiclesPage />}
+            />
+            <Route
+              path="/dealer/test-drive-vehicles/add"
+              element={<AddVehicleToSlotPage />}
+            />
           </Route>
         </Route>
       </Route>
@@ -188,6 +231,23 @@ const AppRouter = () => (
               path="/dealer-staff/customers/:id"
               element={<CustomerDetailPage />}
             />
+
+            {/* Vehicle Routes */}
+            <Route
+              path="/dealer-staff/vehicles/models"
+              element={<VehicleModelsPage />}
+            />
+            <Route
+              path="/dealer-staff/vehicles/models/:modelId/variants"
+              element={<VehicleVariantsPage />}
+            />
+            <Route
+              path="/dealer-staff/vehicles/models/:modelId/variants/:variantId/vehicles"
+              element={<VehicleDetailPage />}
+            />
+
+            {/* Cart Route */}
+            <Route path="/dealer-staff/cart" element={<CartPage />} />
 
             {/* Quotation Routes */}
             <Route
@@ -234,22 +294,44 @@ const AppRouter = () => (
           <Route element={<EVMStaffLayout />}>
             <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
             <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
-            <Route path="/evm-staff/quotations" element={<QuotationsPage />} />
+            
+            {/* Quotation Routes */}
+            <Route path="/evm-staff/quotations" element={<EvmStaffQuotationsPage />} />
+            <Route path="/evm-staff/quotations/create" element={<EvmStaffCreateQuotationPage />} />
             <Route path="/evm-staff/quotations/create/:requestId" element={<EvmStaffCreateQuotationPage />} />
+            <Route path="/evm-staff/quotations/edit/:id" element={<EvmStaffCreateQuotationPage />} />
+            <Route path="/evm-staff/quotations/:id" element={<EvmStaffQuotationDetailPage />} />
+            
+            {/* Contract Routes */}
             <Route path="/evm-staff/contracts" element={<EvmStaffContractsPage />} />
             <Route path="/evm-staff/contracts/create" element={<EvmStaffCreateDealerContractPage />} />
+            <Route path="/evm-staff/contracts/:id" element={<EvmStaffContractDetailPage />} />
+            
             <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
+            
+            {/* Order Routes */}
             <Route path="/evm-staff/orders" element={<EvmStaffOrdersPage />} />
+            <Route path="/evm-staff/orders/create" element={<EvmStaffOrderFormPage />} />
+            <Route path="/evm-staff/orders/:id" element={<EvmStaffOrderDetailPage />} />
+            <Route path="/evm-staff/orders/:id/edit" element={<EvmStaffOrderFormPage />} />
+            
             <Route
               path="/evm-staff/customers"
               element={<EvmStaffCustomersPage />}
             />
+            
+            {/* Handover Records Routes */}
+            <Route path="/evm-staff/handover-records" element={<HandoverRecordsPage />} />
+            <Route path="/evm-staff/handover-records/create" element={<CreateHandoverRecordPage />} />
+            <Route path="/evm-staff/handover-records/:id" element={<HandoverRecordDetailPage />} />
+            <Route path="/evm-staff/handover-records/:id/edit" element={<HandoverRecordDetailPage />} />
+            
             <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>
         </Route>
       </Route>
 
-      {/* ✅ FIX: Root redirect về login, KHÔNG loop */}
+      {/* Root redirect */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Catch all - redirect to login */}

@@ -3,17 +3,21 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../features/auth/services/authService";
-import DealerStaffSidebar from "./sidebar/DealerStaffSidebar";
+import DealerStaffSidebar from "./Sidebar/DealerStaffSidebar";
+import CartIcon from "../features/dealer-staff/components/CartIcon";
 
 const DealerStaffLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogout = async() => {
     try {
       // Try to call logout API
       await authService.logout();
+
+      navigate("/login");
+
     } catch (error) {
       console.error("Logout API error:", error);
       // Continue with logout even if API fails
@@ -27,17 +31,30 @@ const DealerStaffLayout = () => {
   const userMenuItems = useMemo(
     () => [
       {
+        key: "user-info",
+        label: (
+          <div className="px-2 py-1">
+            <div className="text-sm font-medium text-gray-800">
+              {user?.fullName || "User"}
+            </div>
+            <div className="text-xs text-gray-500">{user?.email || ""}</div>
+          </div>
+        ),
+        disabled: true,
+      },
+      { type: "divider" },
+      {
         key: "profile",
         label: "Hồ sơ",
         onClick: () => navigate("/dealer-staff/profile"),
       },
       {
         key: "logout",
-        label: "Đăng xuất",
+        label: <span className="text-red-600">Đăng xuất</span>,
         onClick: handleLogout,
       },
     ],
-    [navigate]
+    [navigate, user]
   );
 
   return (
@@ -74,8 +91,12 @@ const DealerStaffLayout = () => {
               </h1>
             </div>
 
-            {/* User Menu */}
-            <div className="flex items-center">
+            {/* User Menu and Cart */}
+            <div className="flex items-center gap-2">
+              {/* Cart Icon */}
+              <CartIcon />
+
+              {/* User Dropdown */}
               <Dropdown
                 menu={{ items: userMenuItems }}
                 placement="bottomRight"

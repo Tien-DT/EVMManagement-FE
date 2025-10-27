@@ -1,11 +1,14 @@
 // src/features/dealer-staff/pages/CreateOrderPage.jsx
 import React from "react";
 import { Card, message } from "antd";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import OrderForm from "../components/OrderForm";
 
 const CreateOrderPage = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const { fromCart, cartItems } = location.state || {};
 
   // Xử lý kết quả từ form
   const handleFormResult = (result) => {
@@ -18,8 +21,16 @@ const CreateOrderPage = () => {
 
   return (
     <div className="create-order-page">
-      <Card title="Tạo đơn hàng mới" bordered={false}>
-        <OrderForm user={user} onFormResult={handleFormResult} />
+      <Card 
+        title={fromCart ? "Tạo đơn hàng từ giỏ hàng" : "Tạo đơn hàng mới"} 
+        bordered={false}
+      >
+        <OrderForm 
+          user={user} 
+          onFormResult={handleFormResult}
+          fromCart={fromCart}
+          cartItems={cartItems}
+        />
       </Card>
     </div>
   );

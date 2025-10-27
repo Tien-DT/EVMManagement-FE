@@ -1,10 +1,49 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import DealerManagerSidebar from "./sidebar/DealerManagerSidebar";
+import DealerManagerSidebar from "./Sidebar/DealerManagerSidebar";
 import { useAuth } from "../context/AuthContext";
 
 const DealerManagerLayout = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    try {
+      logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const userMenuItems = useMemo(
+    () => [
+      {
+        key: "user-info",
+        label: (
+          <div className="px-2 py-1">
+            <div className="text-sm font-medium text-gray-800">
+              {user?.fullName || user?.name || "User"}
+            </div>
+            <div className="text-xs text-gray-500">{user?.email || ""}</div>
+          </div>
+        ),
+        disabled: true,
+      },
+      { type: "divider" },
+      {
+        key: "profile",
+        label: "Hồ sơ",
+        onClick: () => navigate("/dealer-manager/profile"),
+      },
+      {
+        key: "logout",
+        label: <span className="text-red-600">Đăng xuất</span>,
+        onClick: handleLogout,
+      },
+    ],
+    [navigate, user]
+  );
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -30,17 +69,23 @@ const DealerManagerLayout = () => {
                   3
                 </span>
               </button>
-              <div className="flex items-center space-x-2 text-gray-700">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium">
-                    {user?.name || user?.email}
-                  </p>
-                  <p className="text-xs text-gray-500">Dealer Manager</p>
+              <Dropdown
+                menu={{ items: userMenuItems }}
+                placement="bottomRight"
+                arrow
+              >
+                <div className="flex items-center space-x-2 text-gray-700 cursor-pointer">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-medium">
+                      {user?.fullName || user?.name || user?.email}
+                    </p>
+                    <p className="text-xs text-gray-500">Dealer Manager</p>
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
+                    {user?.fullName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || "D"}
+                  </div>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                  {user?.name?.charAt(0) || user?.email?.charAt(0) || "D"}
-                </div>
-              </div>
+              </Dropdown>
             </div>
           </div>
         </header>
