@@ -88,13 +88,6 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
     message.success("Đã xóa tất cả xe khỏi giỏ hàng B2B");
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((sum, item) => {
-      const quantity = item.quantity || 1;
-      return sum + (item.price || 0) * quantity;
-    }, 0);
-  };
-
   const handleCreateOrder = () => {
     if (cartItems.length === 0) {
       message.warning("Giỏ hàng trống");
@@ -107,47 +100,49 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
     setLoading(true);
     try {
       const orderCode = `B2B-${Date.now()}`;
-      const cartTotal = calculateTotal();
-      const otherCosts = values.otherCosts || 0;
-      const totalAmount = cartTotal + otherCosts;
-      const discountAmount = values.discountAmount || 0;
-      const finalAmount = totalAmount - discountAmount;
-
+      
       const grouped = groupedItems();
       const orderDetails = [];
+      const orderNote = values.note || ""; // Get note from form
       
       grouped.forEach((group) => {
         group.vehicles.forEach((vehicle) => {
+          // Combine auto-generated note with user's note
+          let detailNote = vehicle.isVariantOnly 
+            ? `Variant order - ${group.vehicleModelName || 'Unknown'} (${group.color})` 
+            : `VIN: ${vehicle.vin}`;
+          if (orderNote) {
+            detailNote = `${detailNote}. ${orderNote}`;
+          }
+          
           orderDetails.push({
             vehicleVariantId: group.variantId,
             vehicleId: vehicle.vehicleId, // null for variant-only items
             quantity: vehicle.quantity || 1,
-            unitPrice: group.price || 0,
+            unitPrice: 0, // Price will be set after EVM Staff creates quotation
             discountPercent: 0,
-            note: vehicle.isVariantOnly ? "Variant order" : `VIN: ${vehicle.vin}`,
+            note: detailNote,
           });
         });
       });
 
       const orderData = {
         code: orderCode,
-        customerId: null, 
+        customerId: null, // B2B order doesn't have customer
         dealerId: dealerId,
         createdByUserId: userId,
-        status: 1, 
-        totalAmount: totalAmount,
-        discountAmount: discountAmount,
-        finalAmount: finalAmount,
+        status: 1, // AWAITING_DEPOSIT - Waiting for quotation from EVM Staff
+        totalAmount: 0, // Will be set after quotation is accepted
+        discountAmount: 0,
+        finalAmount: 0, // Will be set after quotation is accepted
         expectedDeliveryAt: values.expectedDeliveryAt ? values.expectedDeliveryAt.toISOString() : null,
-        orderType: 1,
+        orderType: 1, // B2B
         isFinanced: false,
         orderDetails: orderDetails,
       };
 
-      console.log("Creating B2B order:", orderData);
-
       await vehicleService.createOrderWithDetails(orderData);
-      message.success("Đặt xe từ hãng thành công! Đơn hàng đang chờ báo giá từ EVM.");
+      message.success("Đặt xe từ hãng thành công! Chờ EVM Staff báo giá.");
       setCartItems([]);
       localStorage.removeItem("dealerManagerB2BCart");
       setShowOrderModal(false);
@@ -161,29 +156,7 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
     }
   };
 
-  useEffect(() => {
-    if (showOrderModal) {
-      const cartTotal = calculateTotal();
-      form.setFieldsValue({
-        cartTotal: cartTotal,
-        otherCosts: 0,
-        totalAmount: cartTotal,
-        discountAmount: 0,
-        finalAmount: cartTotal,
-      });
-    }
-  }, [showOrderModal, form]);
-
-  const handleCalculateTotals = () => {
-    const cartTotal = form.getFieldValue("cartTotal") || 0;
-    const other = form.getFieldValue("otherCosts") || 0;
-    const totalAmount = cartTotal + other;
-    const discount = form.getFieldValue("discountAmount") || 0;
-    form.setFieldsValue({
-      totalAmount: totalAmount,
-      finalAmount: totalAmount - discount,
-    });
-  };
+  // B2B orders don't have prices until quotation is created by EVM Staff
 
   return (
     <>
@@ -216,8 +189,8 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
         width={450}
         footer={
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, textAlign: "right" }}>
-              Tổng: {formatPrice(calculateTotal())}
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, color: "#666" }}>
+              Tổng số xe: {cartItems.length}
             </div>
             <Button
               type="primary"
@@ -235,6 +208,9 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
             >
               Đặt xe từ hãng (B2B)
             </Button>
+            <div style={{ fontSize: 12, color: "#999", marginTop: 8, textAlign: "center" }}>
+              Giá sẽ được EVM Staff báo giá sau
+            </div>
           </div>
         }
       >
@@ -260,8 +236,8 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
                       <Tag color="blue">
                         {group.vehicles.reduce((sum, v) => sum + (v.quantity || 1), 0)} xe
                       </Tag>
-                      <div style={{ fontWeight: 600, color: "#1890ff", fontSize: 14 }}>
-                        {formatPrice(group.price * group.vehicles.reduce((sum, v) => sum + (v.quantity || 1), 0))}
+                      <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
+                        Chờ báo giá
                       </div>
                     </div>
                   </div>
@@ -296,7 +272,7 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
                         }
                         description={
                           <span style={{ fontSize: 12, color: "#999" }}>
-                            {formatPrice(group.price * (vehicle.quantity || 1))}
+                            Giá sẽ được báo sau
                           </span>
                         }
                       />
@@ -324,52 +300,30 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
           layout="vertical"
           onFinish={handleSubmitOrder}
         >
-          <Divider>Thông tin đơn hàng</Divider>
+          <Divider>Danh sách xe đặt hàng</Divider>
           
-          <Form.Item label="Tổng giá trị giỏ hàng" name="cartTotal">
-            <Input
-              readOnly
-              size="large"
-              style={{ fontWeight: 600, fontSize: 16, color: "#1890ff" }}
-              addonAfter="VND"
-            />
-          </Form.Item>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+              Tổng số xe: {cartItems.length}
+            </div>
+            {groupedItems().map((group, index) => (
+              <div key={index} style={{ 
+                padding: 12, 
+                backgroundColor: "#f5f5f5", 
+                borderRadius: 6, 
+                marginBottom: 8 
+              }}>
+                <div style={{ fontWeight: 600 }}>
+                  {group.vehicleModelName || "Unknown Model"}
+                </div>
+                <div style={{ fontSize: 13, color: "#666" }}>
+                  {group.color} • Số lượng: {group.vehicles.reduce((sum, v) => sum + (v.quantity || 1), 0)}
+                </div>
+              </div>
+            ))}
+          </div>
 
-          <Form.Item label="Chi phí khác (vận chuyển, thuế...)" name="otherCosts">
-            <Input
-              type="number"
-              size="large"
-              onChange={handleCalculateTotals}
-              addonAfter="VND"
-            />
-          </Form.Item>
-
-          <Form.Item label="Tổng tiền" name="totalAmount">
-            <Input
-              readOnly
-              size="large"
-              style={{ fontWeight: 600, fontSize: 16 }}
-              addonAfter="VND"
-            />
-          </Form.Item>
-
-          <Form.Item label="Giảm giá (nếu có)" name="discountAmount">
-            <Input
-              type="number"
-              size="large"
-              onChange={handleCalculateTotals}
-              addonAfter="VND"
-            />
-          </Form.Item>
-
-          <Form.Item label="Thành tiền" name="finalAmount">
-            <Input
-              readOnly
-              size="large"
-              style={{ fontWeight: 700, fontSize: 18, color: "#52c41a" }}
-              addonAfter="VND"
-            />
-          </Form.Item>
+          <Divider>Thông tin bổ sung</Divider>
 
           <Form.Item
             label="Ngày giao dự kiến"
@@ -380,19 +334,24 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
               size="large"
               format="DD/MM/YYYY"
               disabledDate={(current) => current && current < moment().startOf("day")}
+              placeholder="Chọn ngày giao dự kiến (tùy chọn)"
             />
           </Form.Item>
 
-          <Form.Item label="Ghi chú" name="note">
-            <TextArea rows={3} placeholder="Ghi chú cho đơn hàng B2B (tùy chọn)" />
+          <Form.Item label="Ghi chú đơn hàng" name="note">
+            <TextArea 
+              rows={4} 
+              placeholder="Ghi chú về yêu cầu đặc biệt, thời gian giao hàng, v.v... (tùy chọn)" 
+            />
           </Form.Item>
 
           <Divider />
 
-          <div style={{ marginBottom: 16, padding: 12, backgroundColor: "#e6f7ff", borderRadius: 6 }}>
-            <p style={{ margin: 0, fontSize: 14, color: "#1890ff" }}>
-              ℹ️ <strong>Lưu ý:</strong> Đơn hàng B2B sẽ được gửi đến EVM để báo giá. 
-              Giá cuối cùng có thể thay đổi dựa trên số lượng và chính sách của hãng.
+          <div style={{ marginBottom: 16, padding: 16, backgroundColor: "#fff7e6", borderRadius: 6, border: "1px solid #ffd591" }}>
+            <p style={{ margin: 0, fontSize: 14, color: "#d46b08", lineHeight: 1.6 }}>
+              ℹ️ <strong>Lưu ý:</strong> Đơn hàng B2B sẽ được gửi đến EVM Staff để báo giá. 
+              <br/>
+              Bạn sẽ nhận được thông báo khi có báo giá và có thể xem chi tiết giá trước khi chấp nhận.
             </p>
           </div>
 
