@@ -27,11 +27,11 @@ const CreateHandoverRecordPage = () => {
       console.log('Payload to send:', payload);
       
       await createRecord(payload);
-      showSuccess('Tạo bản ghi bàn giao thành công!');
+      showSuccess('Handover record created successfully!');
       navigate('/evm-staff/handover-records');
     } catch (error) {
       console.error('Error creating handover record:', error);
-      const errorMsg = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi tạo bản ghi bàn giao';
+      const errorMsg = error.response?.data?.message || error.message || 'Error occurred while creating handover record';
       showError(errorMsg);
     }
   };
@@ -49,7 +49,7 @@ const CreateHandoverRecordPage = () => {
           className="mb-6 flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition-colors duration-200 font-semibold"
         >
           <ArrowLeft size={20} />
-          Quay lại danh sách
+          Back to List
         </button>
 
         {/* Page Header */}
@@ -60,9 +60,9 @@ const CreateHandoverRecordPage = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                Tạo Bàn Giao Xe Mới
+                Create New Vehicle Handover
               </h1>
-              <p className="text-gray-600 mt-1">Nhập thông tin chi tiết để tạo bản ghi bàn giao xe</p>
+              <p className="text-gray-600 mt-1">Enter detailed information to create vehicle handover record</p>
             </div>
           </div>
         </div>
@@ -82,23 +82,23 @@ const CreateHandoverRecordPage = () => {
           <div className="flex items-start gap-3">
             <AlertCircle size={24} className="text-blue-600 flex-shrink-0 mt-1" />
             <div>
-              <h3 className="font-bold text-blue-900 mb-2">Lưu ý khi tạo bàn giao:</h3>
+              <h3 className="font-bold text-blue-900 mb-2">Notes when creating handover:</h3>
               <ul className="text-sm text-blue-800 space-y-2">
                 <li className="flex items-start gap-2">
                   <CheckCircle size={16} className="flex-shrink-0 mt-0.5" />
-                  <span>Đảm bảo đã có đơn hàng và xe được chỉ định trước khi tạo bàn giao</span>
+                  <span>Ensure order and vehicle are assigned before creating handover</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle size={16} className="flex-shrink-0 mt-0.5" />
-                  <span>Thông tin vận chuyển phải đã được chuẩn bị và xác nhận</span>
+                  <span>Transport information must be prepared and confirmed</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle size={16} className="flex-shrink-0 mt-0.5" />
-                  <span>Ngày bàn giao nên được đặt sau khi tất cả thủ tục đã hoàn tất</span>
+                  <span>Handover date should be set after all procedures are completed</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle size={16} className="flex-shrink-0 mt-0.5" />
-                  <span>Ghi chú chi tiết sẽ giúp theo dõi quá trình bàn giao dễ dàng hơn</span>
+                  <span>Detailed notes will help track the handover process more easily</span>
                 </li>
               </ul>
             </div>

@@ -91,10 +91,10 @@ const EvmStaffVehiclesPage = () => {
 
   const getStatusText = (status) => {
     switch(status) {
-      case 'available': return 'Có sẵn';
-      case 'low_stock': return 'Sắp hết';
-      case 'out_of_stock': return 'Hết hàng';
-      default: return 'Không xác định';
+      case 'available': return 'Available';
+      case 'low_stock': return 'Low Stock';
+      case 'out_of_stock': return 'Out of Stock';
+      default: return 'Unknown';
     }
   };
 
@@ -110,12 +110,12 @@ const EvmStaffVehiclesPage = () => {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản Lý Xe Điện</h1>
-          <p className="text-gray-600 mt-1">Quản lý danh mục xe điện và tồn kho</p>
+          <h1 className="text-2xl font-bold text-gray-900">Vehicle Management</h1>
+          <p className="text-gray-600 mt-1">Manage electric vehicle catalog and inventory</p>
         </div>
         <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 flex items-center">
           <Plus size={20} className="mr-2" />
-          Thêm Xe Mới
+          Add New Vehicle
         </button>
       </div>
 
@@ -127,7 +127,7 @@ const EvmStaffVehiclesPage = () => {
               <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm theo model hoặc variant..."
+                placeholder="Search by model or variant..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -140,14 +140,14 @@ const EvmStaffVehiclesPage = () => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="available">Có sẵn</option>
-              <option value="low_stock">Sắp hết</option>
-              <option value="out_of_stock">Hết hàng</option>
+              <option value="all">All Status</option>
+              <option value="available">Available</option>
+              <option value="low_stock">Low Stock</option>
+              <option value="out_of_stock">Out of Stock</option>
             </select>
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center">
               <Filter size={20} className="mr-2" />
-              Bộ lọc
+              Filter
             </button>
           </div>
         </div>
@@ -190,7 +190,7 @@ const EvmStaffVehiclesPage = () => {
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <Users size={16} className="mr-2 text-emerald-500" />
-                    <span>Tồn kho: {vehicle.stock} xe</span>
+                    <span>Stock: {vehicle.stock} units</span>
                   </div>
                 </div>
 
@@ -203,7 +203,7 @@ const EvmStaffVehiclesPage = () => {
                 <div className="flex gap-2">
                   <button className="flex-1 bg-emerald-600 text-white py-2 px-3 rounded-lg hover:bg-emerald-700 flex items-center justify-center">
                     <Eye size={16} className="mr-1" />
-                    Xem
+                    View
                   </button>
                   <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
                     <Edit size={16} />
@@ -222,8 +222,8 @@ const EvmStaffVehiclesPage = () => {
       {!loading && filteredVehicles.length === 0 && (
         <div className="text-center py-12">
           <Car size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy xe nào</h3>
-          <p className="text-gray-600">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Vehicles Found</h3>
+          <p className="text-gray-600">Try changing the filter or search keywords</p>
         </div>
       )}
     </div>

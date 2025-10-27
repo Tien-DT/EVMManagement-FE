@@ -48,7 +48,7 @@ const HandoverRecordsPage = () => {
   };
 
   const getStatusText = (isAccepted) => {
-    return isAccepted ? 'Đã chấp nhận' : 'Chờ xác nhận';
+    return isAccepted ? 'Accepted' : 'Pending';
   };
 
   // Filter records
@@ -82,12 +82,12 @@ const HandoverRecordsPage = () => {
   };
 
   const handleDeleteRecord = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bản ghi bàn giao này?')) {
+    if (window.confirm('Are you sure you want to delete this handover record?')) {
       try {
         await deleteRecord(id);
-        showSuccess('Xóa bản ghi bàn giao thành công');
+        showSuccess('Handover record deleted successfully');
       } catch (err) {
-        showError('Có lỗi xảy ra khi xóa: ' + (err.message || 'Unknown error'));
+        showError('Error occurred while deleting: ' + (err.message || 'Unknown error'));
       }
     }
   };
@@ -99,7 +99,7 @@ const HandoverRecordsPage = () => {
         pageSize: pagination.pageSize
       });
     } catch (err) {
-      showError('Có lỗi xảy ra khi tải trang: ' + (err.message || 'Unknown error'));
+      showError('Error occurred while loading page: ' + (err.message || 'Unknown error'));
     }
   };
 
@@ -119,7 +119,7 @@ const HandoverRecordsPage = () => {
           <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-8 flex items-center gap-4">
             <AlertCircle size={48} className="text-red-600" />
             <div>
-              <h3 className="text-lg font-bold text-red-900">Có lỗi xảy ra</h3>
+              <h3 className="text-lg font-bold text-red-900">An Error Occurred</h3>
               <p className="text-red-700">{error}</p>
             </div>
           </div>
@@ -140,9 +140,9 @@ const HandoverRecordsPage = () => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                  Quản lý Bàn Giao Xe
+                  Vehicle Handover Management
                 </h1>
-                <p className="text-gray-600 mt-1">Theo dõi và quản lý quá trình bàn giao xe cho khách hàng</p>
+                <p className="text-gray-600 mt-1">Track and manage vehicle handover process for customers</p>
               </div>
             </div>
             <button
@@ -150,7 +150,7 @@ const HandoverRecordsPage = () => {
               className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
             >
               <Plus size={20} />
-              Tạo Bàn Giao Mới
+              Create New Handover
             </button>
           </div>
 
@@ -159,7 +159,7 @@ const HandoverRecordsPage = () => {
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-scaleIn">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Tổng số</p>
+                  <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Total</p>
                   <p className="text-4xl font-bold text-blue-900 mt-2">{stats.total}</p>
                 </div>
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -171,7 +171,7 @@ const HandoverRecordsPage = () => {
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-scaleIn" style={{ animationDelay: '100ms' }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-green-600 uppercase tracking-wide">Đã Chấp Nhận</p>
+                  <p className="text-sm font-semibold text-green-600 uppercase tracking-wide">Accepted</p>
                   <p className="text-4xl font-bold text-green-900 mt-2">{stats.accepted}</p>
                 </div>
                 <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -183,7 +183,7 @@ const HandoverRecordsPage = () => {
             <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-6 border-2 border-yellow-200 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-scaleIn" style={{ animationDelay: '200ms' }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-yellow-600 uppercase tracking-wide">Chờ Xác Nhận</p>
+                  <p className="text-sm font-semibold text-yellow-600 uppercase tracking-wide">Pending</p>
                   <p className="text-4xl font-bold text-yellow-900 mt-2">{stats.pending}</p>
                 </div>
                 <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -201,7 +201,7 @@ const HandoverRecordsPage = () => {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Tìm kiếm theo ID, đơn hàng, xe, vận chuyển..."
+                placeholder="Search by ID, order, vehicle, transport..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200"
@@ -214,9 +214,9 @@ const HandoverRecordsPage = () => {
                 onChange={(e) => setFilterAccepted(e.target.value)}
                 className="pl-12 pr-8 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 appearance-none bg-white cursor-pointer"
               >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="accepted">Đã chấp nhận</option>
-                <option value="pending">Chờ xác nhận</option>
+                <option value="all">All Status</option>
+                <option value="accepted">Accepted</option>
+                <option value="pending">Pending</option>
               </select>
             </div>
           </div>
@@ -228,7 +228,7 @@ const HandoverRecordsPage = () => {
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-gray-600 font-semibold">Đang tải dữ liệu...</p>
+                <p className="text-gray-600 font-semibold">Loading data...</p>
               </div>
             </div>
           ) : filteredRecords.length === 0 ? (
@@ -236,14 +236,14 @@ const HandoverRecordsPage = () => {
               <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mb-4">
                 <AlertCircle size={48} className="text-gray-500" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Không có dữ liệu</h3>
-              <p className="text-gray-600 mb-6">Chưa có bản ghi bàn giao nào được tạo</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">No Data</h3>
+              <p className="text-gray-600 mb-6">No handover records have been created yet</p>
               <button
                 onClick={() => navigate('/evm-staff/handover-records/create')}
                 className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
               >
                 <Plus size={20} />
-                Tạo Bàn Giao Đầu Tiên
+                Create First Handover
               </button>
             </div>
           ) : (
@@ -252,12 +252,12 @@ const HandoverRecordsPage = () => {
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">ID / Đơn Hàng</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Xe</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Vận Chuyển</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Ngày Bàn Giao</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Trạng Thái</th>
-                      <th className="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">Thao Tác</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">ID / Order</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Vehicle</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Transport</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Handover Date</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -303,7 +303,7 @@ const HandoverRecordsPage = () => {
                           <div className="flex items-center">
                             <Calendar size={16} className="mr-2 text-emerald-500" />
                             <span className="text-sm font-medium text-gray-900">
-                              {record.handoverDate ? new Date(record.handoverDate).toLocaleDateString('vi-VN') : 'Chưa có'}
+                              {record.handoverDate ? new Date(record.handoverDate).toLocaleDateString('en-US') : 'Not Set'}
                             </span>
                           </div>
                         </td>
@@ -318,21 +318,21 @@ const HandoverRecordsPage = () => {
                             <button
                               onClick={() => handleViewRecord(record.id)}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-110"
-                              title="Xem chi tiết"
+                              title="View Details"
                             >
                               <Eye size={18} />
                             </button>
                             <button
                               onClick={() => handleEditRecord(record.id)}
                               className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-200 hover:scale-110"
-                              title="Chỉnh sửa"
+                              title="Edit"
                             >
                               <Edit size={18} />
                             </button>
                             <button
                               onClick={() => handleDeleteRecord(record.id)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110"
-                              title="Xóa"
+                              title="Delete"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -349,11 +349,11 @@ const HandoverRecordsPage = () => {
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-700">
-                      Hiển thị <span className="font-semibold">{((pagination.pageNumber - 1) * pagination.pageSize) + 1}</span> đến{' '}
+                      Showing <span className="font-semibold">{((pagination.pageNumber - 1) * pagination.pageSize) + 1}</span> to{' '}
                       <span className="font-semibold">
                         {Math.min(pagination.pageNumber * pagination.pageSize, pagination.totalCount)}
                       </span>{' '}
-                      trong tổng số <span className="font-semibold">{pagination.totalCount}</span> bản ghi
+                      of <span className="font-semibold">{pagination.totalCount}</span> records
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -362,7 +362,7 @@ const HandoverRecordsPage = () => {
                         className="px-4 py-2 rounded-lg bg-white border-2 border-gray-300 text-gray-700 font-semibold hover:bg-emerald-50 hover:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
                       >
                         <ChevronLeft size={18} />
-                        Trước
+                        Previous
                       </button>
                       <span className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg">
                         {pagination.pageNumber} / {pagination.totalPages}
@@ -372,7 +372,7 @@ const HandoverRecordsPage = () => {
                         disabled={!pagination.hasNextPage || loading}
                         className="px-4 py-2 rounded-lg bg-white border-2 border-gray-300 text-gray-700 font-semibold hover:bg-emerald-50 hover:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
                       >
-                        Sau
+                        Next
                         <ChevronRight size={18} />
                       </button>
                     </div>
