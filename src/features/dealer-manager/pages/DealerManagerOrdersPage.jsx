@@ -1,3 +1,4 @@
+// src/features/dealer-manager/pages/DealerManagerOrdersPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,11 +11,21 @@ import {
   Spin,
   Select,
   Badge,
+  Popconfirm,
+  Tooltip,
 } from "antd";
 import {
   EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
   ShoppingCartOutlined,
   PlusOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  SyncOutlined,
+  RocketOutlined,
+  StopOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../../hooks/useAuth";
 import { useDealerManagerOrders } from "../hooks/useDealerManagerOrders";
@@ -26,7 +37,7 @@ import moment from "moment";
 
 const { Option } = Select;
 
-const DealerManagerDashboardPage = () => {
+const DealerManagerOrdersPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [dealerId, setDealerId] = useState(null);
@@ -35,33 +46,52 @@ const DealerManagerDashboardPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [userId, setUserId] = useState(null);
   const [orderTypeFilter, setOrderTypeFilter] = useState("ALL");
+  const [updatingStatus, setUpdatingStatus] = useState({});
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
   const statusConfig = {
     CONFIRMED: {
       color: "#1890ff",
+      bgColor: "#e6f7ff",
+      borderColor: "#91d5ff",
       text: "Đã xác nhận",
+      icon: <CheckCircleOutlined />,
     },
     AWAITING_DEPOSIT: {
       color: "#fa8c16",
+      bgColor: "#fff7e6",
+      borderColor: "#ffd591",
       text: "Chờ đặt cọc / Chờ báo giá",
+      icon: <ClockCircleOutlined />,
     },
     IN_PROGRESS: {
       color: "#52c41a",
+      bgColor: "#f6ffed",
+      borderColor: "#b7eb8f",
       text: "Đang xử lý",
+      icon: <SyncOutlined spin />,
     },
     READY_FOR_HANDOVER: {
       color: "#13c2c2",
+      bgColor: "#e6fffb",
+      borderColor: "#87e8de",
       text: "Sẵn sàng bàn giao",
+      icon: <RocketOutlined />,
     },
     COMPLETED: {
       color: "#52c41a",
+      bgColor: "#f6ffed",
+      borderColor: "#b7eb8f",
       text: "Hoàn thành",
+      icon: <CheckCircleOutlined />,
     },
     CANCELED: {
       color: "#ff4d4f",
+      bgColor: "#fff1f0",
+      borderColor: "#ffccc7",
       text: "Đã hủy",
+      icon: <StopOutlined />,
     },
   };
 
@@ -140,14 +170,68 @@ const DealerManagerDashboardPage = () => {
     changePage,
   } = useDealerManagerOrders(dealerId);
 
-  const handleViewDetail = (orderId) => {
-    setSelectedOrderId(orderId);
-    setDetailModalVisible(true);
+  const handleStatusChange = async (orderId, newStatus, currentOrder) => {
+    setUpdatingStatus((prev) => ({ ...prev, [orderId]: true }));
+
+    try {
+      const updateData = {
+        code: currentOrder.code,
+        quotationId: currentOrder.quotationId,
+        customerId: currentOrder.customerId,
+        dealerId: currentOrder.dealerId,
+        createdByUserId: currentOrder.createdByUserId,
+        status: newStatus,
+        totalAmount: currentOrder.totalAmount,
+        discountAmount: currentOrder.discountAmount || 0,
+        finalAmount: currentOrder.finalAmount,
+        expectedDeliveryAt: currentOrder.expectedDeliveryAt,
+        orderType: currentOrder.orderType,
+        isFinanced: currentOrder.isFinanced || false,
+      };
+
+      console.log("📤 Updating order status:", {
+        orderId,
+        newStatus,
+        updateData,
+      });
+
+      const response = await axiosInstance.put(
+        endpoints.orders.update(orderId),
+        updateData
+      );
+
+      console.log("📥 Update response:", response);
+
+      if (response.success || response.data) {
+        message.success({
+          content: `Cập nhật thành công: ${statusConfig[newStatus].text}`,
+          icon: statusConfig[newStatus].icon,
+        });
+        refreshOrders();
+      } else {
+        message.error(response.message || "Cập nhật trạng thái thất bại");
+      }
+    } catch (error) {
+      console.error("❌ Error updating status:", error);
+      message.error(error.message || "Lỗi khi cập nhật trạng thái");
+    } finally {
+      setUpdatingStatus((prev) => ({ ...prev, [orderId]: false }));
+    }
   };
 
-  const handleCloseDetailModal = () => {
-    setDetailModalVisible(false);
-    setSelectedOrderId(null);
+  const handleDelete = async (id) => {
+    try {
+      const response = await axiosInstance.delete(endpoints.orders.delete(id));
+      if (response.success) {
+        message.success("Xóa đơn hàng thành công");
+        refreshOrders();
+      } else {
+        message.error(response.message || "Xóa đơn hàng thất bại");
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      message.error(error.message || "Lỗi khi xóa đơn hàng");
+    }
   };
 
   const handleAddPreOrderToCart = async (order) => {
@@ -202,6 +286,20 @@ const DealerManagerDashboardPage = () => {
       console.error("Error adding pre-order to cart:", error);
       message.error({ content: "Lỗi khi thêm xe vào giỏ hàng", key: "addCart" });
     }
+  };
+
+  const handleCreateContract = (order) => {
+    navigate(`/dealer/contracts/create?orderId=${order.id}`);
+  };
+
+  const handleViewDetail = (orderId) => {
+    setSelectedOrderId(orderId);
+    setDetailModalVisible(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setDetailModalVisible(false);
+    setSelectedOrderId(null);
   };
 
   const filteredOrders = orderTypeFilter === "ALL" 
@@ -290,43 +388,186 @@ const DealerManagerDashboardPage = () => {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      width: 180,
-      render: (status) => {
+      width: 190,
+      render: (status, record) => {
         const config = statusConfig[status] || statusConfig.CONFIRMED;
+
         return (
-          <Tag color={config.color} style={{ fontWeight: 500 }}>
-            {config.text}
-          </Tag>
+          <Select
+            value={status}
+            onChange={(newStatus) =>
+              handleStatusChange(record.id, newStatus, record)
+            }
+            loading={updatingStatus[record.id]}
+            disabled={updatingStatus[record.id]}
+            style={{ width: "100%" }}
+            size="middle"
+            dropdownStyle={{
+              padding: "4px",
+            }}
+            optionLabelProp="label"
+          >
+            {Object.entries(statusConfig).map(([key, cfg]) => (
+              <Option
+                key={key}
+                value={key}
+                label={
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "2px 0",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: cfg.color,
+                        fontSize: "14px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      {cfg.icon}
+                    </span>
+                    <span
+                      style={{
+                        color: cfg.color,
+                        fontWeight: 500,
+                        fontSize: "13px",
+                      }}
+                    >
+                      {cfg.text}
+                    </span>
+                  </div>
+                }
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "6px 8px",
+                    borderRadius: "4px",
+                    backgroundColor: cfg.bgColor,
+                    border: `1px solid ${cfg.borderColor}`,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: cfg.color,
+                      fontSize: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {cfg.icon}
+                  </span>
+                  <span
+                    style={{
+                      color: cfg.color,
+                      fontWeight: 500,
+                      fontSize: "13px",
+                      flex: 1,
+                    }}
+                  >
+                    {cfg.text}
+                  </span>
+                  {status === key && (
+                    <CheckCircleOutlined
+                      style={{
+                        color: cfg.color,
+                        fontSize: "14px",
+                      }}
+                    />
+                  )}
+                </div>
+              </Option>
+            ))}
+          </Select>
         );
       },
     },
     {
       title: "Thao tác",
       key: "actions",
-      width: 280,
+      width: 300,
       fixed: "right",
       render: (_, record) => (
-        <Space size={4} wrap>
-          <Button
-            type="text"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetail(record.id)}
-            size="small"
-            style={{ color: "#1890ff", padding: "4px 8px" }}
-          >
-            Xem
-          </Button>
-          {record.orderType === 2 && (
+        <Space size={2} wrap>
+          <Tooltip title="Xem chi tiết">
             <Button
-              type="primary"
+              type="text"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetail(record.id)}
               size="small"
-              icon={<PlusOutlined />}
-              onClick={() => handleAddPreOrderToCart(record)}
-              style={{ padding: "4px 8px", fontSize: "12px" }}
-            >
-              Giỏ B2B
-            </Button>
+              style={{ color: "#1890ff", padding: "4px 8px" }}
+            />
+          </Tooltip>
+
+          <Tooltip title="Chỉnh sửa">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => navigate(`/dealer/orders/${record.id}/edit`)}
+              size="small"
+              style={{ color: "#52c41a", padding: "4px 8px" }}
+            />
+          </Tooltip>
+
+          {(record.orderType === 2 || record.orderType === "B2C_P") && (
+            <Tooltip title="Thêm xe vào giỏ B2B">
+              <Button
+                type="primary"
+                size="small"
+                icon={<PlusOutlined />}
+                onClick={() => handleAddPreOrderToCart(record)}
+                style={{ padding: "4px 8px", fontSize: "12px" }}
+              >
+                Giỏ B2B
+              </Button>
+            </Tooltip>
           )}
+
+          {(record.orderType === 0 || record.orderType === "B2C") && (
+            <Tooltip title="Tạo hợp đồng">
+              <Button
+                type="default"
+                size="small"
+                icon={<FileTextOutlined />}
+                onClick={() => handleCreateContract(record)}
+                style={{ 
+                  padding: "4px 8px", 
+                  fontSize: "12px",
+                  backgroundColor: "#fff",
+                  borderColor: "#d9d9d9",
+                  color: "#000"
+                }}
+              >
+                Hợp đồng
+              </Button>
+            </Tooltip>
+          )}
+
+          <Tooltip title="Xóa đơn hàng">
+            <Popconfirm
+              title="Xác nhận xóa"
+              description="Bạn có chắc chắn muốn xóa đơn hàng này?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Xóa"
+              cancelText="Hủy"
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+                style={{ padding: "4px 8px" }}
+              />
+            </Popconfirm>
+          </Tooltip>
         </Space>
       ),
     },
@@ -384,12 +625,12 @@ const DealerManagerDashboardPage = () => {
   }
 
   return (
-    <div className="dealer-dashboard">
+    <div className="dealer-manager-orders-page">
       <Card
         title={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: "18px", fontWeight: 600 }}>
-              Quản lý đơn hàng Dealer
+              Quản lý đơn hàng
             </span>
             <Space>
               <Select
@@ -435,7 +676,7 @@ const DealerManagerDashboardPage = () => {
             dataSource={filteredOrders}
             rowKey="id"
             loading={isLoading}
-            scroll={{ x: 1400 }}
+            scroll={{ x: 1600 }}
             pagination={{
               current: pagination.currentPage,
               pageSize: pagination.pageSize,
@@ -481,4 +722,4 @@ const DealerManagerDashboardPage = () => {
   );
 };
 
-export default DealerManagerDashboardPage;
+export default DealerManagerOrdersPage;

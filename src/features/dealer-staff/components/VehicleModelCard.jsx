@@ -2,12 +2,12 @@ import React from "react";
 import { Card, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
 
-const VehicleModelCard = ({ model }) => {
+const VehicleModelCard = ({ model, basePath = "/dealer-staff/vehicles" }) => {
   const navigate = useNavigate();
   const isOutOfStock = !model.availableStock || model.availableStock === 0;
 
   const handleClick = () => {
-    navigate(`/dealer-staff/vehicles/${model.id}/variants`);
+    navigate(`${basePath}/${model.id}/variants`);
   };
 
   return (

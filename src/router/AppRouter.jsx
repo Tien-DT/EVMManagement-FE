@@ -46,9 +46,13 @@ import UserProfileTestPage from "../features/auth/pages/UserProfileTestPage";
 
 // Dealer Manager Pages
 import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerManagerDashboardPage";
+import DealerManagerOrdersPage from "../features/dealer-manager/pages/DealerManagerOrdersPage";
+import DealerManagerCreateContractPage from "../features/dealer-manager/pages/CreateContractPage";
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
+import DealerManagerVehicleModelsPage from "../features/dealer-manager/pages/DealerManagerVehicleModelsPage";
+import DealerManagerVehicleVariantsPage from "../features/dealer-manager/pages/DealerManagerVehicleVariantsPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
@@ -180,6 +184,8 @@ const AppRouter = () => (
               path="/dealer/dashboard"
               element={<DealerManagerDashboardPage />}
             />
+            {/* Orders Management */}
+            <Route path="/dealer/orders" element={<DealerManagerOrdersPage />} />
             <Route path="/dealer/warehouses" element={<WarehousesPage />} />
             <Route
               path="/dealer/warehouses/create"
@@ -189,6 +195,11 @@ const AppRouter = () => (
               path="/dealer/register-staff"
               element={<RegisterStaffPage />}
             />
+            {/* Vehicle Routes for B2B Orders */}
+            <Route path="/dealer/vehicles" element={<DealerManagerVehicleModelsPage />} />
+            <Route path="/dealer/vehicles/:modelId/variants" element={<DealerManagerVehicleVariantsPage />} />
+            {/* Contract Routes */}
+            <Route path="/dealer/contracts/create" element={<DealerManagerCreateContractPage />} />
           </Route>
         </Route>
       </Route>

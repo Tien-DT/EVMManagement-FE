@@ -4,6 +4,8 @@ import {
   LayoutDashboard,
   Warehouse,
   UserPlus,
+  Car,
+  ShoppingBag,
   ChevronRight,
   Menu,
   X,
@@ -18,6 +20,16 @@ const DealerManagerSidebar = () => {
       path: "/dealer/dashboard",
       icon: LayoutDashboard,
       label: "Dashboard",
+    },
+    {
+      path: "/dealer/orders",
+      icon: ShoppingBag,
+      label: "Đơn hàng",
+    },
+    {
+      path: "/dealer/vehicles",
+      icon: Car,
+      label: "Xe (B2B)",
     },
     {
       path: "/dealer/warehouses",

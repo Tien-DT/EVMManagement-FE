@@ -2,7 +2,7 @@ import React from "react";
 import { Card, Tag, Button } from "antd";
 import { ShoppingCartOutlined, CalendarOutlined } from "@ant-design/icons";
 
-const VehicleVariantCard = ({ variant, onClick, onPreOrder }) => {
+const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false }) => {
   const isOutOfStock = !variant.availableStock || variant.availableStock === 0;
 
   const formatPrice = (price) => {
@@ -97,7 +97,7 @@ const VehicleVariantCard = ({ variant, onClick, onPreOrder }) => {
               {isOutOfStock ? "Hết hàng" : `Có sẵn: ${variant.availableStock} xe`}
             </div>
             
-            {isOutOfStock ? (
+            {isOutOfStock && !hidePreOrder ? (
               <div style={{ marginTop: 12 }}>
                 <Button
                   type="primary"
@@ -119,11 +119,11 @@ const VehicleVariantCard = ({ variant, onClick, onPreOrder }) => {
                   Đặt cọc 10% để giữ xe khi có hàng
                 </div>
               </div>
-            ) : (
+            ) : !isOutOfStock ? (
               <div style={{ fontSize: 13, color: "#999", marginTop: 8, fontStyle: "italic" }}>
                 Nhấn để xem chi tiết và chọn xe
               </div>
-            )}
+            ) : null}
           </div>
         }
       />
