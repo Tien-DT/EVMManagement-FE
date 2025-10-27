@@ -28,16 +28,23 @@ export const useDealerVehicleModels = (dealerId) => {
       let modelsData = [];
       let total = 0;
 
-      if (response?.data) {
-        if (Array.isArray(response.data.items)) {
-          modelsData = response.data.items;
-          total = response.data.totalCount || modelsData.length;
-        } else if (Array.isArray(response.data)) {
-          modelsData = response.data;
-          total = modelsData.length;
-        }
-      } else if (Array.isArray(response)) {
-        modelsData = response;
+      const payload = response?.data ?? response;
+
+      if (Array.isArray(payload?.items)) {
+        modelsData = payload.items;
+        total =
+          payload.totalCount ??
+          payload.total ??
+          payload.pagination?.total ??
+          modelsData.length;
+      } else if (Array.isArray(payload)) {
+        modelsData = payload;
+        total = modelsData.length;
+      } else if (Array.isArray(response?.data?.items)) {
+        modelsData = response.data.items;
+        total = response.data.totalCount || modelsData.length;
+      } else if (Array.isArray(response?.data)) {
+        modelsData = response.data;
         total = modelsData.length;
       }
 

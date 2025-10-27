@@ -72,6 +72,21 @@ const OrderDetailPage = () => {
     return orderData;
   }, [orderData]);
 
+  const orderDetails = useMemo(() => {
+    const details = primaryOrder?.orderDetails ?? [];
+    const seen = new Set();
+    return details.filter((detail) => {
+      const key = `${detail?.vehicleVariantId || detail?.vehicleModelId || "variant"}-${
+        detail?.vehicleId || detail?.vin || detail?.note || ""
+      }-${detail?.unitPrice || 0}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }, [primaryOrder]);
+
   const getStatusTag = (status) => {
     const statusConfig = {
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
@@ -313,12 +328,15 @@ const OrderDetailPage = () => {
             </Col>
           )}
 
-          {(primaryOrder?.orderDetails && primaryOrder.orderDetails.length > 0) && (
+          {(orderDetails.length > 0) && (
             <Col span={24}>
               <Card type="inner" title="Chi tiết đơn hàng">
                 <Table
-                  dataSource={primaryOrder.orderDetails}
-                  rowKey={(record) => record.id || `${record.vehicleId}-${record.vehicleVariantId}-${record.quantity}`}
+                  dataSource={orderDetails}
+                  rowKey={(record) =>
+                    record.id ||
+                    `${record.vehicleId}-${record.vehicleVariantId}-${record.quantity}-${record.note || ""}`
+                  }
                   pagination={false}
                 >
                   <Table.Column title="Mẫu xe" dataIndex="vehicleModelName" key="vehicleModelName" />

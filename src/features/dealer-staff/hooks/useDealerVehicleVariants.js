@@ -29,16 +29,23 @@ export const useDealerVehicleVariants = (dealerId, modelId) => {
       let variantsData = [];
       let total = 0;
 
-      if (response?.data) {
-        if (Array.isArray(response.data.items)) {
-          variantsData = response.data.items;
-          total = response.data.totalCount || variantsData.length;
-        } else if (Array.isArray(response.data)) {
-          variantsData = response.data;
-          total = variantsData.length;
-        }
-      } else if (Array.isArray(response)) {
-        variantsData = response;
+      const payload = response?.data ?? response;
+
+      if (Array.isArray(payload?.items)) {
+        variantsData = payload.items;
+        total =
+          payload.totalCount ??
+          payload.total ??
+          payload.pagination?.total ??
+          variantsData.length;
+      } else if (Array.isArray(payload)) {
+        variantsData = payload;
+        total = variantsData.length;
+      } else if (Array.isArray(response?.data?.items)) {
+        variantsData = response.data.items;
+        total = response.data.totalCount || variantsData.length;
+      } else if (Array.isArray(response?.data)) {
+        variantsData = response.data;
         total = variantsData.length;
       }
 

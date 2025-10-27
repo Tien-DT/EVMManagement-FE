@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Row, Col, Spin, Empty, Card, Button, Badge, Breadcrumb, message } from "antd";
 import { ShoppingCartOutlined, HomeOutlined, CarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
@@ -49,25 +49,43 @@ const DealerVehicleVariantsPage = () => {
     }
   }, [userId]);
 
+  const dedupeCartItems = useCallback((items = []) => {
+    const seen = new Set();
+    return items.filter((item) => {
+      const key = item?.vehicleId ?? `${item?.variantId || "variant"}-${item?.vin || "no-vin"}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }, []);
+
   useEffect(() => {
     const savedCart = localStorage.getItem("dealerCart");
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart);
-        setCartItems(parsedCart);
+        setCartItems(dedupeCartItems(parsedCart));
       } catch (err) {
         console.error("Error loading cart from localStorage:", err);
       }
     }
-  }, []);
+  }, [dedupeCartItems]);
 
   useEffect(() => {
-    if (cartItems.length > 0) {
-      localStorage.setItem("dealerCart", JSON.stringify(cartItems));
+    const deduped = dedupeCartItems(cartItems);
+    if (deduped.length !== cartItems.length) {
+      setCartItems(deduped);
+      return;
+    }
+
+    if (deduped.length > 0) {
+      localStorage.setItem("dealerCart", JSON.stringify(deduped));
     } else {
       localStorage.removeItem("dealerCart");
     }
-  }, [cartItems]);
+  }, [cartItems, dedupeCartItems]);
 
   const { variants, loading } = useDealerVehicleVariants(dealerId, modelId);
 
@@ -84,7 +102,7 @@ const DealerVehicleVariantsPage = () => {
       }
       setAddingToCart(true);
       setTimeout(() => setAddingToCart(false), 800);
-      return [...items, vehicleData];
+      return dedupeCartItems([...items, vehicleData]);
     });
   };
 

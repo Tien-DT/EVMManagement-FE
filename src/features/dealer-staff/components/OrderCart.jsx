@@ -42,9 +42,22 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
     }).format(price);
   };
 
+  const getUniqueCartItems = () => {
+    const seen = new Set();
+    return cartItems.filter((item) => {
+      const key = item?.vehicleId ?? `${item?.variantId || "variant"}-${item?.vin || "no-vin"}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  };
+
   const groupedItems = () => {
+    const uniqueItems = getUniqueCartItems();
     const grouped = {};
-    cartItems.forEach((item) => {
+    uniqueItems.forEach((item) => {
       const key = item.variantId;
       if (!grouped[key]) {
         grouped[key] = {
@@ -57,10 +70,18 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
           vehicles: [],
         };
       }
-      grouped[key].vehicles.push({
-        vehicleId: item.vehicleId,
-        vin: item.vin,
-      });
+      const vehicleKey = item?.vehicleId ?? `${item?.variantId || "variant"}-${item?.vin || "no-vin"}`;
+      const exists = grouped[key].vehicles.some(
+        (vehicle) =>
+          vehicle.vehicleId === item.vehicleId &&
+          (vehicle.vin || "") === (item.vin || "")
+      );
+      if (!exists) {
+        grouped[key].vehicles.push({
+          vehicleId: item.vehicleId,
+          vin: item.vin,
+        });
+      }
     });
     return Object.values(grouped);
   };
@@ -96,7 +117,7 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
   };
 
   const calculateTotal = () => {
-    return cartItems.reduce((sum, item) => {
+    return getUniqueCartItems().reduce((sum, item) => {
       return sum + (item.price || 0);
     }, 0);
   };
@@ -121,20 +142,28 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
       const finalAmount = totalAmount - discountAmount;
 
       const grouped = groupedItems();
-      const orderDetails = [];
-      
+      const detailMap = new Map();
+
       grouped.forEach((group) => {
         group.vehicles.forEach((vehicle) => {
-          orderDetails.push({
-            vehicleVariantId: group.variantId,
-            vehicleId: vehicle.vehicleId,
-            quantity: 1,
-            unitPrice: group.price || 0,
-            discountPercent: 0,
-            note: `VIN: ${vehicle.vin}`,
-          });
+          const detailKey =
+            vehicle.vehicleId ??
+            `${group.variantId || "variant"}-${vehicle.vin || "no-vin"}`;
+
+          if (!detailMap.has(detailKey)) {
+            detailMap.set(detailKey, {
+              vehicleVariantId: group.variantId,
+              vehicleId: vehicle.vehicleId,
+              quantity: 1,
+              unitPrice: group.price || 0,
+              discountPercent: 0,
+              note: vehicle.vin ? `VIN: ${vehicle.vin}` : "",
+            });
+          }
         });
       });
+
+      const orderDetails = Array.from(detailMap.values());
 
       const orderData = {
         code: orderCode,
@@ -148,7 +177,7 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
         expectedDeliveryAt: values.expectedDeliveryAt.toISOString(),
         orderType: 0,
         isFinanced: isFinanced,
-        orderDetails: orderDetails,
+        orderDetails,
       };
 
       // Add installment plan fields if isFinanced is true
