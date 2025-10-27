@@ -107,20 +107,35 @@ const QuotationDetailForm = ({ details, onChange }) => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                      <Car size={16} className="text-blue-600" />
-                      ID Phiên bản xe <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={detail.vehicleVariantId}
-                      onChange={(e) => handleDetailChange(index, 'vehicleVariantId', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-medium transition-all"
-                      placeholder="UUID của phiên bản xe"
-                      required
-                    />
-                  </div>
+                  {/* Vehicle Info Display */}
+                  {detail.vehicleModelName && detail.variantInfo ? (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <Car size={16} className="text-blue-600" />
+                        Xe
+                      </label>
+                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3">
+                        <div className="font-bold text-blue-900 text-lg">{detail.vehicleModelName}</div>
+                        <div className="text-sm text-blue-700 mt-1">{detail.variantInfo}</div>
+                        <div className="text-xs text-blue-600 mt-2 font-mono">ID: {detail.vehicleVariantId}</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <Car size={16} className="text-blue-600" />
+                        ID Phiên bản xe <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={detail.vehicleVariantId}
+                        onChange={(e) => handleDetailChange(index, 'vehicleVariantId', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-medium transition-all"
+                        placeholder="UUID của phiên bản xe"
+                        required
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">

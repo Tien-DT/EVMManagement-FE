@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { 
   ArrowLeft, 
   Save, 
@@ -16,21 +16,28 @@ import { useNotification } from '../../../context/NotificationContext';
 import { useCreateQuotation } from '../hooks/useCreateQuotation';
 import QuotationDetailForm from '../components/QuotationDetailForm';
 import { useAuth } from '../../../hooks/useAuth';
+import orderService from '../services/orderService';
+import axiosInstance from '../../../api/axiosInstance';
+import endpoints from '../../../api/endpoints';
 
 const EvmStaffCreateQuotationPage = () => {
   const navigate = useNavigate();
   const { requestId, id } = useParams();
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get('orderId');
   const { showSuccess, showError } = useNotification();
   const { createQuotation, updateQuotation, isSubmitting } = useCreateQuotation();
   const { user } = useAuth();
   
   const [orderRequest, setOrderRequest] = useState(null);
+  const [b2bOrder, setB2bOrder] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoadingOrder, setIsLoadingOrder] = useState(false);
   
   // Form data theo format API
   const [formData, setFormData] = useState({
     code: '',
-    customerId: '',
+    customerId: null, // null by default for B2B orders
     createdByUserId: user?.id || '',
     note: '',
     status: 'DRAFT',
@@ -51,11 +58,122 @@ const EvmStaffCreateQuotationPage = () => {
   // Set user ID when user is loaded
   useEffect(() => {
     if (user?.id) {
+      console.log('Setting createdByUserId from user:', user);
       setFormData(prev => ({ ...prev, createdByUserId: user.id }));
     }
   }, [user]);
 
-  // TODO: Replace with actual API call
+  // Load B2B order if orderId is provided (from B2B order flow)
+  useEffect(() => {
+    const loadB2BOrder = async () => {
+      if (!orderId) return;
+      
+      setIsLoadingOrder(true);
+      try {
+        console.log('Loading B2B order:', orderId);
+        const response = await orderService.getOrderByIdWithDetails(orderId);
+        console.log('B2B order loaded:', response);
+        
+        const order = response.data;
+        setB2bOrder(order);
+        
+        // Auto-generate code for quotation
+        const quotationCode = `BG-${Date.now().toString().slice(-8)}`;
+        
+        // Group orderDetails by vehicleVariantId and sum quantities
+        const groupedDetails = {};
+        order.orderDetails?.forEach(detail => {
+          const variantId = detail.vehicleVariantId;
+          if (!groupedDetails[variantId]) {
+            groupedDetails[variantId] = {
+              vehicleVariantId: variantId,
+              vehicleId: detail.vehicleId,
+              quantity: 0,
+              discountPercent: detail.discountPercent || 0,
+              note: detail.note || '',
+            };
+          }
+          groupedDetails[variantId].quantity += (detail.quantity || 1);
+        });
+        
+        // Load prices and details from VehicleVariants for each unique variant
+        const quotationDetailsWithPrices = await Promise.all(
+          Object.values(groupedDetails).map(async (detail) => {
+            let unitPrice = 0;
+            let vehicleModelName = 'Unknown Model';
+            let variantInfo = '';
+            
+            // Fetch variant to get price and details
+            try {
+              const variantResponse = await axiosInstance.get(
+                endpoints.vehicleVariants.getById(detail.vehicleVariantId)
+              );
+              const variant = variantResponse.data;
+              unitPrice = variant?.price || 0;
+              
+              // Build variant info string
+              variantInfo = [
+                variant?.color,
+                variant?.engine,
+                variant?.batteryType
+              ].filter(Boolean).join(' - ');
+              
+              console.log(`Loaded variant ${detail.vehicleVariantId}:`, variant);
+              
+              // Fetch vehicle model if modelId exists
+              if (variant?.modelId) {
+                try {
+                  const modelResponse = await axiosInstance.get(
+                    endpoints.vehicleModels.getById(variant.modelId)
+                  );
+                  vehicleModelName = modelResponse.data?.name || 'Unknown Model';
+                  console.log(`Loaded model name:`, vehicleModelName);
+                } catch (modelError) {
+                  console.error('Error loading vehicle model:', modelError);
+                }
+              }
+            } catch (error) {
+              console.error('Error loading variant price:', error);
+            }
+            
+            return {
+              vehicleVariantId: detail.vehicleVariantId,
+              vehicleId: detail.vehicleId, // null for variant-only
+              quantity: detail.quantity,
+              unitPrice: unitPrice,
+              discountPercent: detail.discountPercent,
+              note: detail.note,
+              // Additional info for display
+              vehicleModelName: vehicleModelName,
+              variantInfo: variantInfo,
+            };
+          })
+        );
+        
+        console.log('Grouped quotation details:', quotationDetailsWithPrices);
+        
+        // Pre-fill form with order info
+        setFormData(prev => ({
+          ...prev,
+          code: quotationCode,
+          customerId: order.customerId || null, // B2B orders have null customerId
+          dealerId: order.dealerId,
+          orderId: order.id, // Link quotation to order
+          quotationDetails: quotationDetailsWithPrices
+        }));
+        
+      } catch (error) {
+        console.error('Error loading B2B order:', error);
+        showError('Không thể tải thông tin đơn hàng B2B');
+      } finally {
+        setIsLoadingOrder(false);
+      }
+    };
+    
+    loadB2BOrder();
+  }, [orderId, showError]);
+
+  // Load order request (existing flow)
   useEffect(() => {
     if (!requestId) return;
     // TODO: Fetch order request details from API using requestId, then setOrderRequest(response)
@@ -73,8 +191,8 @@ const EvmStaffCreateQuotationPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
-    if (!formData.code || !formData.customerId) {
+    // Validation - customerId only required for non-B2B orders
+    if (!formData.code || (!b2bOrder && !formData.customerId)) {
       showError('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
@@ -87,15 +205,64 @@ const EvmStaffCreateQuotationPage = () => {
     try {
       let result;
       
+      // Get correct user ID - could be userProfileId, id, or userId
+      const userId = user?.userProfileId || user?.id || user?.userId;
+      
+      // Validate createdByUserId
+      if (!userId) {
+        showError('Không xác định được user ID. Vui lòng đăng nhập lại.');
+        console.error('User object:', user);
+        return;
+      }
+      
+      // Clean quotation details - remove UI-only fields and extra fields not in DTO
+      const cleanedData = {
+        code: formData.code,
+        customerId: formData.customerId || null, // Ensure null for B2B orders
+        createdByUserId: userId, // Use correct user profile ID
+        note: formData.note || '',
+        status: formData.status,
+        validUntil: formData.validUntil ? new Date(formData.validUntil).toISOString() : null,
+        quotationDetails: formData.quotationDetails.map(detail => ({
+          vehicleVariantId: detail.vehicleVariantId,
+          quantity: detail.quantity,
+          unitPrice: detail.unitPrice,
+          discountPercent: detail.discountPercent,
+          note: detail.note || '',
+        }))
+      };
+      
+      console.log('Current user:', user);
+      console.log('Using userId:', userId);
+      console.log('Cleaned quotation data:', cleanedData);
+      
       if (isEditMode) {
-        result = await updateQuotation(id, formData);
+        result = await updateQuotation(id, cleanedData);
       } else {
-        result = await createQuotation(formData);
+        result = await createQuotation(cleanedData);
       }
       
       if (result.success) {
         showSuccess(isEditMode ? 'Cập nhật báo giá thành công!' : 'Tạo báo giá thành công!');
-        navigate('/evm-staff/quotations');
+        
+        // If creating quotation for B2B order, update order status to AWAITING_DEPOSIT (1)
+        if (orderId && result.data?.id) {
+          try {
+            console.log('Updating B2B order status after quotation creation...');
+            await orderService.updateOrder(orderId, {
+              ...b2bOrder,
+              status: 1, // AWAITING_DEPOSIT - waiting for dealer to accept quotation
+              quotationId: result.data.id, // Link quotation to order
+            });
+            console.log('B2B order status updated successfully');
+            showSuccess('Đơn hàng B2B đã chuyển sang trạng thái "Chờ Dealer chấp nhận"');
+          } catch (orderUpdateError) {
+            console.error('Error updating order status:', orderUpdateError);
+            showError('Báo giá đã tạo nhưng không thể cập nhật trạng thái đơn hàng');
+          }
+        }
+        
+        navigate('/evm-staff/orders');
       } else {
         showError(result.error || 'Có lỗi xảy ra');
       }
@@ -112,11 +279,13 @@ const EvmStaffCreateQuotationPage = () => {
     }).format(amount);
   };
 
-  if (isSubmitting) {
+  if (isSubmitting || isLoadingOrder) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex flex-col justify-center items-center">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mb-4"></div>
-        <p className="text-gray-600 font-medium">Đang xử lý...</p>
+        <p className="text-gray-600 font-medium">
+          {isLoadingOrder ? 'Đang tải thông tin đơn hàng...' : 'Đang xử lý...'}
+        </p>
       </div>
     );
   }
@@ -139,6 +308,58 @@ const EvmStaffCreateQuotationPage = () => {
             <p className="text-gray-600 mt-2">Nhập thông tin chi tiết để {isEditMode ? 'cập nhật' : 'tạo'} báo giá</p>
           </div>
         </div>
+
+        {/* B2B Order Info - Show when creating from B2B order */}
+        {b2bOrder && (
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl p-6 shadow-lg animate-scaleIn">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center">
+                <FileText size={20} className="text-white" />
+              </div>
+              Thông tin đơn hàng B2B
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="flex items-center gap-3 bg-white p-4 rounded-xl">
+                <User size={18} className="text-emerald-600" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Dealer</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {b2bOrder.dealer?.name || b2bOrder.dealerName || 'N/A'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-white p-4 rounded-xl">
+                <FileText size={18} className="text-emerald-600" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Mã đơn</p>
+                  <p className="text-sm font-semibold text-gray-900 font-mono">{b2bOrder.code}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-white p-4 rounded-xl">
+                <Package size={18} className="text-emerald-600" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Số lượng xe</p>
+                  <p className="text-sm font-semibold text-gray-900">{b2bOrder.orderDetails?.length || 0} xe</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-white p-4 rounded-xl">
+                <Calendar size={18} className="text-emerald-600" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Ngày đặt</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {b2bOrder.createdDate ? new Date(b2bOrder.createdDate).toLocaleDateString('vi-VN') : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Lưu ý:</strong> Đây là đơn hàng B2B (Dealer đặt xe từ hãng). Sau khi tạo báo giá, 
+                đơn hàng sẽ chuyển sang trạng thái "Chờ Dealer chấp nhận".
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Order Request Info - Show only if creating from request */}
         {orderRequest && (
@@ -193,7 +414,7 @@ const EvmStaffCreateQuotationPage = () => {
               Thông tin cơ bản
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <div className={b2bOrder ? 'md:col-span-2' : ''}>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Mã báo giá <span className="text-red-500">*</span>
                 </label>
@@ -207,19 +428,22 @@ const EvmStaffCreateQuotationPage = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  ID Khách hàng <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.customerId}
-                  onChange={(e) => handleInputChange('customerId', e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
-                  placeholder="UUID của khách hàng"
-                  required
-                />
-              </div>
+              {/* Only show customerId field if NOT a B2B order */}
+              {!b2bOrder && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    ID Khách hàng <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customerId}
+                    onChange={(e) => handleInputChange('customerId', e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
+                    placeholder="UUID của khách hàng"
+                    required
+                  />
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">

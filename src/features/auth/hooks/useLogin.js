@@ -107,7 +107,8 @@ export const useLogin = () => {
         if (profileResponse.success && profileResponse.data) {
           console.log("✅ User profile fetched:", profileResponse.data);
 
-          // Add dealerId to userInfo
+          // Add UserProfile info to userInfo
+          userInfo.userProfileId = profileResponse.data.id; // ← IMPORTANT: UserProfile ID for CreatedByUserId
           userInfo.dealerId = profileResponse.data.dealerId;
           userInfo.fullName = profileResponse.data.fullName || userInfo.name;
           userInfo.phoneNumber = profileResponse.data.phoneNumber;
@@ -119,7 +120,9 @@ export const useLogin = () => {
           );
 
           console.log(
-            "💾 User profile saved with dealerId:",
+            "💾 User profile saved with userProfileId:",
+            userInfo.userProfileId,
+            "dealerId:",
             userInfo.dealerId
           );
         }

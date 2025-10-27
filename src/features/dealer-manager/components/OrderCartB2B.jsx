@@ -131,7 +131,7 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
         customerId: null, // B2B order doesn't have customer
         dealerId: dealerId,
         createdByUserId: userId,
-        status: 1, // AWAITING_DEPOSIT - Waiting for quotation from EVM Staff
+        status: 0, // CONFIRMED - Waiting for EVM Staff to create quotation (will become AWAITING_DEPOSIT after quotation)
         totalAmount: 0, // Will be set after quotation is accepted
         discountAmount: 0,
         finalAmount: 0, // Will be set after quotation is accepted

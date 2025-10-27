@@ -31,6 +31,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useDealerManagerOrders } from "../hooks/useDealerManagerOrders";
 import OrderCartB2B from "../components/OrderCartB2B";
 import OrderDetailModal from "../components/OrderDetailModal";
+import AcceptQuotationModal from "../components/AcceptQuotationModal";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
@@ -49,6 +50,8 @@ const DealerManagerOrdersPage = () => {
   const [updatingStatus, setUpdatingStatus] = useState({});
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [quotationModalVisible, setQuotationModalVisible] = useState(false);
+  const [selectedOrderForQuotation, setSelectedOrderForQuotation] = useState(null);
 
   const statusConfig = {
     CONFIRMED: {
@@ -356,6 +359,20 @@ const DealerManagerOrdersPage = () => {
     setSelectedOrderId(null);
   };
 
+  const handleAcceptQuotation = (order) => {
+    setSelectedOrderForQuotation(order);
+    setQuotationModalVisible(true);
+  };
+
+  const handleCloseQuotationModal = () => {
+    setQuotationModalVisible(false);
+    setSelectedOrderForQuotation(null);
+  };
+
+  const handleQuotationAccepted = () => {
+    refreshOrders();
+  };
+
   const filteredOrders = orderTypeFilter === "ALL" 
     ? orders 
     : orders.filter(order => {
@@ -570,6 +587,28 @@ const DealerManagerOrdersPage = () => {
             />
           </Tooltip>
 
+          {/* B2B Orders with Quotation - Accept Quotation Button */}
+          {(record.orderType === 1 || record.orderType === "B2B") && 
+           record.quotationId && 
+           record.status === "AWAITING_DEPOSIT" && (
+            <Tooltip title="Chấp nhận báo giá từ EVM Staff">
+              <Button
+                type="primary"
+                size="small"
+                icon={<CheckCircleOutlined />}
+                onClick={() => handleAcceptQuotation(record)}
+                style={{ 
+                  padding: "4px 8px", 
+                  fontSize: "12px",
+                  backgroundColor: "#52c41a",
+                  borderColor: "#52c41a"
+                }}
+              >
+                Chấp nhận báo giá
+              </Button>
+            </Tooltip>
+          )}
+
           {(record.orderType === 2 || record.orderType === "B2C_P") && (
             <Tooltip title="Thêm xe vào giỏ B2B">
               <Button
@@ -771,6 +810,13 @@ const DealerManagerOrdersPage = () => {
         visible={detailModalVisible}
         onClose={handleCloseDetailModal}
         orderId={selectedOrderId}
+      />
+
+      <AcceptQuotationModal
+        visible={quotationModalVisible}
+        order={selectedOrderForQuotation}
+        onClose={handleCloseQuotationModal}
+        onSuccess={handleQuotationAccepted}
       />
     </div>
   );

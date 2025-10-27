@@ -7,6 +7,13 @@ const endpoints = {
     update: (id) => `/v1/Contracts/${id}`,
     delete: (id) => `/v1/Contracts/${id}`,
   },
+  deposits: {
+    getAll: "/v1/Deposits",
+    getById: (id) => `/v1/Deposits/${id}`,
+    create: "/v1/Deposits",
+    update: (id) => `/v1/Deposits/${id}`,
+    delete: (id) => `/v1/Deposits/${id}`,
+  },
   dealerContracts: {
     getAll: "/v1/DealerContracts",
     getById: (id) => `/v1/DealerContracts/${id}`,

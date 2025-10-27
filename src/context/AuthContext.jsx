@@ -77,6 +77,26 @@ export const AuthProvider = ({ children }) => {
           if (storedUser) {
             try {
               const parsedUser = JSON.parse(storedUser);
+              
+              // Also load userProfile from sessionStorage if available
+              const storedUserProfile = sessionStorage.getItem("userProfile");
+              if (storedUserProfile) {
+                try {
+                  const profileData = JSON.parse(storedUserProfile);
+                  // Merge userProfile data into user object
+                  parsedUser.userProfileId = profileData.id;
+                  parsedUser.dealerId = profileData.dealerId;
+                  parsedUser.fullName = profileData.fullName || parsedUser.name;
+                  parsedUser.phoneNumber = profileData.phoneNumber;
+                  console.log("✅ Merged userProfile data into user:", {
+                    userProfileId: parsedUser.userProfileId,
+                    dealerId: parsedUser.dealerId
+                  });
+                } catch (e) {
+                  console.warn("Could not parse userProfile from sessionStorage");
+                }
+              }
+              
               console.log("Loaded user from sessionStorage:", parsedUser);
               setUser(parsedUser);
             } catch (parseError) {

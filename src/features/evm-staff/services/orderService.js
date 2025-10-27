@@ -41,6 +41,23 @@ const orderService = {
   },
 
   /**
+   * GET /api/v1/Orders/{id}/with-details
+   * Get order by ID with details (orderDetails, vehicle info, etc.)
+   * @param {string} id - Order UUID
+   */
+  getOrderByIdWithDetails: async (id) => {
+    try {
+      console.log('Service: Fetching order with details by ID:', id);
+      const response = await axiosInstance.get(`${endpoints.orders.getById(id)}/with-details`);
+      console.log('Service: Order with details response:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error fetching order with details:', error);
+      throw error;
+    }
+  },
+
+  /**
    * POST /api/v1/Orders
    * Create new order
    * @param {Object} orderData - Order data
