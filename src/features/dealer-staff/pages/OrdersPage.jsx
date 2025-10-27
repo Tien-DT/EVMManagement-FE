@@ -1,5 +1,5 @@
 // src/features/dealer-staff/pages/OrdersPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -37,6 +37,44 @@ const OrdersPage = () => {
   const [dealerId, setDealerId] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState({});
+
+  const statusTransitions = useMemo(
+    () => ({
+      CONFIRMED: ["CONFIRMED", "AWAITING_DEPOSIT", "CANCELED"],
+      AWAITING_DEPOSIT: [
+        "AWAITING_DEPOSIT",
+        "IN_PROGRESS",
+        "CANCELED",
+      ],
+      IN_PROGRESS: ["IN_PROGRESS", "READY_FOR_HANDOVER", "CANCELED"],
+      READY_FOR_HANDOVER: [
+        "READY_FOR_HANDOVER",
+        "COMPLETED",
+        "CANCELED",
+      ],
+      COMPLETED: ["COMPLETED"],
+      CANCELED: ["CANCELED"],
+    }),
+    []
+  );
+
+  const orderFilters = useMemo(() => {
+    const roleValue = user?.role;
+    if (!roleValue) return {};
+
+    const normalizedRole =
+      typeof roleValue === "string" ? roleValue.toLowerCase() : "";
+    const numericRole = Number(roleValue);
+
+    const isDealerStaff =
+      normalizedRole === "dealer_staff" ||
+      normalizedRole === "dealer-staff" ||
+      normalizedRole.includes("dealer_staff") ||
+      normalizedRole.includes("dealer-staff") ||
+      numericRole === 3;
+
+    return isDealerStaff ? { orderType: 0 } : {};
+  }, [user?.role]);
 
   // Cấu hình status với màu sắc và icon đẹp hơn
   const statusConfig = {
@@ -136,7 +174,7 @@ const OrdersPage = () => {
     refreshOrders,
     deleteOrder,
     changePage,
-  } = useOrders(dealerId);
+  } = useOrders(dealerId, orderFilters);
 
   useEffect(() => {
     console.log("OrdersPage - user:", user);
@@ -148,6 +186,18 @@ const OrdersPage = () => {
   }, [user, dealerId, orders, isLoading, error]);
 
   const handleStatusChange = async (orderId, newStatus, currentOrder) => {
+    const currentStatus = (currentOrder.status || "CONFIRMED").toUpperCase();
+    const allowedStatuses = statusTransitions[currentStatus] || [currentStatus];
+
+    if (!allowedStatuses.includes(newStatus)) {
+      message.warning("Trạng thái phải được cập nhật theo thứ tự");
+      return;
+    }
+
+    if (newStatus === currentStatus) {
+      return;
+    }
+
     setUpdatingStatus((prev) => ({ ...prev, [orderId]: true }));
 
     try {
@@ -180,9 +230,10 @@ const OrdersPage = () => {
       console.log("📥 Update response:", response);
 
       if (response.success || response.data) {
+        const nextConfig = statusConfig[newStatus] || statusConfig.CONFIRMED;
         message.success({
-          content: `Cập nhật thành công: ${statusConfig[newStatus].text}`,
-          icon: statusConfig[newStatus].icon,
+          content: `Cập nhật thành công: ${nextConfig.text}`,
+          icon: nextConfig.icon,
         });
         refreshOrders();
       } else {
@@ -370,16 +421,21 @@ const OrdersPage = () => {
       key: "status",
       width: 190,
       render: (status, record) => {
-        const config = statusConfig[status] || statusConfig.CONFIRMED;
+        const normalizedStatus = (status || "CONFIRMED").toUpperCase();
+        const config = statusConfig[normalizedStatus] || statusConfig.CONFIRMED;
+        const allowedStatuses =
+          statusTransitions[normalizedStatus] || [normalizedStatus];
+        const isSelectionDisabled =
+          updatingStatus[record.id] || allowedStatuses.length <= 1;
 
         return (
           <Select
-            value={status}
-            onChange={(newStatus) =>
-              handleStatusChange(record.id, newStatus, record)
+            value={normalizedStatus}
+            onChange={(nextStatus) =>
+              handleStatusChange(record.id, nextStatus, record)
             }
             loading={updatingStatus[record.id]}
-            disabled={updatingStatus[record.id]}
+            disabled={isSelectionDisabled}
             style={{ width: "100%" }}
             size="middle"
             dropdownStyle={{
@@ -387,23 +443,59 @@ const OrdersPage = () => {
             }}
             optionLabelProp="label"
           >
-            {Object.entries(statusConfig).map(([key, cfg]) => (
-              <Option
-                key={key}
-                value={key}
-                label={
+            {allowedStatuses.map((key) => {
+              const cfg = statusConfig[key] || statusConfig.CONFIRMED;
+              return (
+                <Option
+                  key={key}
+                  value={key}
+                  label={
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "2px 0",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: cfg.color,
+                          fontSize: "14px",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        {cfg.icon}
+                      </span>
+                      <span
+                        style={{
+                          color: cfg.color,
+                          fontWeight: 500,
+                          fontSize: "13px",
+                        }}
+                      >
+                        {cfg.text}
+                      </span>
+                    </div>
+                  }
+                >
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "6px",
-                      padding: "2px 0",
+                      gap: "8px",
+                      padding: "6px 8px",
+                      borderRadius: "4px",
+                      backgroundColor: cfg.bgColor,
+                      border: `1px solid ${cfg.borderColor}`,
+                      transition: "all 0.2s ease",
                     }}
                   >
                     <span
                       style={{
                         color: cfg.color,
-                        fontSize: "14px",
+                        fontSize: "16px",
                         display: "flex",
                         alignItems: "center",
                       }}
@@ -415,56 +507,23 @@ const OrdersPage = () => {
                         color: cfg.color,
                         fontWeight: 500,
                         fontSize: "13px",
+                        flex: 1,
                       }}
                     >
                       {cfg.text}
                     </span>
+                    {normalizedStatus === key && (
+                      <CheckCircleOutlined
+                        style={{
+                          color: cfg.color,
+                          fontSize: "14px",
+                        }}
+                      />
+                    )}
                   </div>
-                }
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "6px 8px",
-                    borderRadius: "4px",
-                    backgroundColor: cfg.bgColor,
-                    border: `1px solid ${cfg.borderColor}`,
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  <span
-                    style={{
-                      color: cfg.color,
-                      fontSize: "16px",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    {cfg.icon}
-                  </span>
-                  <span
-                    style={{
-                      color: cfg.color,
-                      fontWeight: 500,
-                      fontSize: "13px",
-                      flex: 1,
-                    }}
-                  >
-                    {cfg.text}
-                  </span>
-                  {status === key && (
-                    <CheckCircleOutlined
-                      style={{
-                        color: cfg.color,
-                        fontSize: "14px",
-                      }}
-                    />
-                  )}
-                </div>
-              </Option>
-            ))}
+                </Option>
+              );
+            })}
           </Select>
         );
       },

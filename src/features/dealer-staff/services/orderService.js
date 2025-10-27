@@ -21,13 +21,28 @@ export const orderService = {
   },
 
   // Lấy đơn hàng theo dealer ID
-  getOrdersByDealer: async (dealerId, pageNumber = 1, pageSize = 10) => {
+  getOrdersByDealer: async (
+    dealerId,
+    pageNumber = 1,
+    pageSize = 10,
+    filters = {}
+  ) => {
     try {
-      const response = await axiosInstance.get(endpoints.orders.getAll, {
-        params: {
-          pageNumber,
-          pageSize,
-        },
+      const params = {
+        dealerId,
+        pageNumber,
+        pageSize,
+        ...filters,
+      };
+
+      Object.keys(params).forEach((key) => {
+        if (params[key] === undefined || params[key] === null) {
+          delete params[key];
+        }
+      });
+
+      const response = await axiosInstance.get(endpoints.orders.filter, {
+        params,
       });
       console.log("Get orders by dealer response:", response);
       return response;

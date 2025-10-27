@@ -1,8 +1,8 @@
 // src/features/dealer-staff/hooks/useOrders.js
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { orderService } from "../services/orderService";
 
-export const useOrders = (dealerId) => {
+export const useOrders = (dealerId, filters = {}) => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -12,6 +12,11 @@ export const useOrders = (dealerId) => {
     totalPages: 0,
     totalItems: 0,
   });
+
+  const serializedFilters = useMemo(
+    () => JSON.stringify(filters || {}),
+    [filters]
+  );
 
   // ✅ FIX: Sử dụng useCallback để memoize fetchOrders
   const fetchOrders = useCallback(
@@ -33,10 +38,14 @@ export const useOrders = (dealerId) => {
       setError(null);
 
       try {
+        const filterParams = serializedFilters
+          ? JSON.parse(serializedFilters)
+          : {};
         const response = await orderService.getOrdersByDealer(
           dealerId,
           pageNumber,
-          pageSize
+          pageSize,
+          filterParams
         );
 
         console.log("Orders API response:", response);
@@ -110,8 +119,8 @@ export const useOrders = (dealerId) => {
         setIsLoading(false);
       }
     },
-    [dealerId]
-  ); // ✅ Chỉ phụ thuộc vào dealerId
+    [dealerId, serializedFilters]
+  ); // ✅ Chỉ phụ thuộc vào dealerId và serializedFilters
 
   const refreshOrders = useCallback(() => {
     fetchOrders(pagination.currentPage, pagination.pageSize);
@@ -148,7 +157,7 @@ export const useOrders = (dealerId) => {
     if (dealerId) {
       fetchOrders(1, 10);
     }
-  }, [dealerId, fetchOrders]); // ✅ Bao gồm cả fetchOrders
+  }, [dealerId, fetchOrders, serializedFilters]); // ✅ Bao gồm cả fetchOrders
 
   return {
     orders,

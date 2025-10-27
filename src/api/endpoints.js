@@ -95,6 +95,7 @@ const endpoints = {
   // Order endpoints
   orders: {
     getAll: "/v1/Orders",
+    filter: "/v1/Orders/filter",
     getById: (id) => `/v1/Orders/${id}`,
     getByIdWithDetails: (id) => `/v1/Orders/${id}/with-details`,
     getByDealer: (dealerId) => `/v1/Orders/dealer/${dealerId}`,
