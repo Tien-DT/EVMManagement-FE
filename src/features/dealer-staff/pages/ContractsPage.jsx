@@ -124,13 +124,19 @@ const ContractsPage = () => {
           items = response.data;
         }
 
-        setContracts(items);
+        const sortedItems = [...items].sort((a, b) => {
+          const createdA = a?.createdDate ? new Date(a.createdDate).getTime() : 0;
+          const createdB = b?.createdDate ? new Date(b.createdDate).getTime() : 0;
+          return createdB - createdA;
+        });
+
+        setContracts(sortedItems);
         setPagination((prev) => ({
           ...prev,
           total:
             response.data?.totalItems ||
             response.data?.totalCount ||
-            items.length,
+            sortedItems.length,
         }));
       } else {
         setError("Không thể tải danh sách hợp đồng");

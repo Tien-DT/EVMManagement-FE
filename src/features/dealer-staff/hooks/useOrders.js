@@ -100,11 +100,17 @@ export const useOrders = (dealerId, filters = {}) => {
             };
           }
 
-          console.log("Processed ordersData:", ordersData);
-          console.log("Number of orders:", ordersData.length);
+          const sortedOrders = [...ordersData].sort((a, b) => {
+            const createdA = a?.createdDate ? new Date(a.createdDate).getTime() : 0;
+            const createdB = b?.createdDate ? new Date(b.createdDate).getTime() : 0;
+            return createdB - createdA;
+          });
+
+          console.log("Processed ordersData:", sortedOrders);
+          console.log("Number of orders:", sortedOrders.length);
           console.log("Pagination info:", paginationInfo);
 
-          setOrders(ordersData);
+          setOrders(sortedOrders);
           setPagination(paginationInfo);
         } else {
           console.error("Response not successful or no data:", response);
