@@ -1,5 +1,5 @@
 // src/features/dealer-manager/pages/DealerManagerOrdersPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -13,6 +13,7 @@ import {
   Badge,
   Popconfirm,
   Tooltip,
+  Tabs,
 } from "antd";
 import {
   EyeOutlined,
@@ -36,8 +37,6 @@ import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
 
-const { Option } = Select;
-
 const DealerManagerOrdersPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -46,7 +45,7 @@ const DealerManagerOrdersPage = () => {
   const [cartVisible, setCartVisible] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [userId, setUserId] = useState(null);
-  const [orderTypeFilter, setOrderTypeFilter] = useState("ALL");
+  const [activeTab, setActiveTab] = useState("B2B");
   const [updatingStatus, setUpdatingStatus] = useState({});
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -373,14 +372,43 @@ const DealerManagerOrdersPage = () => {
     refreshOrders();
   };
 
-  const filteredOrders = orderTypeFilter === "ALL" 
-    ? orders 
-    : orders.filter(order => {
-        if (orderTypeFilter === "B2C") return order.orderType === 0;
-        if (orderTypeFilter === "B2B") return order.orderType === 1;
-        if (orderTypeFilter === "B2C_P") return order.orderType === 2;
-        return true;
-      });
+  const b2bOrders = useMemo(
+    () =>
+      (orders || []).filter(
+        (order) => order.orderType === 1 || order.orderType === "B2B"
+      ),
+    [orders]
+  );
+
+  const customerOrders = useMemo(
+    () =>
+      (orders || []).filter(
+        (order) =>
+          order.orderType === 0 ||
+          order.orderType === "B2C" ||
+          order.orderType === 2 ||
+          order.orderType === "B2C_P"
+      ),
+    [orders]
+  );
+
+  const displayedOrders = activeTab === "B2B" ? b2bOrders : customerOrders;
+
+  const tabItems = useMemo(
+    () => [
+      {
+        key: "B2B",
+        label: `Đơn hàng hãng (${b2bOrders.length})`,
+        children: null,
+      },
+      {
+        key: "CUSTOMER",
+        label: `Đơn hàng khách (${customerOrders.length})`,
+        children: null,
+      },
+    ],
+    [b2bOrders.length, customerOrders.length]
+  );
 
   const columns = [
     {
@@ -479,7 +507,7 @@ const DealerManagerOrdersPage = () => {
             optionLabelProp="label"
           >
             {Object.entries(statusConfig).map(([key, cfg]) => (
-              <Option
+              <Select.Option
                 key={key}
                 value={key}
                 label={
@@ -554,7 +582,7 @@ const DealerManagerOrdersPage = () => {
                     />
                   )}
                 </div>
-              </Option>
+              </Select.Option>
             ))}
           </Select>
         );
@@ -725,33 +753,21 @@ const DealerManagerOrdersPage = () => {
             <span style={{ fontSize: "18px", fontWeight: 600 }}>
               Quản lý đơn hàng
             </span>
-            <Space>
-              <Select
-                value={orderTypeFilter}
-                onChange={setOrderTypeFilter}
-                style={{ width: 150 }}
+            <Badge count={cartItems.length} showZero>
+              <Button
+                type="primary"
+                icon={<ShoppingCartOutlined />}
+                onClick={() => setCartVisible(true)}
+                size="large"
+                style={{
+                  backgroundColor: '#1890ff',
+                  borderColor: '#1890ff',
+                  fontWeight: 600,
+                }}
               >
-                <Option value="ALL">Tất cả</Option>
-                <Option value="B2C">B2C</Option>
-                <Option value="B2B">B2B</Option>
-                <Option value="B2C_P">Đặt trước</Option>
-              </Select>
-              <Badge count={cartItems.length} showZero>
-                <Button
-                  type="primary"
-                  icon={<ShoppingCartOutlined />}
-                  onClick={() => setCartVisible(true)}
-                  size="large"
-                  style={{
-                    backgroundColor: '#1890ff',
-                    borderColor: '#1890ff',
-                    fontWeight: 600,
-                  }}
-                >
-                  Giỏ B2B
-                </Button>
-              </Badge>
-            </Space>
+                Giỏ B2B
+              </Button>
+            </Badge>
           </div>
         }
         styles={{ body: { padding: "16px" } }}
@@ -764,36 +780,44 @@ const DealerManagerOrdersPage = () => {
             </p>
           </div>
         ) : (
-          <Table
-            columns={columns}
-            dataSource={filteredOrders}
-            rowKey="id"
-            loading={isLoading}
-            scroll={{ x: 1600 }}
-            pagination={{
-              current: pagination.currentPage,
-              pageSize: pagination.pageSize,
-              total: pagination.totalItems,
-              showSizeChanger: false,
-              onChange: changePage,
-              showTotal: (total) => (
-                <span style={{ fontWeight: 500 }}>
-                  Tổng <span style={{ color: "#1890ff" }}>{total}</span> đơn hàng
-                </span>
-              ),
-              style: { marginTop: "16px" },
-            }}
-            locale={{
-              emptyText: (
-                <div style={{ padding: "40px" }}>
-                  <p style={{ fontSize: "16px", color: "#999" }}>
-                    Không có dữ liệu đơn hàng
-                  </p>
-                </div>
-              ),
-            }}
-            size="middle"
-          />
+          <>
+            <Tabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              items={tabItems}
+              style={{ marginBottom: 16 }}
+            />
+            <Table
+              columns={columns}
+              dataSource={displayedOrders}
+              rowKey="id"
+              loading={isLoading}
+              scroll={{ x: 1600 }}
+              pagination={{
+                current: pagination.currentPage,
+                pageSize: pagination.pageSize,
+                total: pagination.totalItems,
+                showSizeChanger: false,
+                onChange: changePage,
+                showTotal: (total) => (
+                  <span style={{ fontWeight: 500 }}>
+                    Tổng <span style={{ color: "#1890ff" }}>{total}</span> đơn hàng
+                  </span>
+                ),
+                style: { marginTop: "16px" },
+              }}
+              locale={{
+                emptyText: (
+                  <div style={{ padding: "40px" }}>
+                    <p style={{ fontSize: "16px", color: "#999" }}>
+                      Không có dữ liệu đơn hàng
+                    </p>
+                  </div>
+                ),
+              }}
+              size="middle"
+            />
+          </>
         )}
       </Card>
 

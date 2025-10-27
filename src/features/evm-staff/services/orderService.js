@@ -10,10 +10,24 @@ const orderService = {
    */
   getAllOrders: async (params = {}) => {
     try {
-      const { pageNumber = 1, pageSize = 10 } = params;
-      console.log('Service: Fetching orders with params:', { pageNumber, pageSize });
-      const response = await axiosInstance.get(endpoints.orders.getAll, {
-        params: { pageNumber, pageSize }
+      const {
+        pageNumber = 1,
+        pageSize = 10,
+        ...filters
+      } = params;
+
+      const queryParams = {
+        pageNumber,
+        pageSize,
+        ...filters,
+      };
+
+      const hasFilters = Object.keys(filters).length > 0;
+      const endpoint = hasFilters ? endpoints.orders.filter : endpoints.orders.getAll;
+
+      console.log('Service: Fetching orders with params:', queryParams);
+      const response = await axiosInstance.get(endpoint, {
+        params: queryParams,
       });
       console.log('Service: Orders response:', response);
       return response;

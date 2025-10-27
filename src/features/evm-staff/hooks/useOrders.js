@@ -23,7 +23,19 @@ const useOrders = (autoFetch = true) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await orderService.getAllOrders(params);
+      const requestParams = {
+        ...params,
+      };
+
+      if (requestParams.status === undefined) {
+        requestParams.status = 0;
+      }
+
+      if (requestParams.orderType === undefined) {
+        requestParams.orderType = 1;
+      }
+
+      const response = await orderService.getAllOrders(requestParams);
       console.log('Hook: Orders response:', response);
       
       // Response structure: { success, data: { items, pageNumber, pageSize, totalCount, totalPages }, errors }
