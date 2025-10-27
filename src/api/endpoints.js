@@ -142,6 +142,7 @@ const endpoints = {
     getModelsByDealer: (dealerId) => `/v1/VehicleModels/dealer/${dealerId}/models`,
     getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants`,
     getVehiclesByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
+  },
   
   // Handover Records endpoints
   handoverRecords: {
