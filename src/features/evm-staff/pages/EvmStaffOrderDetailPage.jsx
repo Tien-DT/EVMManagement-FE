@@ -36,8 +36,10 @@ const EvmStaffOrderDetailPage = () => {
 
   const fetchOrderDetails = async () => {
     try {
-      const response = await getOrderById(id);
+      // Use getOrderByIdWithDetails to get full order info including OrderDetails, Vehicle, Dealer
+      const response = await orderService.getOrderByIdWithDetails(id);
       const orderData = response.data || response;
+      console.log('Order with details:', orderData);
       setOrder(orderData);
     } catch (error) {
       console.error('Error fetching order details:', error);
@@ -231,14 +233,114 @@ const EvmStaffOrderDetailPage = () => {
           </div>
 
           {/* Dealer Information */}
-          {order.dealerName && (
+          {(order.dealer || order.dealerName) && (
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Thông tin đại lý</h2>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Building size={16} className="text-gray-400" />
-                  <span className="text-sm text-gray-900">{order.dealerName}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {order.dealer?.name || order.dealerName}
+                  </span>
                 </div>
+                {order.dealer?.address && (
+                  <div className="flex items-start gap-2">
+                    <FileText size={16} className="text-gray-400 mt-0.5" />
+                    <span className="text-sm text-gray-700">{order.dealer.address}</span>
+                  </div>
+                )}
+                {order.dealer?.phoneNumber && (
+                  <div className="flex items-center gap-2">
+                    <FileText size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-700">{order.dealer.phoneNumber}</span>
+                  </div>
+                )}
+                {order.dealer?.email && (
+                  <div className="flex items-center gap-2">
+                    <FileText size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-700">{order.dealer.email}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Order Details - Vehicles */}
+          {order.orderDetails && order.orderDetails.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Package size={20} className="text-gray-600" />
+                Danh sách xe
+              </h2>
+              <div className="space-y-4">
+                {order.orderDetails.map((detail, index) => (
+                  <div
+                    key={detail.id || index}
+                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        {/* Vehicle Model & Variant */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <ShoppingCart size={16} className="text-blue-600" />
+                          <h3 className="text-sm font-semibold text-gray-900">
+                            {detail.vehicleVariant?.vehicleModel?.name || 'N/A'}
+                          </h3>
+                        </div>
+
+                        {/* Variant Details */}
+                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 ml-6">
+                          {detail.vehicleVariant?.color && (
+                            <div>
+                              <span className="font-medium">Màu:</span> {detail.vehicleVariant.color}
+                            </div>
+                          )}
+                          {detail.vehicleVariant?.engine && (
+                            <div>
+                              <span className="font-medium">Động cơ:</span> {detail.vehicleVariant.engine}
+                            </div>
+                          )}
+                          {detail.vehicle?.vin && (
+                            <div className="col-span-2">
+                              <span className="font-medium">VIN:</span>
+                              <span className="font-mono ml-1">{detail.vehicle.vin}</span>
+                            </div>
+                          )}
+                          {detail.vehicle?.status !== undefined && (
+                            <div>
+                              <span className="font-medium">Trạng thái xe:</span> {detail.vehicle.status}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Note */}
+                        {detail.note && (
+                          <div className="mt-2 ml-6 text-xs text-gray-500 italic">
+                            Ghi chú: {detail.note}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Pricing */}
+                      <div className="text-right ml-4">
+                        <div className="text-xs text-gray-600 mb-1">
+                          Số lượng: <span className="font-medium">{detail.quantity}</span>
+                        </div>
+                        <div className="text-sm font-semibold text-emerald-600">
+                          {formatCurrency(detail.unitPrice)}
+                        </div>
+                        {detail.discountPercent > 0 && (
+                          <div className="text-xs text-red-600">
+                            Giảm {detail.discountPercent}%
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500 mt-1">
+                          Tổng: {formatCurrency(detail.unitPrice * detail.quantity * (100 - detail.discountPercent) / 100)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

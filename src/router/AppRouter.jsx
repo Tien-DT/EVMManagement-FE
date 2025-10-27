@@ -52,6 +52,7 @@ import DealerManagerContractsPage from "../features/dealer-manager/pages/DealerM
 import DealerManagerDepositsPage from "../features/dealer-manager/pages/DealerManagerDepositsPage";
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
+import TransportPage from "../features/dealer-manager/pages/TransportPage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
 import DealerManagerVehicleModelsPage from "../features/dealer-manager/pages/DealerManagerVehicleModelsPage";
 import DealerManagerVehicleVariantsPage from "../features/dealer-manager/pages/DealerManagerVehicleVariantsPage";
@@ -91,6 +92,7 @@ import EvmStaffCustomersPage from "../features/evm-staff/pages/EvmStaffCustomers
 import HandoverRecordsPage from "../features/evm-staff/pages/HandoverRecordsPage";
 import CreateHandoverRecordPage from "../features/evm-staff/pages/CreateHandoverRecordPage";
 import HandoverRecordDetailPage from "../features/evm-staff/pages/HandoverRecordDetailPage";
+import EvmStaffTransportsPage from "../features/evm-staff/pages/EvmStaffTransportsPage";
 
 // Payment Pages
 import VNPayReturnPage from "../pages/VNPayReturnPage";
@@ -194,7 +196,10 @@ const AppRouter = () => (
             />
             {/* Orders Management */}
             <Route path="/dealer/orders" element={<DealerManagerOrdersPage />} />
-            
+
+            {/* Transport Management */}
+            <Route path="/dealer/transports" element={<TransportPage />} />
+
             {/* Contracts Management */}
             <Route path="/dealer/contracts" element={<DealerManagerContractsPage />} />
             
@@ -308,7 +313,10 @@ const AppRouter = () => (
               path="/evm-staff/customers"
               element={<EvmStaffCustomersPage />}
             />
-            
+
+            {/* Transport Routes */}
+            <Route path="/evm-staff/transports" element={<EvmStaffTransportsPage />} />
+
             {/* Handover Records Routes */}
             <Route path="/evm-staff/handover-records" element={<HandoverRecordsPage />} />
             <Route path="/evm-staff/handover-records/create" element={<CreateHandoverRecordPage />} />

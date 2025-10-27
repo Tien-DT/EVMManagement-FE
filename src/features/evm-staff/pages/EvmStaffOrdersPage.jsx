@@ -56,34 +56,47 @@ const EvmStaffOrdersPage = () => {
     }).format(amount);
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status, hasQuotation = false) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
       case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'PROCESSING': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'PROCESSING':
+      case 'IN_PROGRESS': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'CONFIRMED': return 'bg-green-50 text-green-700 border-green-200';
+      case 'AWAITING_DEPOSIT':
+        // If has quotation, show purple (quotation sent), otherwise show orange (waiting)
+        return hasQuotation
+          ? 'bg-purple-50 text-purple-700 border-purple-200'
+          : 'bg-orange-50 text-orange-700 border-orange-200';
       case 'CANCELED': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status, hasQuotation = false) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
       case 'COMPLETED': return <CheckCircle size={16} />;
-      case 'PROCESSING': return <Clock size={16} />;
+      case 'PROCESSING':
+      case 'IN_PROGRESS': return <Clock size={16} />;
       case 'CONFIRMED': return <CheckCircle size={16} />;
+      case 'AWAITING_DEPOSIT':
+        return hasQuotation ? <FileText size={16} /> : <Clock size={16} />;
       case 'CANCELED': return <XCircle size={16} />;
       default: return <AlertCircle size={16} />;
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, hasQuotation = false) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
       case 'COMPLETED': return 'Hoàn thành';
-      case 'PROCESSING': return 'Đang xử lý';
+      case 'PROCESSING':
+      case 'IN_PROGRESS': return 'Đang xử lý';
       case 'CONFIRMED': return 'Đã xác nhận';
+      case 'AWAITING_DEPOSIT':
+        // If has quotation, show "Đã gửi báo giá", otherwise show "Chờ báo giá"
+        return hasQuotation ? 'Đã gửi báo giá' : 'Chờ báo giá';
       case 'CANCELED': return 'Đã hủy';
       default: return 'Không xác định';
     }
@@ -377,9 +390,9 @@ const EvmStaffOrdersPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border-2 ${getStatusColor(order.status)}`}>
-                        {getStatusIcon(order.status)}
-                        <span className="ml-1.5">{getStatusText(order.status)}</span>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border-2 ${getStatusColor(order.status, !!order.quotationId)}`}>
+                        {getStatusIcon(order.status, !!order.quotationId)}
+                        <span className="ml-1.5">{getStatusText(order.status, !!order.quotationId)}</span>
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -417,6 +430,14 @@ const EvmStaffOrdersPage = () => {
                             <Plus size={14} />
                             <span className="text-xs font-medium">Tạo báo giá</span>
                           </button>
+                        )}
+
+                        {/* Show "Đã gửi báo giá" badge if quotation exists and status is AWAITING_DEPOSIT */}
+                        {order.quotationId && order.status?.toUpperCase() === 'AWAITING_DEPOSIT' && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 border border-purple-200">
+                            <FileText size={14} />
+                            <span className="text-xs font-medium">Đã gửi báo giá</span>
+                          </span>
                         )}
 
                         {/* Create Contract button - only show if quotation ACCEPTED and order AWAITING_DEPOSIT and no contract */}

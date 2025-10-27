@@ -27,12 +27,11 @@ const useOrders = (autoFetch = true) => {
         ...params,
       };
 
-      if (requestParams.status === undefined) {
-        requestParams.status = 0;
-      }
+      // Don't filter by status - load all orders
+      // Remove the hardcoded status = 0 filter
 
       if (requestParams.orderType === undefined) {
-        requestParams.orderType = 1;
+        requestParams.orderType = 1; // Only B2B orders for EVM Staff
       }
 
       const response = await orderService.getAllOrders(requestParams);

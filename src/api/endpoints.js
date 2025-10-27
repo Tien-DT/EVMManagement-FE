@@ -189,6 +189,16 @@ const endpoints = {
     vnpayReturn: "/v1/Payments/vnpay/return",
     vnpayCallback: "/v1/Payments/vnpay/callback",
   },
+
+  // Transport endpoints
+  transports: {
+    getAll: "/v1/Transports",
+    getByDealer: (dealerId) => `/v1/Transports/dealer/${dealerId}`,
+    getById: (id) => `/v1/Transports/${id}`,
+    create: "/v1/Transports",
+    update: (id) => `/v1/Transports/${id}`,
+    delete: (id) => `/v1/Transports/${id}`,
+  },
 };
 
 export default endpoints;
