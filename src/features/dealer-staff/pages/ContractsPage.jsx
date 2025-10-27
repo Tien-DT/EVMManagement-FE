@@ -67,11 +67,23 @@ const ContractsPage = () => {
       );
       
       if (response && (response.success || response.data)) {
-        setContracts(response.data.items || []);
-        setPagination({
-          ...pagination,
-          total: response.data.totalCount || 0,
-        });
+        let items = [];
+        if (Array.isArray(response.data?.items)) {
+          items = response.data.items;
+        } else if (Array.isArray(response.data?.data)) {
+          items = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          items = response.data;
+        }
+
+        setContracts(items);
+        setPagination((prev) => ({
+          ...prev,
+          total:
+            response.data?.totalItems ||
+            response.data?.totalCount ||
+            items.length,
+        }));
       } else {
         setError("Không thể tải danh sách hợp đồng");
       }
@@ -122,6 +134,7 @@ const ContractsPage = () => {
       key: "orderId",
       width: 130,
       ellipsis: true,
+      render: (_, record) => record.order?.code || record.orderId || "N/A",
     },
     {
       title: "Khách hàng",
@@ -129,6 +142,8 @@ const ContractsPage = () => {
       key: "customerId",
       width: 160,
       ellipsis: true,
+      render: (_, record) =>
+        record.customer?.fullName || record.customerId || "N/A",
     },
     {
       title: "Điều khoản",

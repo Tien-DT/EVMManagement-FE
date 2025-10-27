@@ -64,6 +64,19 @@ export const orderService = {
     }
   },
 
+  getOrderByIdWithDetails: async (id) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.orders.getByIdWithDetails(id)
+      );
+      console.log("Get order with details response:", response);
+      return response;
+    } catch (error) {
+      console.error("Get order with details error:", error);
+      throw error;
+    }
+  },
+
   // Tạo đơn hàng mới
   createOrder: async (orderData) => {
     try {
