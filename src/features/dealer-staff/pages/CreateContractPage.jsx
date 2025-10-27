@@ -659,17 +659,54 @@ const CreateContractPage = () => {
             </Card>
           )}
 
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              icon={<SaveOutlined />}
-              loading={submitting}
-              style={{ marginTop: "16px" }}
-            >
-              Tạo hợp đồng
-            </Button>
-          </Form.Item>
+          <Row gutter={16} style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #f0f0f0" }}>
+            <Col span={24}>
+              <Space>
+                <Button
+                  type="primary"
+                  size="large"
+                  htmlType="submit"
+                  icon={<SaveOutlined />}
+                  loading={submitting}
+                  style={{
+                    height: "40px",
+                    paddingLeft: "24px",
+                    paddingRight: "24px",
+                    fontSize: "16px",
+                    fontWeight: 600,
+                  }}
+                >
+                  Tạo hợp đồng
+                </Button>
+                <Button
+                  size="large"
+                  icon={<DownloadOutlined />}
+                  onClick={handleDownloadDraft}
+                  style={{
+                    height: "40px",
+                    paddingLeft: "24px",
+                    paddingRight: "24px",
+                    fontSize: "16px",
+                  }}
+                >
+                  Tải bản nháp PDF
+                </Button>
+                <Button
+                  size="large"
+                  icon={<ArrowLeftOutlined />}
+                  onClick={() => navigate("/dealer-staff/contracts")}
+                  style={{
+                    height: "40px",
+                    paddingLeft: "24px",
+                    paddingRight: "24px",
+                    fontSize: "16px",
+                  }}
+                >
+                  Quay lại
+                </Button>
+              </Space>
+            </Col>
+          </Row>
         </Form>
       </Card>
     </div>

@@ -308,7 +308,7 @@ const ContractDetailPage = () => {
     const statusConfig = {
       DRAFT: { color: "default", text: "Bản nháp" },
       PENDING_SIGNATURE: { color: "orange", text: "Chờ ký" },
-      ACTIVE: { color: "green", text: "Đang hoạt động" },
+      ACTIVE: { color: "green", text: "Đã ký" },
       CANCELED: { color: "red", text: "Đã hủy" },
     };
 
@@ -505,13 +505,19 @@ const ContractDetailPage = () => {
   ];
 
   return (
-    <div className="contract-detail-page">
+    <div className="contract-detail-page" style={{ padding: "24px", background: "#f5f7fa", minHeight: "100vh" }}>
       <Card 
+        bordered={false}
+        style={{
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+          borderRadius: "12px",
+          marginBottom: "24px"
+        }}
         title={
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Space>
               <Title level={4} style={{ margin: 0 }}>
-                Chi tiết hợp đồng: {contract.code || contract.id}
+                Chi tiết hợp đồng: <span style={{ color: "#1890ff" }}>{contract.code}</span>
               </Title>
               {getStatusTag(contract.status)}
             </Space>
@@ -545,16 +551,12 @@ const ContractDetailPage = () => {
             </Space>
           </div>
         }
-        bordered={false}
-        className="card-with-shadow"
-        style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
       >
         <Row gutter={[24, 24]}>
+          {/* Thông tin cơ bản */}
           <Col span={24}>
-            <Card type="inner" title="Thông tin cơ bản">
-              <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                <Descriptions.Item label="ID">{contract.id}</Descriptions.Item>
-                <Descriptions.Item label="Mã hợp đồng">{contract.code || "N/A"}</Descriptions.Item>
+            <Card type="inner" title="📋 Thông tin cơ bản" style={{ borderRadius: "8px" }}>
+              <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} size="small">
                 <Descriptions.Item label="Trạng thái">{getStatusTag(contract.status)}</Descriptions.Item>
                 <Descriptions.Item label="Ngày tạo">
                   {contract.createdDate ? moment(contract.createdDate).format("DD/MM/YYYY HH:mm") : "N/A"}
@@ -563,100 +565,19 @@ const ContractDetailPage = () => {
                   {contract.modifiedDate ? moment(contract.modifiedDate).format("DD/MM/YYYY HH:mm") : "N/A"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Ngày ký">
-                  {contract.signedAt ? moment(contract.signedAt).format("DD/MM/YYYY HH:mm") : "N/A"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Đã xóa">
-                  {contract.isDeleted ? <Tag color="red">Đã xóa</Tag> : <Tag color="green">Đang hoạt động</Tag>}
+                  {contract.signedAt ? moment(contract.signedAt).format("DD/MM/YYYY HH:mm") : "Chưa ký"}
                 </Descriptions.Item>
               </Descriptions>
             </Card>
           </Col>
 
-          <Col span={24}>
-            <Card type="inner" title="Thông tin liên kết">
-              <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-                <Descriptions.Item label="Đơn hàng">
-                  <Space size={8}>
-                    <span>{order?.code || contract.orderId || "N/A"}</span>
-                    {order?.id && (
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => navigate(`/dealer-staff/orders/${order.id}`)}
-                      >
-                        Xem đơn hàng
-                      </Button>
-                    )}
-                  </Space>
-                </Descriptions.Item>
-                <Descriptions.Item label="Trạng thái đơn hàng">
-                  {order ? getOrderStatusTag(order.status) : "N/A"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Khách hàng">
-                  {customer?.fullName || customer?.name || contract.customerId || "N/A"}
-                </Descriptions.Item>
-                <Descriptions.Item label="SĐT khách hàng">
-                  {customer?.phone || customer?.phoneNumber || "N/A"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Người tạo hợp đồng">
-                  {createdByUser?.fullName || contract.createdByUserId || "N/A"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Điều khoản">
-                  {contract.terms || "N/A"}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </Col>
-
-          {order && (
-            <Col span={24}>
-              <Card type="inner" title="Thông tin đơn hàng">
-                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                  <Descriptions.Item label="Thành tiền">
-                    {formatCurrency(order.finalAmount ?? order.totalAmount)}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Tổng tiền hàng">
-                    {formatCurrency(order.totalAmount)}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Giảm giá">
-                    {formatCurrency(order.discountAmount)}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Loại đơn">
-                    {order.orderType || "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Ngày giao dự kiến">
-                    {order.expectedDeliveryAt
-                      ? moment(order.expectedDeliveryAt).format("DD/MM/YYYY")
-                      : "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Thanh toán trả góp">
-                    {order.isFinanced ? <Tag color="blue">Có</Tag> : <Tag>Không</Tag>}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            </Col>
-          )}
-
-          {orderDetails.length > 0 && (
-            <Col span={24}>
-              <Card type="inner" title={`Chi tiết đơn hàng (${orderDetails.length})`}>
-                <Table
-                  dataSource={orderDetails}
-                  columns={orderDetailColumns}
-                  rowKey={(record) => record.id}
-                  pagination={false}
-                  scroll={{ x: true }}
-                />
-              </Card>
-            </Col>
-          )}
-
+          {/* Thông tin khách hàng */}
           {customer && (
             <Col span={24}>
-              <Card type="inner" title="Thông tin khách hàng">
-                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                  <Descriptions.Item label="Họ tên">
-                    {customer.fullName || customer.name || "N/A"}
+              <Card type="inner" title="👤 Thông tin khách hàng" style={{ borderRadius: "8px" }}>
+                <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} size="small">
+                  <Descriptions.Item label="Họ tên" span={3}>
+                    <Text strong>{customer.fullName || customer.name || "N/A"}</Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Email">
                     {customer.email || "N/A"}
@@ -672,54 +593,122 @@ const ContractDetailPage = () => {
             </Col>
           )}
 
-          {createdByUser && (
+          {/* Thông tin đơn hàng */}
+          {order && (
             <Col span={24}>
-              <Card type="inner" title="Người tạo hợp đồng">
-                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                  <Descriptions.Item label="Họ tên">
-                    {createdByUser.fullName || "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Số điện thoại">
-                    {createdByUser.phone || "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="CMND/CCCD">
-                    {createdByUser.cardId || "N/A"}
-                  </Descriptions.Item>
-                </Descriptions>
+              <Card type="inner" title="🛍️ Thông tin đơn hàng" style={{ borderRadius: "8px", background: "linear-gradient(135deg, #ecf3ff 0%, #f6ffed 100%)" }}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12} md={8}>
+                    <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>Mã đơn hàng</Text>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: "#1890ff", marginTop: "4px" }}>
+                        {order.code || order.id}
+                      </div>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={12} md={8}>
+                    <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>Trạng thái đơn</Text>
+                      <div style={{ marginTop: "4px" }}>
+                        {getOrderStatusTag(order.status)}
+                      </div>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={12} md={8}>
+                    <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>Ngày giao</Text>
+                      <div style={{ fontSize: "14px", fontWeight: 600, color: "#52c41a", marginTop: "4px" }}>
+                        {order.expectedDeliveryAt ? moment(order.expectedDeliveryAt).format("DD/MM/YYYY") : "N/A"}
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
               </Card>
             </Col>
           )}
 
+          {/* Thông tin thanh toán */}
+          {order && (
+            <Col span={24}>
+              <Card type="inner" title="💰 Thông tin thanh toán" style={{ borderRadius: "8px", background: "linear-gradient(135deg, #ecf3ff 0%, #f6ffed 100%)" }}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12} md={8}>
+                    <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>Tổng tiền</Text>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: "#1890ff", marginTop: "4px" }}>
+                        {formatCurrency(order.totalAmount ?? 0)}
+                      </div>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={12} md={8}>
+                    <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>Giảm giá</Text>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: "#ff4d4f", marginTop: "4px" }}>
+                        {formatCurrency(order.discountAmount ?? 0)}
+                      </div>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={12} md={8}>
+                    <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>Thành tiền</Text>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: "#52c41a", marginTop: "4px" }}>
+                        {formatCurrency(order.finalAmount ?? 0)}
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            </Col>
+          )}
+
+          {/* Chi tiết sản phẩm */}
+          {orderDetails.length > 0 && (
+            <Col span={24}>
+              <Card type="inner" title="🚗 Chi tiết sản phẩm" style={{ borderRadius: "8px" }}>
+                <Table
+                  dataSource={orderDetails}
+                  columns={orderDetailColumns}
+                  rowKey={(record) => record.id}
+                  pagination={false}
+                  size="small"
+                />
+              </Card>
+            </Col>
+          )}
+
+          {/* Danh sách đặt cọc */}
           {deposits.length > 0 && (
             <Col span={24}>
-              <Card type="inner" title="Danh sách đặt cọc">
+              <Card type="inner" title="💳 Danh sách đặt cọc" style={{ borderRadius: "8px" }}>
                 <Table
                   dataSource={deposits}
                   columns={depositColumns}
                   rowKey={(record) => record.id}
                   pagination={false}
-                  scroll={{ x: true }}
+                  size="small"
                 />
               </Card>
             </Col>
           )}
 
+          {/* Chữ ký số */}
           {digitalSignatures.length > 0 && (
             <Col span={24}>
-              <Card type="inner" title="Chữ ký số">
+              <Card type="inner" title="✍️ Chữ ký số" style={{ borderRadius: "8px" }}>
                 <Table
                   dataSource={digitalSignatures}
                   columns={digitalSignatureColumns}
                   rowKey={(record) => record.id}
                   pagination={false}
-                  scroll={{ x: true }}
+                  size="small"
                 />
               </Card>
             </Col>
           )}
 
+          {/* Tài liệu hợp đồng */}
           <Col span={24}>
-            <Card type="inner" title="Tài liệu hợp đồng">
+            <Card type="inner" title="📄 Tài liệu hợp đồng" style={{ borderRadius: "8px" }}>
               <Space direction="vertical" style={{ width: "100%" }} size={16}>
                 <Text>
                   Sử dụng nút "Tải hợp đồng PDF" để tải bản nháp. Sau khi ký, tải file PDF đã ký lên đây để lưu trữ.
@@ -766,6 +755,17 @@ const ContractDetailPage = () => {
               </Space>
             </Card>
           </Col>
+
+          {/* Điều khoản */}
+          {contract.terms && (
+            <Col span={24}>
+              <Card type="inner" title="📝 Điều khoản" style={{ borderRadius: "8px" }}>
+                <Text style={{ whiteSpace: "pre-wrap" }}>
+                  {contract.terms}
+                </Text>
+              </Card>
+            </Col>
+          )}
         </Row>
       </Card>
     </div>
