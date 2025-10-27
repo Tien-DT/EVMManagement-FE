@@ -164,13 +164,19 @@ const OrderDetailPage = () => {
   }
 
   return (
-    <div className="order-detail-page">
+    <div className="order-detail-page" style={{ padding: "24px", background: "#f5f7fa", minHeight: "100vh" }}>
       <Card 
+        bordered={false}
+        style={{
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+          borderRadius: "12px",
+          marginBottom: "24px"
+        }}
         title={
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Space>
               <Title level={4} style={{ margin: 0 }}>
-                Chi tiết đơn hàng: {primaryOrder.code}
+                Chi tiết đơn hàng: <span style={{ color: "#1890ff" }}>{primaryOrder.code}</span>
               </Title>
               {getStatusTag(primaryOrder.status)}
             </Space>
@@ -208,36 +214,21 @@ const OrderDetailPage = () => {
             </Space>
           </div>
         }
-        bordered={false}
-        className="card-with-shadow"
-        style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
       >
         <Row gutter={[24, 24]}>
-          {orderData && orderData !== primaryOrder && (
-            <Col span={24}>
-              <Card type="inner" title="Thông tin hợp đồng">
-                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                  <Descriptions.Item label="Mã hợp đồng">{orderData.code || "N/A"}</Descriptions.Item>
-                  <Descriptions.Item label="Trạng thái">{orderData.status ? getStatusTag(orderData.status) : "N/A"}</Descriptions.Item>
-                  <Descriptions.Item label="Ngày tạo">
-                    {orderData.createdDate ? moment(orderData.createdDate).format("DD/MM/YYYY HH:mm") : "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Ngày ký">
-                    {orderData.signedAt ? moment(orderData.signedAt).format("DD/MM/YYYY HH:mm") : "Chưa ký"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Liên kết hợp đồng">{orderData.contractLink || "N/A"}</Descriptions.Item>
-                  <Descriptions.Item label="Điều khoản">{orderData.terms || "N/A"}</Descriptions.Item>
-                </Descriptions>
-              </Card>
-            </Col>
-          )}
-
+          {/* Thông tin cơ bản */}
           <Col span={24}>
-            <Card type="inner" title="Thông tin cơ bản">
-              <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                <Descriptions.Item label="Mã đơn hàng">{primaryOrder.code}</Descriptions.Item>
+            <Card type="inner" title="📋 Thông tin cơ bản" style={{ borderRadius: "8px" }}>
+              <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} size="small">
                 <Descriptions.Item label="Trạng thái">{getStatusTag(primaryOrder.status)}</Descriptions.Item>
-                <Descriptions.Item label="Loại đơn hàng">{primaryOrder.orderType}</Descriptions.Item>
+                <Descriptions.Item label="Loại đơn hàng">
+                  <Tag color={primaryOrder.orderType === 2 ? "orange" : primaryOrder.orderType === 1 ? "blue" : "green"}>
+                    {primaryOrder.orderType === 2 ? "Đặt trước" : primaryOrder.orderType === 1 ? "B2B" : "B2C"}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Tài chính">
+                  {primaryOrder.isFinanced ? <Tag color="green">Có</Tag> : <Tag color="default">Không</Tag>}
+                </Descriptions.Item>
                 <Descriptions.Item label="Ngày tạo">
                   {primaryOrder.createdDate ? moment(primaryOrder.createdDate).format("DD/MM/YYYY HH:mm") : "N/A"}
                 </Descriptions.Item>
@@ -247,46 +238,17 @@ const OrderDetailPage = () => {
                 <Descriptions.Item label="Ngày giao dự kiến">
                   {primaryOrder.expectedDeliveryAt ? moment(primaryOrder.expectedDeliveryAt).format("DD/MM/YYYY") : "N/A"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Tài chính">
-                  {primaryOrder.isFinanced ? <Tag color="green">Có</Tag> : <Tag color="default">Không</Tag>}
-                </Descriptions.Item>
-                <Descriptions.Item label="ID Báo giá">{primaryOrder.quotationId || "N/A"}</Descriptions.Item>
-                <Descriptions.Item label="ID Đại lý">{primaryOrder.dealerId || "N/A"}</Descriptions.Item>
-                <Descriptions.Item label="ID Người tạo">{primaryOrder.createdByUserId || "N/A"}</Descriptions.Item>
-                {orderData && orderData !== primaryOrder && (
-                  <Descriptions.Item label="ID Hợp đồng">{orderData.id || "N/A"}</Descriptions.Item>
-                )}
               </Descriptions>
             </Card>
           </Col>
 
-          <Col span={24}>
-            <Card type="inner" title="Thông tin thanh toán">
-              <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                <Descriptions.Item label="Tổng tiền">
-                  <Text strong>{primaryOrder.totalAmount?.toLocaleString() || 0} VNĐ</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Giảm giá">
-                  <Text type="danger">{primaryOrder.discountAmount?.toLocaleString() || 0} VNĐ</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Thành tiền">
-                  <Text strong style={{ color: "#1890ff" }}>
-                    {primaryOrder.finalAmount?.toLocaleString() || 0} VNĐ
-                  </Text>
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </Col>
-
+          {/* Thông tin khách hàng */}
           {(orderData?.customer || primaryOrder?.customer) && (
             <Col span={24}>
-              <Card type="inner" title="Thông tin khách hàng">
-                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                  <Descriptions.Item label="ID">
-                    {orderData?.customer?.id || primaryOrder?.customer?.id || "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Họ tên">
-                    {orderData?.customer?.fullName || primaryOrder?.customer?.fullName || "N/A"}
+              <Card type="inner" title="👤 Thông tin khách hàng" style={{ borderRadius: "8px" }}>
+                <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} size="small">
+                  <Descriptions.Item label="Họ tên" span={3}>
+                    <Text strong>{orderData?.customer?.fullName || primaryOrder?.customer?.fullName || "N/A"}</Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Email">
                     {orderData?.customer?.email || primaryOrder?.customer?.email || "N/A"}
@@ -294,7 +256,7 @@ const OrderDetailPage = () => {
                   <Descriptions.Item label="Số điện thoại">
                     {orderData?.customer?.phone || primaryOrder?.customer?.phone || primaryOrder?.customer?.phoneNumber || "N/A"}
                   </Descriptions.Item>
-                  <Descriptions.Item label="Địa chỉ">
+                  <Descriptions.Item label="Địa chỉ" span={3}>
                     {orderData?.customer?.address || primaryOrder?.customer?.address || "N/A"}
                   </Descriptions.Item>
                 </Descriptions>
@@ -302,35 +264,42 @@ const OrderDetailPage = () => {
             </Col>
           )}
 
-          {(orderData?.createdByUser || primaryOrder?.createdByUser) && (
-            <Col span={24}>
-              <Card type="inner" title="Thông tin người tạo">
-                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
-                  <Descriptions.Item label="ID">
-                    {orderData?.createdByUser?.id || primaryOrder?.createdByUser?.id || "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Họ tên">
-                    {orderData?.createdByUser?.fullName || primaryOrder?.createdByUser?.fullName || "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Số điện thoại">
-                    {orderData?.createdByUser?.phone || primaryOrder?.createdByUser?.phone || primaryOrder?.createdByUser?.phoneNumber || "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="CMND/CCCD">
-                    {orderData?.createdByUser?.cardId || primaryOrder?.createdByUser?.cardId || "N/A"}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Ngày tạo">
-                    {(orderData?.createdByUser?.createdDate || primaryOrder?.createdByUser?.createdDate)
-                      ? moment(orderData?.createdByUser?.createdDate || primaryOrder?.createdByUser?.createdDate).format("DD/MM/YYYY HH:mm")
-                      : "N/A"}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            </Col>
-          )}
+          {/* Thông tin thanh toán */}
+          <Col span={24}>
+            <Card type="inner" title="💰 Thông tin thanh toán" style={{ borderRadius: "8px", background: "linear-gradient(135deg, #ecf3ff 0%, #f6ffed 100%)" }}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} sm={12} md={8}>
+                  <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                    <Text type="secondary" style={{ fontSize: "12px" }}>Tổng tiền</Text>
+                    <div style={{ fontSize: "20px", fontWeight: 700, color: "#1890ff", marginTop: "4px" }}>
+                      {primaryOrder.totalAmount?.toLocaleString() || 0} ₫
+                    </div>
+                  </div>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                  <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                    <Text type="secondary" style={{ fontSize: "12px" }}>Giảm giá</Text>
+                    <div style={{ fontSize: "20px", fontWeight: 700, color: "#ff4d4f", marginTop: "4px" }}>
+                      {primaryOrder.discountAmount?.toLocaleString() || 0} ₫
+                    </div>
+                  </div>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                  <div style={{ padding: "12px", background: "white", borderRadius: "6px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                    <Text type="secondary" style={{ fontSize: "12px" }}>Thành tiền</Text>
+                    <div style={{ fontSize: "20px", fontWeight: 700, color: "#52c41a", marginTop: "4px" }}>
+                      {primaryOrder.finalAmount?.toLocaleString() || 0} ₫
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
 
+          {/* Chi tiết đơn hàng */}
           {(orderDetails.length > 0) && (
             <Col span={24}>
-              <Card type="inner" title="Chi tiết đơn hàng">
+              <Card type="inner" title="🚗 Chi tiết sản phẩm" style={{ borderRadius: "8px" }}>
                 <Table
                   dataSource={orderDetails}
                   rowKey={(record) =>
@@ -338,68 +307,151 @@ const OrderDetailPage = () => {
                     `${record.vehicleId}-${record.vehicleVariantId}-${record.quantity}-${record.note || ""}`
                   }
                   pagination={false}
+                  size="small"
                 >
-                  <Table.Column title="Mẫu xe" dataIndex="vehicleModelName" key="vehicleModelName" />
-                  <Table.Column title="Biến thể" dataIndex="vehicleVariantName" key="vehicleVariantName" />
-                  <Table.Column title="Số lượng" dataIndex="quantity" key="quantity" />
+                  <Table.Column 
+                    title="Mẫu xe" 
+                    dataIndex="vehicleModelName" 
+                    key="vehicleModelName"
+                    render={(text) => text || "N/A"}
+                  />
+                  <Table.Column 
+                    title="Biến thể" 
+                    dataIndex="vehicleVariantName" 
+                    key="vehicleVariantName"
+                    render={(text) => text || "N/A"}
+                  />
+                  <Table.Column 
+                    title="Số lượng" 
+                    dataIndex="quantity" 
+                    key="quantity"
+                    align="center"
+                  />
                   <Table.Column
                     title="Đơn giá"
                     dataIndex="unitPrice"
                     key="unitPrice"
-                    render={(value) => (value ? value.toLocaleString() : "N/A")}
+                    align="right"
+                    render={(value) => (value ? value.toLocaleString() + " ₫" : "N/A")}
                   />
-                  <Table.Column title="Ghi chú" dataIndex="note" key="note" />
-                </Table>
-              </Card>
-            </Col>
-          )}
-
-          {(orderData?.digitalSignatures && orderData.digitalSignatures.length > 0) && (
-            <Col span={24}>
-              <Card type="inner" title="Chữ ký số">
-                <Table
-                  dataSource={orderData.digitalSignatures}
-                  rowKey={(record) => record.id}
-                  pagination={false}
-                >
-                  <Table.Column title="Người ký" dataIndex="signerName" key="signerName" />
-                  <Table.Column title="Email" dataIndex="signerEmail" key="signerEmail" />
-                  <Table.Column title="Vai trò" dataIndex="signerRole" key="signerRole" />
-                  <Table.Column title="Trạng thái" dataIndex="status" key="status" />
-                  <Table.Column
-                    title="Ngày ký"
-                    dataIndex="signedAt"
-                    key="signedAt"
-                    render={(value) => (value ? moment(value).format("DD/MM/YYYY HH:mm") : "Chưa ký")}
+                  <Table.Column 
+                    title="Ghi chú" 
+                    dataIndex="note" 
+                    key="note"
+                    render={(text) => text || "-"}
                   />
                 </Table>
               </Card>
             </Col>
           )}
 
+          {/* Thông tin đặt cọc */}
           {(primaryOrder?.deposits && primaryOrder.deposits.length > 0) && (
             <Col span={24}>
-              <Card type="inner" title="Thông tin đặt cọc">
+              <Card type="inner" title="💳 Thông tin đặt cọc" style={{ borderRadius: "8px" }}>
                 <Table
                   dataSource={primaryOrder.deposits}
                   rowKey={(record) => record.id}
                   pagination={false}
+                  size="small"
                 >
                   <Table.Column title="Mã đặt cọc" dataIndex="code" key="code" />
                   <Table.Column
                     title="Số tiền"
                     dataIndex="amount"
                     key="amount"
-                    render={(value) => (value ? value.toLocaleString() : "N/A")}
+                    align="right"
+                    render={(value) => (value ? value.toLocaleString() + " ₫" : "N/A")}
                   />
-                  <Table.Column title="Trạng thái" dataIndex="status" key="status" />
+                  <Table.Column 
+                    title="Trạng thái" 
+                    dataIndex="status" 
+                    key="status"
+                    render={(status) => {
+                      const statusConfig = {
+                        PENDING: { color: "orange", text: "Chờ xử lý" },
+                        CONFIRMED: { color: "green", text: "Đã xác nhận" },
+                        FAILED: { color: "red", text: "Thất bại" },
+                      };
+                      const config = statusConfig[status] || { color: "default", text: status };
+                      return <Tag color={config.color}>{config.text}</Tag>;
+                    }}
+                  />
                   <Table.Column
                     title="Ngày tạo"
                     dataIndex="createdDate"
                     key="createdDate"
                     render={(value) => (value ? moment(value).format("DD/MM/YYYY HH:mm") : "N/A")}
                   />
-                  <Table.Column title="Ghi chú" dataIndex="note" key="note" />
+                  <Table.Column 
+                    title="Ghi chú" 
+                    dataIndex="note" 
+                    key="note"
+                    render={(text) => text || "-"}
+                  />
+                </Table>
+              </Card>
+            </Col>
+          )}
+
+          {/* Thông tin hợp đồng (nếu có) */}
+          {orderData && orderData !== primaryOrder && (
+            <Col span={24}>
+              <Card type="inner" title="📄 Thông tin hợp đồng" style={{ borderRadius: "8px" }}>
+                <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} size="small">
+                  <Descriptions.Item label="Mã hợp đồng">{orderData.code || "N/A"}</Descriptions.Item>
+                  <Descriptions.Item label="Trạng thái">{orderData.status ? getStatusTag(orderData.status) : "N/A"}</Descriptions.Item>
+                  <Descriptions.Item label="Ngày tạo">
+                    {orderData.createdDate ? moment(orderData.createdDate).format("DD/MM/YYYY HH:mm") : "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Ngày ký">
+                    {orderData.signedAt ? moment(orderData.signedAt).format("DD/MM/YYYY HH:mm") : "Chưa ký"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Liên kết hợp đồng" span={2}>
+                    {orderData.contractLink ? (
+                      <a href={orderData.contractLink} target="_blank" rel="noopener noreferrer">
+                        {orderData.contractLink}
+                      </a>
+                    ) : "N/A"}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Card>
+            </Col>
+          )}
+
+          {/* Chữ ký số (nếu có) */}
+          {(orderData?.digitalSignatures && orderData.digitalSignatures.length > 0) && (
+            <Col span={24}>
+              <Card type="inner" title="✍️ Chữ ký số" style={{ borderRadius: "8px" }}>
+                <Table
+                  dataSource={orderData.digitalSignatures}
+                  rowKey={(record) => record.id}
+                  pagination={false}
+                  size="small"
+                >
+                  <Table.Column title="Người ký" dataIndex="signerName" key="signerName" />
+                  <Table.Column title="Email" dataIndex="signerEmail" key="signerEmail" />
+                  <Table.Column title="Vai trò" dataIndex="signerRole" key="signerRole" />
+                  <Table.Column 
+                    title="Trạng thái" 
+                    dataIndex="status" 
+                    key="status"
+                    render={(status) => {
+                      const statusConfig = {
+                        PENDING: { color: "orange", text: "Chờ ký" },
+                        SIGNED: { color: "green", text: "Đã ký" },
+                        DECLINED: { color: "red", text: "Từ chối" },
+                      };
+                      const config = statusConfig[status] || { color: "default", text: status };
+                      return <Tag color={config.color}>{config.text}</Tag>;
+                    }}
+                  />
+                  <Table.Column
+                    title="Ngày ký"
+                    dataIndex="signedAt"
+                    key="signedAt"
+                    render={(value) => (value ? moment(value).format("DD/MM/YYYY HH:mm") : "Chưa ký")}
+                  />
                 </Table>
               </Card>
             </Col>

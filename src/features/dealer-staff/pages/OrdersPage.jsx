@@ -267,7 +267,6 @@ const OrdersPage = () => {
       READY_FOR_HANDOVER: [
         "READY_FOR_HANDOVER",
         "COMPLETED",
-        "CANCELED",
       ],
       COMPLETED: ["COMPLETED"],
       CANCELED: ["CANCELED"],
@@ -636,59 +635,21 @@ const OrdersPage = () => {
     {
       title: "Khách hàng",
       key: "customer",
-      width: 160,
+      width: 170,
       ellipsis: true,
       render: (_, record) => {
-        return record.customer?.fullName || <span style={{ color: "#999" }}>N/A</span>;
+        return (
+          <span style={{ fontWeight: 500 }}>
+            {record.customer?.fullName || <span style={{ color: "#999" }}>N/A</span>}
+          </span>
+        );
       },
-    },
-    {
-      title: "Tổng tiền",
-      dataIndex: "totalAmount",
-      key: "totalAmount",
-      width: 120,
-      align: "right",
-      render: (amount) => (
-        <span style={{ fontWeight: 500 }}>
-          {amount ? `${amount.toLocaleString()}` : "0"}
-        </span>
-      ),
-    },
-    {
-      title: "Giảm giá",
-      dataIndex: "discountAmount",
-      key: "discountAmount",
-      width: 110,
-      align: "right",
-      render: (amount) => (
-        <span style={{ color: amount > 0 ? "#ff4d4f" : "#999" }}>
-          {amount ? `-${amount.toLocaleString()}` : "0"}
-        </span>
-      ),
-    },
-    {
-      title: "Thành tiền",
-      dataIndex: "finalAmount",
-      key: "finalAmount",
-      width: 130,
-      align: "right",
-      render: (amount) => (
-        <span
-          style={{
-            fontWeight: 600,
-            color: "#52c41a",
-            fontSize: "14px",
-          }}
-        >
-          {amount ? `${amount.toLocaleString()}` : "0"}
-        </span>
-      ),
     },
     {
       title: "Loại đơn",
       dataIndex: "orderType",
       key: "orderType",
-      width: 100,
+      width: 90,
       align: "center",
       render: (orderType) => {
         const key = getOrderTypeKey(orderType);
@@ -702,60 +663,53 @@ const OrdersPage = () => {
       },
     },
     {
-      title: "Đã cọc",
-      key: "depositAmount",
-      width: 110,
+      title: "Tổng tiền",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      width: 130,
       align: "right",
-      render: (_, record) => {
-        console.log("Order record:", record); // DEBUG
-        console.log("Order type:", record.orderType); // DEBUG
-        console.log("Deposits:", record.deposits); // DEBUG
-        
-        if (record.orderType === 2 || record.orderType === "B2C_P") { // B2C_P - Pre-order
-          // Calculate total deposit amount from deposits array
-          const totalDeposit = record.deposits?.reduce((sum, deposit) => {
-            return sum + (deposit.amount || 0);
-          }, 0) || 0;
-          
-          console.log("Total deposit calculated:", totalDeposit); // DEBUG
-          
-          return (
-            <span style={{ color: "#52c41a", fontWeight: 500 }}>
-              {totalDeposit.toLocaleString()}
-            </span>
-          );
-        }
-        return <span style={{ color: "#999" }}>-</span>;
-      },
+      render: (amount) => (
+        <span style={{ fontWeight: 500, fontSize: "13px" }}>
+          {amount ? `${amount.toLocaleString()}` : "0"} ₫
+        </span>
+      ),
     },
     {
-      title: "Còn lại",
-      key: "remainingAmount",
-      width: 120,
+      title: "Giảm giá",
+      dataIndex: "discountAmount",
+      key: "discountAmount",
+      width: 110,
       align: "right",
-      render: (_, record) => {
-        if (record.orderType === 2 || record.orderType === "B2C_P") { // B2C_P - Pre-order
-          // Calculate total deposit amount from deposits array
-          const totalDeposit = record.deposits?.reduce((sum, deposit) => {
-            return sum + (deposit.amount || 0);
-          }, 0) || 0;
-          
-          const remainingAmount = (record.finalAmount || 0) - totalDeposit;
-          
-          return (
-            <span style={{ color: "#fa8c16", fontWeight: 500 }}>
-              {remainingAmount.toLocaleString()}
-            </span>
-          );
-        }
-        return <span style={{ color: "#999" }}>-</span>;
-      },
+      render: (amount) => (
+        <span style={{ color: amount && amount > 0 ? "#ff4d4f" : "#999", fontSize: "13px" }}>
+          {amount && amount > 0 ? `-${amount.toLocaleString()} ₫` : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Thành tiền",
+      dataIndex: "finalAmount",
+      key: "finalAmount",
+      width: 130,
+      align: "right",
+      render: (amount) => (
+        <span
+          style={{
+            fontWeight: 700,
+            color: "#52c41a",
+            fontSize: "13px",
+          }}
+        >
+          {amount ? `${amount.toLocaleString()} ₫` : "0 ₫"}
+        </span>
+      ),
     },
     {
       title: "Ngày giao",
       dataIndex: "expectedDeliveryAt",
       key: "expectedDeliveryAt",
       width: 110,
+      align: "center",
       render: (date) => (
         <span style={{ fontSize: "13px" }}>
           {date ? moment(date).format("DD/MM/YYYY") : "N/A"}
@@ -766,7 +720,7 @@ const OrdersPage = () => {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      width: 190,
+      width: 200,
       render: (status, record) => {
         const normalizedStatus = getNormalizedStatus(status);
         const config = statusConfig[normalizedStatus] || statusConfig.CONFIRMED;
@@ -882,34 +836,32 @@ const OrdersPage = () => {
     {
       title: "Thao tác",
       key: "actions",
-      width: 200,
+      width: 180,
       fixed: "right",
       render: (_, record) => (
-        <Space size={2}>
+        <Space size="small" style={{ justifyContent: "flex-end" }}>
           <Button
             type="text"
             icon={<EyeOutlined />}
             onClick={() => navigate(`/dealer-staff/orders/${record.id}`)}
             size="small"
+            title="Xem chi tiết"
             style={{
               color: "#1890ff",
               padding: "4px 8px",
             }}
-          >
-            Xem
-          </Button>
+          />
           <Button
             type="text"
             icon={<EditOutlined />}
             onClick={() => navigate(`/dealer-staff/orders/edit/${record.id}`)}
             size="small"
+            title="Chỉnh sửa"
             style={{
               color: "#52c41a",
               padding: "4px 8px",
             }}
-          >
-            Sửa
-          </Button>
+          />
           <Popconfirm
             title="Xác nhận xóa"
             description="Bạn có chắc chắn muốn xóa đơn hàng này?"
@@ -923,10 +875,9 @@ const OrdersPage = () => {
               danger
               icon={<DeleteOutlined />}
               size="small"
+              title="Xóa"
               style={{ padding: "4px 8px" }}
-            >
-              Xóa
-            </Button>
+            />
           </Popconfirm>
         </Space>
       ),
@@ -1076,7 +1027,7 @@ const OrdersPage = () => {
           dataSource={filteredOrders}
           rowKey="id"
           loading={isLoading}
-          scroll={{ x: 1600 }}
+          scroll={{ x: 1400 }}
           pagination={{
             current: pagination.currentPage,
             pageSize: pagination.pageSize,
