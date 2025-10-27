@@ -27,23 +27,26 @@ import {
   SyncOutlined,
   RocketOutlined,
   StopOutlined,
+  DollarCircleOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../../hooks/useAuth";
 import { useDealerManagerOrders } from "../hooks/useDealerManagerOrders";
 import OrderCartB2B from "../components/OrderCartB2B";
 import OrderDetailModal from "../components/OrderDetailModal";
 import AcceptQuotationModal from "../components/AcceptQuotationModal";
+import DepositModal from "../components/DepositModal";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
 
 const STATUS_ORDER = {
   CONFIRMED: 0,
-  AWAITING_DEPOSIT: 1,
-  IN_PROGRESS: 2,
-  READY_FOR_HANDOVER: 3,
-  COMPLETED: 4,
-  CANCELED: 5,
+  QUOTATION_RECEIVED: 1,
+  AWAITING_DEPOSIT: 2,
+  IN_PROGRESS: 3,
+  READY_FOR_HANDOVER: 4,
+  COMPLETED: 5,
+  CANCELED: 6,
 };
 
 const isTerminalOrderStatus = (status) =>
@@ -90,6 +93,8 @@ const DealerManagerOrdersPage = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [quotationModalVisible, setQuotationModalVisible] = useState(false);
   const [selectedOrderForQuotation, setSelectedOrderForQuotation] = useState(null);
+  const [depositModalVisible, setDepositModalVisible] = useState(false);
+  const [selectedOrderForDeposit, setSelectedOrderForDeposit] = useState(null);
 
   const statusConfig = {
     CONFIRMED: {
@@ -98,6 +103,13 @@ const DealerManagerOrdersPage = () => {
       borderColor: "#91d5ff",
       text: "Đã xác nhận",
       icon: <CheckCircleOutlined />,
+    },
+    QUOTATION_RECEIVED: {
+      color: "#722ed1",
+      bgColor: "#f9f0ff",
+      borderColor: "#d3adf7",
+      text: "Đã nhận báo giá",
+      icon: <FileTextOutlined />,
     },
     AWAITING_DEPOSIT: {
       color: "#fa8c16",
@@ -420,6 +432,16 @@ const DealerManagerOrdersPage = () => {
     setSelectedOrderForQuotation(null);
   };
 
+  const handleCreateDeposit = (order) => {
+    setSelectedOrderForDeposit(order);
+    setDepositModalVisible(true);
+  };
+
+  const handleCloseDepositModal = () => {
+    setDepositModalVisible(false);
+    setSelectedOrderForDeposit(null);
+  };
+
   const handleQuotationAccepted = () => {
     refreshOrders();
   };
@@ -513,16 +535,20 @@ const DealerManagerOrdersPage = () => {
       ),
     },
     {
-      title: "Thành tiền",
-      dataIndex: "finalAmount",
-      key: "finalAmount",
+      title: "Đặt cọc",
+      key: "depositAmount",
       width: 140,
       align: "right",
-      render: (amount) => (
-        <span style={{ fontWeight: 600, color: "#52c41a", fontSize: "14px" }}>
-          {amount ? `${amount.toLocaleString()}` : "0"}
-        </span>
-      ),
+      render: (_, record) => {
+        // Deposit amount is 10% of total amount
+        const depositAmount = record.totalAmount ? record.totalAmount * 0.1 : 0;
+
+        return (
+          <span style={{ fontWeight: 600, color: "#fa8c16", fontSize: "14px" }}>
+            {depositAmount > 0 ? `${depositAmount.toLocaleString()}` : "0"}
+          </span>
+        );
+      },
     },
     {
       title: "Ngày giao",
@@ -545,10 +571,17 @@ const DealerManagerOrdersPage = () => {
         const selectDisabled =
           isTerminalOrderStatus(record.status) || updatingStatus[record.id];
 
+        // Check if order is B2B
+        const isB2B = record.orderType === 1 || record.orderType === "B2B";
+
         // Lọc chỉ hiển thị các trạng thái có thể chuyển đến
-        const availableStatuses = Object.entries(statusConfig).filter(([key]) =>
-          canTransitionOrderStatus(record.status, key)
-        );
+        const availableStatuses = Object.entries(statusConfig).filter(([key]) => {
+          // QUOTATION_RECEIVED chỉ hiển thị cho B2B orders
+          if (key === "QUOTATION_RECEIVED" && !isB2B) {
+            return false;
+          }
+          return canTransitionOrderStatus(record.status, key);
+        });
 
         return (
           <Select
@@ -675,8 +708,8 @@ const DealerManagerOrdersPage = () => {
           </Tooltip>
 
           {/* B2B Orders with Quotation - Accept Quotation Button */}
-          {(record.orderType === 1 || record.orderType === "B2B") && 
-           record.quotationId && 
+          {(record.orderType === 1 || record.orderType === "B2B") &&
+           record.quotationId &&
            record.status === "AWAITING_DEPOSIT" && (
             <Tooltip title="Chấp nhận báo giá từ EVM Staff">
               <Button
@@ -684,8 +717,8 @@ const DealerManagerOrdersPage = () => {
                 size="small"
                 icon={<CheckCircleOutlined />}
                 onClick={() => handleAcceptQuotation(record)}
-                style={{ 
-                  padding: "4px 8px", 
+                style={{
+                  padding: "4px 8px",
                   fontSize: "12px",
                   backgroundColor: "#52c41a",
                   borderColor: "#52c41a"
@@ -695,6 +728,34 @@ const DealerManagerOrdersPage = () => {
               </Button>
             </Tooltip>
           )}
+
+          {/* Deposit Button - Show for AWAITING_DEPOSIT status and no PAID deposits */}
+          {record.status === "AWAITING_DEPOSIT" && (() => {
+            // Check if there are any PAID deposits
+            const hasPaidDeposit = record.deposits && Array.isArray(record.deposits)
+              ? record.deposits.some(d => d.status === "PAID" || d.status === 1)
+              : false;
+
+            // Only show button if no PAID deposit exists
+            return !hasPaidDeposit && (
+              <Tooltip title="Đặt cọc 10%">
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<DollarCircleOutlined />}
+                  onClick={() => handleCreateDeposit(record)}
+                  style={{
+                    padding: "4px 8px",
+                    fontSize: "12px",
+                    backgroundColor: "#fa8c16",
+                    borderColor: "#fa8c16"
+                  }}
+                >
+                  Đặt cọc
+                </Button>
+              </Tooltip>
+            );
+          })()}
 
           {(record.orderType === 2 || record.orderType === "B2C_P") && (
             <Tooltip title="Thêm xe vào giỏ B2B">
@@ -900,6 +961,13 @@ const DealerManagerOrdersPage = () => {
         order={selectedOrderForQuotation}
         onClose={handleCloseQuotationModal}
         onSuccess={handleQuotationAccepted}
+      />
+
+      <DepositModal
+        visible={depositModalVisible}
+        order={selectedOrderForDeposit}
+        onClose={handleCloseDepositModal}
+        onSuccess={refreshOrders}
       />
     </div>
   );

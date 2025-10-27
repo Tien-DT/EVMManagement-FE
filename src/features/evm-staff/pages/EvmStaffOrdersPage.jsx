@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ShoppingCart, 
-  Search, 
+import {
+  ShoppingCart,
+  Search,
   Eye,
   Trash2,
   CheckCircle,
@@ -19,7 +19,6 @@ import {
 import useOrders from '../hooks/useOrders';
 import { useNotification } from '../../../context/NotificationContext';
 import orderService from '../services/orderService';
-import customerService from '../services/customerService';
 import quotationService from '../services/quotationService';
 import CreateContractModal from '../components/CreateContractModal';
 import CreateDepositModal from '../components/CreateDepositModal';
@@ -43,7 +42,6 @@ const EvmStaffOrdersPage = () => {
   const [selectedOrderForDeposit, setSelectedOrderForDeposit] = useState(null);
 
   const { orders, loading, error, deleteOrder } = useOrders();
-  const [customerCache, setCustomerCache] = useState({});
 
   // Filter only B2B orders (OrderType = 1 or "B2B")
   const b2bOrders = orders.filter(order => {
@@ -91,89 +89,60 @@ const EvmStaffOrdersPage = () => {
     }
   };
 
-  // Fetch customer info for B2B orders (parallel for better performance)
-  useEffect(() => {
-    const fetchCustomerInfo = async () => {
-      // Get unique customer IDs that need to be fetched (B2B orders might not have customers)
-      const customerIds = [...new Set(
-        b2bOrders
-          .filter(order => order.customerId && !order.customerName)
-          .map(order => order.customerId)
-      )];
-
-      // Filter out already cached customers
-      const idsToFetch = customerIds.filter(id => !customerCache[id]);
-
-      if (idsToFetch.length === 0) return;
-
-      // Fetch all customers in parallel using Promise.all
-      const fetchPromises = idsToFetch.map(async (customerId) => {
-        try {
-          const response = await customerService.getCustomerById(customerId);
-          const customerData = response.data || response;
-          return {
-            id: customerId,
-            data: {
-              name: customerData.name || customerData.fullName || 'N/A',
-              email: customerData.email || '',
-              phone: customerData.phoneNumber || customerData.phone || ''
-            }
-          };
-        } catch (error) {
-          console.error(`Error fetching customer ${customerId}:`, error);
-          return {
-            id: customerId,
-            data: { name: 'N/A', email: '', phone: '' }
-          };
-        }
-      });
-
-      // Wait for all fetches to complete
-      const results = await Promise.all(fetchPromises);
-
-      // Update cache once with all results
-      const newCache = {};
-      results.forEach(result => {
-        newCache[result.id] = result.data;
-      });
-
-      setCustomerCache(prev => ({
-        ...prev,
-        ...newCache
-      }));
-    };
-
-    if (orders.length > 0) {
-      fetchCustomerInfo();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders]);
-
-  // Helper function to get customer name
-  const getCustomerName = (order) => {
-    if (order.customerName) return order.customerName;
-    if (order.customerId && customerCache[order.customerId]) {
-      return customerCache[order.customerId].name;
-    }
+  // Helper function to get dealer name (for B2B orders, customer column should show Dealer Name)
+  const getDealerName = (order) => {
+    // For B2B orders, show dealer name in customer column
+    if (order.dealer?.name) return order.dealer.name;
+    if (order.dealerName) return order.dealerName;
     return 'N/A';
   };
 
-  // Helper function to get customer email
-  const getCustomerEmail = (order) => {
-    if (order.customerEmail) return order.customerEmail;
-    if (order.customerId && customerCache[order.customerId]) {
-      return customerCache[order.customerId].email;
-    }
+  // Helper function to get dealer email
+  const getDealerEmail = (order) => {
+    if (order.dealer?.email) return order.dealer.email;
+    if (order.dealerEmail) return order.dealerEmail;
     return '-';
+  };
+
+  // Helper function to get vehicle info from OrderDetails
+  const getVehicleInfo = (order) => {
+    // Debug: Log the order structure
+    console.log('Order data:', order);
+    console.log('OrderDetails:', order.orderDetails);
+
+    // Get first order detail (assuming one vehicle per order for display)
+    if (order.orderDetails && order.orderDetails.length > 0) {
+      const firstDetail = order.orderDetails[0];
+      console.log('First OrderDetail:', firstDetail);
+      const vehicleVariant = firstDetail.vehicleVariant;
+      console.log('VehicleVariant:', vehicleVariant);
+
+      if (vehicleVariant) {
+        const modelName = vehicleVariant.vehicleModel?.name || 'N/A';
+        const color = vehicleVariant.color || '';
+        console.log('Model Name:', modelName, 'Color:', color);
+        return {
+          model: modelName,
+          variant: color
+        };
+      }
+    }
+
+    // Fallback to old properties if available
+    console.log('Using fallback - vehicleModel:', order.vehicleModel, 'vehicleVariant:', order.vehicleVariant);
+    return {
+      model: order.vehicleModel || 'N/A',
+      variant: order.vehicleVariant || '-'
+    };
   };
 
   const filteredOrders = b2bOrders.filter(order => {
     const orderCode = order.code || orderService.generateOrderCode(order.id);
-    const customerName = getCustomerName(order);
-    const dealerName = order.dealer?.name || order.dealerName || '';
+    const dealerName = getDealerName(order);
+    const vehicleInfo = getVehicleInfo(order);
     const matchesSearch = orderCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dealerName?.toLowerCase().includes(searchTerm.toLowerCase());
+                         dealerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         vehicleInfo.model?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || order.status?.toUpperCase() === filterStatus.toUpperCase();
     return matchesSearch && matchesFilter;
   });
@@ -385,8 +354,8 @@ const EvmStaffOrdersPage = () => {
                           <User size={16} className="text-emerald-600" />
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{getCustomerName(order)}</div>
-                          <div className="text-sm text-gray-500">{getCustomerEmail(order)}</div>
+                          <div className="text-sm font-medium text-gray-900">{getDealerName(order)}</div>
+                          <div className="text-sm text-gray-500">{getDealerEmail(order)}</div>
                         </div>
                       </div>
                     </td>
@@ -394,8 +363,8 @@ const EvmStaffOrdersPage = () => {
                       <div className="flex items-center">
                         <Car size={16} className="text-gray-400 mr-2 flex-shrink-0" />
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{order.vehicleModel || 'N/A'}</div>
-                          <div className="text-sm text-gray-500">{order.vehicleVariant || '-'}</div>
+                          <div className="text-sm font-medium text-gray-900">{getVehicleInfo(order).model}</div>
+                          <div className="text-sm text-gray-500">{getVehicleInfo(order).variant}</div>
                         </div>
                       </div>
                     </td>

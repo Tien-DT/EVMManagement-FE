@@ -92,6 +92,9 @@ import HandoverRecordsPage from "../features/evm-staff/pages/HandoverRecordsPage
 import CreateHandoverRecordPage from "../features/evm-staff/pages/CreateHandoverRecordPage";
 import HandoverRecordDetailPage from "../features/evm-staff/pages/HandoverRecordDetailPage";
 
+// Payment Pages
+import VNPayReturnPage from "../pages/VNPayReturnPage";
+
 const AppRouter = () => (
   <Router>
     <Routes>
@@ -120,6 +123,9 @@ const AppRouter = () => (
           </PublicRoute>
         }
       />
+
+      {/* Payment Return Routes - Public */}
+      <Route path="/payment/vnpay-return" element={<VNPayReturnPage />} />
 
       {/* Admin Routes - ✅ Support EVM_ADMIN role */}
       <Route element={<PrivateRoute />}>

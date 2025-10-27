@@ -182,6 +182,13 @@ const endpoints = {
     update: (id) => `/v1/Vehicles/${id}`,
     delete: (id) => `/v1/Vehicles/${id}`,
   },
+
+  // Payment endpoints
+  payments: {
+    vnpayCreate: "/v1/Payments/vnpay/create",
+    vnpayReturn: "/v1/Payments/vnpay/return",
+    vnpayCallback: "/v1/Payments/vnpay/callback",
+  },
 };
 
 export default endpoints;

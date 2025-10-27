@@ -29,6 +29,7 @@ import {
   ShoppingCartOutlined,
   DollarCircleOutlined,
   FieldTimeOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../../hooks/useAuth";
 import { useOrders } from "../hooks/useOrders";
@@ -418,6 +419,7 @@ const OrdersPage = () => {
   const statusSequence = useMemo(
     () => [
       "CONFIRMED",
+      "QUOTATION_RECEIVED",  // For B2B orders only
       "AWAITING_DEPOSIT",
       "IN_PROGRESS",
       "READY_FOR_HANDOVER",
@@ -434,9 +436,12 @@ const OrdersPage = () => {
     ]);
     const map = {};
 
-    statusSequence.forEach((status, index) => {
+    // Filter out QUOTATION_RECEIVED for B2C orders (this page is for B2C only)
+    const b2cStatusSequence = statusSequence.filter(s => s !== "QUOTATION_RECEIVED");
+
+    b2cStatusSequence.forEach((status, index) => {
       const options = new Set([status]);
-      const next = statusSequence[index + 1];
+      const next = b2cStatusSequence[index + 1];
       if (next) {
         options.add(next);
       }
@@ -478,6 +483,13 @@ const OrdersPage = () => {
         borderColor: "#91d5ff",
         text: "Đã xác nhận",
         icon: <CheckCircleOutlined />,
+      },
+      QUOTATION_RECEIVED: {
+        color: "#722ed1",
+        bgColor: "#f9f0ff",
+        borderColor: "#d3adf7",
+        text: "Đã nhận báo giá",
+        icon: <FileTextOutlined />,
       },
       AWAITING_DEPOSIT: {
         color: "#fa8c16",
