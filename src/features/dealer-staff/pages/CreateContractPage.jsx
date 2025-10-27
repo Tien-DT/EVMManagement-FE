@@ -13,18 +13,20 @@ import {
   Row,
   Col,
   Typography,
-  Divider,
+  Space,
+  Alert
 } from "antd";
 import {
   ArrowLeftOutlined,
   SaveOutlined,
   FileTextOutlined,
+  DownloadOutlined
 } from "@ant-design/icons";
 import { useAuth } from "../../../hooks/useAuth";
 import { contractService } from "../services/contractService";
 import { orderService } from "../services/orderService";
-import FileUpload from "../../../components/FileUpload";
 import moment from "moment";
+import buildContractPdf from "../../../utils/pdf/contractPdfBuilder";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -38,7 +40,6 @@ const CreateContractPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [contractLink, setContractLink] = useState("");
   const [dealerWarningShown, setDealerWarningShown] = useState(false);
   const storedUserProfile = useMemo(() => {
     try {
@@ -55,12 +56,35 @@ const CreateContractPage = () => {
 
   const dealerId = user?.dealerId || storedUserProfile?.dealerId;
   const createdByUserId = user?.userProfileId || storedUserProfile?.id;
+  const staffName =
+    user?.fullName ||
+    storedUserProfile?.fullName ||
+    user?.name ||
+    storedUserProfile?.name ||
+    "";
+  const staffPhone = user?.phone || storedUserProfile?.phone || "";
   const statusOptions = [
     { value: "DRAFT", label: "Bản nháp" },
     { value: "PENDING_SIGNATURE", label: "Chờ ký" },
     { value: "ACTIVE", label: "Đang hoạt động" },
     { value: "CANCELED", label: "Đã hủy" },
   ];
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || value === "") {
+      return "0 ₫";
+    }
+
+    try {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+        maximumFractionDigits: 0,
+      }).format(Number(value));
+    } catch (error) {
+      console.warn("Currency format fallback", error);
+      return `${Number(value).toLocaleString("vi-VN")} ₫`;
+    }
+  };
 
   useEffect(() => {
     if (!dealerId) {
@@ -129,6 +153,163 @@ const CreateContractPage = () => {
     }
   };
 
+  const handleDownloadDraft = async () => {
+    try {
+      const values = await form.validateFields([
+        "code",
+        "orderId",
+        "status",
+        "terms",
+      ]);
+
+      const currentOrder =
+        selectedOrder || orders.find((order) => order.id === values.orderId);
+
+      if (!currentOrder) {
+        message.warning("Vui lòng chọn đơn hàng để tạo hợp đồng PDF.");
+        return;
+      }
+
+      const customerInfo = currentOrder.customer || {};
+      const orderItems = Array.isArray(currentOrder.orderDetails)
+        ? currentOrder.orderDetails
+        : Array.isArray(currentOrder.items)
+        ? currentOrder.items
+        : [];
+      const statusLabel =
+        statusOptions.find((option) => option.value === values.status)?.label ||
+        values.status ||
+        "N/A";
+
+      const sections = [
+        {
+          title: "Thông tin hợp đồng",
+          type: "keyValue",
+          rows: [
+            { label: "Mã hợp đồng", value: values.code || "Chưa có" },
+            { label: "Ngày tạo", value: moment().format("DD/MM/YYYY") },
+            { label: "Trạng thái dự kiến", value: statusLabel },
+          ],
+        },
+        {
+          title: "Thông tin khách hàng",
+          type: "keyValue",
+          rows: [
+            {
+              label: "Khách hàng",
+              value:
+                customerInfo.fullName ||
+                customerInfo.name ||
+                currentOrder.customerId ||
+                "N/A",
+            },
+            { label: "Email", value: customerInfo.email || "N/A" },
+            {
+              label: "Số điện thoại",
+              value:
+                customerInfo.phone || customerInfo.phoneNumber || "N/A",
+            },
+            { label: "Địa chỉ", value: customerInfo.address || "N/A" },
+          ],
+        },
+        {
+          title: "Thông tin đơn hàng",
+          type: "keyValue",
+          rows: [
+            {
+              label: "Mã đơn hàng",
+              value: currentOrder.code || currentOrder.id || "N/A",
+            },
+            { label: "Loại đơn", value: currentOrder.orderType || "N/A" },
+            {
+              label: "Thành tiền",
+              value: formatCurrency(
+                currentOrder.finalAmount ?? currentOrder.totalAmount ?? 0
+              ),
+            },
+            {
+              label: "Ngày giao dự kiến",
+              value: currentOrder.expectedDeliveryAt
+                ? moment(currentOrder.expectedDeliveryAt).format("DD/MM/YYYY")
+                : "N/A",
+            },
+          ],
+        },
+        orderItems.length
+          ? {
+              title: "Chi tiết sản phẩm",
+              type: "cards",
+              cards: orderItems.map((item, index) => ({
+                title: `Sản phẩm ${index + 1}`,
+                rows: [
+                  {
+                    label: "Tên sản phẩm",
+                    value:
+                      item.vehicleVariant?.vehicleModel?.name ||
+                      item.vehicleVariant?.name ||
+                      item.vehicleModelName ||
+                      item.name ||
+                      "N/A",
+                  },
+                  {
+                    label: "Biến thể",
+                    value:
+                      item.vehicleVariant?.color ||
+                      item.vehicleVariantId ||
+                      item.color ||
+                      "N/A",
+                  },
+                  {
+                    label: "Số lượng",
+                    value: item.quantity ?? item.qty ?? "N/A",
+                  },
+                  {
+                    label: "Đơn giá",
+                    value: formatCurrency(
+                      item.unitPrice ?? item.price ?? item.listedPrice ?? 0
+                    ),
+                  },
+                  item.note
+                    ? { label: "Ghi chú", value: item.note }
+                    : null,
+                ].filter(Boolean),
+              })),
+            }
+          : null,
+        {
+          title: "Điều khoản",
+          type: "text",
+          text: values.terms || "",
+        },
+      ].filter(Boolean);
+
+      const doc = buildContractPdf({
+        title: `Hợp đồng mua bán ${values.code || ""}`,
+        sections,
+        signature: {
+          leftLabel: "Bên bán",
+          rightLabel: "Bên mua",
+          extraNotes: [`Ngày tạo bản nháp: ${moment().format("DD/MM/YYYY")}`],
+          preparedBy: staffName
+            ? `${staffName}${staffPhone ? ` (${staffPhone})` : ""}`
+            : undefined,
+        },
+      });
+
+      doc.save(`HopDong_${values.code || "draft"}.pdf`);
+      message.success("Đã tạo file hợp đồng PDF.");
+    } catch (error) {
+      if (error?.errorFields) {
+        message.error(
+          "Vui lòng hoàn thành thông tin hợp đồng trước khi tải PDF."
+        );
+      } else {
+        console.error("Error generating contract PDF", error);
+        message.error("Không thể tạo file hợp đồng. Vui lòng thử lại.");
+      }
+    }
+  };
+
   const handleOrderChange = (orderId) => {
     const order = orders.find((o) => o.id === orderId);
     setSelectedOrder(order);
@@ -149,26 +330,12 @@ const CreateContractPage = () => {
     }
   };
 
-  // FIX: Đổi tên function cho khớp với prop của FileUpload
-  const handleFileUploadComplete = (url) => {
-    setContractLink(url);
-    form.setFieldsValue({ contractLink: url });
-    message.success("Tải lên tài liệu hợp đồng thành công");
-  };
-
   const onFinish = async (values) => {
     try {
       setSubmitting(true);
 
       if (!createdByUserId) {
         message.error("Không tìm thấy thông tin người tạo hợp đồng");
-        setSubmitting(false);
-        return;
-      }
-
-      // Kiểm tra xem đã upload file chưa
-      if (!contractLink) {
-        message.error("Vui lòng tải lên tài liệu hợp đồng");
         setSubmitting(false);
         return;
       }
@@ -187,7 +354,7 @@ const CreateContractPage = () => {
         createdByUserId: createdByUserId,
         terms: values.terms,
         status: values.status,
-        contractLink: contractLink,
+        contractLink: null,
         signedAt: values.signedAt ? values.signedAt.toISOString() : null,
       };
 
@@ -196,7 +363,9 @@ const CreateContractPage = () => {
       const response = await contractService.createContract(formattedValues);
 
       if (response && (response.success || response.data)) {
-        message.success("Tạo hợp đồng mới thành công");
+        message.success(
+          "Tạo hợp đồng mới thành công. Vui lòng tải hợp đồng PDF, ký và tải lên sau."
+        );
         navigate("/dealer-staff/contracts");
       } else {
         message.error("Không thể tạo hợp đồng mới");
@@ -234,12 +403,20 @@ const CreateContractPage = () => {
           </div>
         }
         extra={
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/dealer-staff/contracts")}
-          >
-            Quay lại
-          </Button>
+          <Space>
+            <Button
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate("/dealer-staff/contracts")}
+            >
+              Quay lại
+            </Button>
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={handleDownloadDraft}
+            >
+              Tải hợp đồng PDF
+            </Button>
+          </Space>
         }
       >
         <Form
@@ -251,6 +428,14 @@ const CreateContractPage = () => {
             createdByUserId: createdByUserId,
           }}
         >
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+            message="Quy trình ký hợp đồng"
+            description="Điền thông tin hợp đồng và nhấn 'Tải hợp đồng PDF' để tải bản nháp. Sau khi ký và đóng dấu, hãy truy cập trang chi tiết hợp đồng để tải file đã ký lên."
+          />
+
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -474,50 +659,12 @@ const CreateContractPage = () => {
             </Card>
           )}
 
-          <Divider orientation="left">Tài liệu hợp đồng</Divider>
-
-          <Form.Item
-            label="Tài liệu hợp đồng"
-            extra="Tải lên tài liệu hợp đồng (PDF, JPG, PNG)"
-            required
-          >
-            <FileUpload onUploadComplete={handleFileUploadComplete} />
-            {contractLink && (
-              <div className="mt-2">
-                <Text type="success">✓ File đã được tải lên thành công</Text>
-                <br />
-                <a
-                  href={contractLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Xem file
-                </a>
-              </div>
-            )}
-          </Form.Item>
-
-          {/* Hidden field để validate */}
-          <Form.Item
-            name="contractLink"
-            hidden
-            rules={[
-              {
-                required: true,
-                message: "Vui lòng tải lên tài liệu hợp đồng",
-              },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-
           <Form.Item>
             <Button
               type="primary"
               htmlType="submit"
               icon={<SaveOutlined />}
               loading={submitting}
-              disabled={!contractLink}
               style={{ marginTop: "16px" }}
             >
               Tạo hợp đồng

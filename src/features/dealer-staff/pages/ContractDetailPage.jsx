@@ -1,27 +1,31 @@
 // src/features/dealer-staff/pages/ContractDetailPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  Card, 
-  Descriptions, 
-  Button, 
-  Spin, 
-  message, 
-  Tag, 
-  Row, 
-  Col, 
+import {
+  Card,
+  Descriptions,
+  Button,
+  Spin,
+  message,
+  Tag,
+  Row,
+  Col,
   Typography,
   Space,
-  Image
+  Table,
+  Divider
 } from "antd";
 import { 
   ArrowLeftOutlined, 
   EditOutlined, 
   DeleteOutlined,
-  FilePdfOutlined
+  FilePdfOutlined,
+  DownloadOutlined
 } from "@ant-design/icons";
 import { contractService } from "../services/contractService";
 import moment from "moment";
+import FileUpload from "../../../components/FileUpload";
+import buildContractPdf from "../../../utils/pdf/contractPdfBuilder";
 
 const { Title, Text } = Typography;
 
@@ -30,6 +34,24 @@ const ContractDetailPage = () => {
   const navigate = useNavigate();
   const [contract, setContract] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updatingContractLink, setUpdatingContractLink] = useState(false);
+
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined) {
+      return "0";
+    }
+
+    try {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+        maximumFractionDigits: 0,
+      }).format(Number(value));
+    } catch (error) {
+      console.warn("Currency format fallback", error);
+      return `${Number(value).toLocaleString()} VNĐ`;
+    }
+  };
 
   useEffect(() => {
     fetchContractDetails();
@@ -41,7 +63,6 @@ const ContractDetailPage = () => {
       const response = await contractService.getContractById(id);
       if (response && (response.success || response.data)) {
         setContract(response.data);
-        console.log("✅ Contract details loaded:", response.data);
       } else {
         message.error("Không thể tải thông tin hợp đồng");
       }
@@ -53,21 +74,272 @@ const ContractDetailPage = () => {
     }
   };
 
-  const getStatusTag = (status) => {
-    const statusConfig = {
-      ACTIVE: { color: "green", text: "Đang hoạt động" },
-      INACTIVE: { color: "red", text: "Không hoạt động" },
-      PENDING: { color: "orange", text: "Đang chờ" },
-      APPROVED: { color: "blue", text: "Đã duyệt" },
-      REJECTED: { color: "red", text: "Đã từ chối" },
+  const handleDownloadPdf = () => {
+    if (!contract) {
+      message.error("Không có dữ liệu hợp đồng để tạo PDF");
+      return;
+    }
+
+    const orderRef = contract.order;
+    const customerRef = contract.customer || orderRef?.customer;
+    const creatorRef = contract.createdByUser;
+    const orderItems = orderRef?.orderDetails || [];
+    const depositItems = orderRef?.deposits || [];
+
+    const statusLabelMap = {
+      DRAFT: "Bản nháp",
+      PENDING_SIGNATURE: "Chờ ký",
+      ACTIVE: "Đang hoạt động",
+      CANCELED: "Đã hủy",
+    };
+    const depositStatusMap = {
+      PENDING: "Chờ xử lý",
+      COMPLETED: "Hoàn thành",
+      FAILED: "Thất bại",
+      REFUNDED: "Đã hoàn tiền",
+    };
+    const orderStatusMap = {
+      CONFIRMED: "Đã xác nhận",
+      AWAITING_DEPOSIT: "Chờ đặt cọc",
+      IN_PROGRESS: "Đang xử lý",
+      READY_FOR_HANDOVER: "Sẵn sàng bàn giao",
+      COMPLETED: "Hoàn thành",
+      CANCELED: "Đã hủy",
     };
 
-    const config = statusConfig[status] || { color: "default", text: status };
+    const sections = [
+      {
+        title: "Thông tin hợp đồng",
+        type: "keyValue",
+        rows: [
+          { label: "Mã hợp đồng", value: contract.code || contract.id },
+          {
+            label: "Ngày tạo",
+            value: contract.createdDate
+              ? moment(contract.createdDate).format("DD/MM/YYYY")
+              : "N/A",
+          },
+          {
+            label: "Trạng thái",
+            value:
+              statusLabelMap[contract.status?.toUpperCase?.()] ||
+              contract.status ||
+              "N/A",
+          },
+          {
+            label: "Ngày ký",
+            value: contract.signedAt
+              ? moment(contract.signedAt).format("DD/MM/YYYY")
+              : "Chưa ký",
+          },
+        ],
+      },
+      {
+        title: "Thông tin khách hàng",
+        type: "keyValue",
+        rows: [
+          {
+            label: "Khách hàng",
+            value:
+              customerRef?.fullName ||
+              customerRef?.name ||
+              contract.customerId ||
+              "N/A",
+          },
+          { label: "Email", value: customerRef?.email || "N/A" },
+          {
+            label: "Số điện thoại",
+            value:
+              customerRef?.phone || customerRef?.phoneNumber || "N/A",
+          },
+          { label: "Địa chỉ", value: customerRef?.address || "N/A" },
+        ],
+      },
+      {
+        title: "Thông tin đơn hàng",
+        type: "keyValue",
+        rows: [
+          {
+            label: "Mã đơn hàng",
+            value: orderRef?.code || contract.orderId || "N/A",
+          },
+          {
+            label: "Trạng thái đơn hàng",
+            value:
+              orderStatusMap[orderRef?.status?.toUpperCase?.()] ||
+              orderRef?.status ||
+              "N/A",
+          },
+          { label: "Loại đơn", value: orderRef?.orderType || "N/A" },
+          {
+            label: "Tổng tiền hàng",
+            value: formatCurrency(orderRef?.totalAmount ?? 0),
+          },
+          {
+            label: "Thành tiền",
+            value: formatCurrency(orderRef?.finalAmount ?? 0),
+          },
+          {
+            label: "Ngày giao dự kiến",
+            value: orderRef?.expectedDeliveryAt
+              ? moment(orderRef.expectedDeliveryAt).format("DD/MM/YYYY")
+              : "N/A",
+          },
+        ],
+      },
+      orderItems.length
+        ? {
+            title: "Chi tiết sản phẩm",
+            type: "cards",
+            cards: orderItems.map((item, index) => ({
+              title: `Sản phẩm ${index + 1}`,
+              rows: [
+                {
+                  label: "Mẫu xe",
+                  value:
+                    item.vehicleVariant?.vehicleModel?.name || "N/A",
+                },
+                {
+                  label: "Biến thể",
+                  value:
+                    item.vehicleVariant?.color ||
+                    item.vehicleVariantId ||
+                    "N/A",
+                },
+                {
+                  label: "Số lượng",
+                  value: item.quantity ?? "N/A",
+                },
+                {
+                  label: "Đơn giá",
+                  value: formatCurrency(item.unitPrice),
+                },
+                item.note
+                  ? { label: "Ghi chú", value: item.note }
+                  : null,
+              ].filter(Boolean),
+            })),
+          }
+        : null,
+      depositItems.length
+        ? {
+            title: "Lịch sử đặt cọc",
+            type: "cards",
+            cards: depositItems.map((deposit, index) => ({
+              title: `Đặt cọc ${index + 1}`,
+              rows: [
+                {
+                  label: "Mã",
+                  value: deposit.code || deposit.id || "N/A",
+                },
+                {
+                  label: "Số tiền",
+                  value: formatCurrency(deposit.amount),
+                },
+                {
+                  label: "Trạng thái",
+                  value:
+                    depositStatusMap[deposit.status?.toUpperCase?.()] ||
+                    deposit.status ||
+                    "N/A",
+                },
+                deposit.createdAt
+                  ? {
+                      label: "Ngày tạo",
+                      value: moment(deposit.createdAt).format(
+                        "DD/MM/YYYY"
+                      ),
+                    }
+                  : null,
+              ].filter(Boolean),
+            })),
+          }
+        : null,
+      {
+        title: "Điều khoản",
+        type: "text",
+        text: contract.terms || "",
+      },
+    ].filter(Boolean);
+
+    const doc = buildContractPdf({
+      title: `Hợp đồng mua bán ${contract.code || contract.id}`,
+      sections,
+      signature: {
+        leftLabel: "Bên bán",
+        rightLabel: "Bên mua",
+        preparedBy: creatorRef?.fullName
+          ? `${creatorRef.fullName}${
+              creatorRef.phone ? ` (${creatorRef.phone})` : ""
+            }`
+          : undefined,
+      },
+    });
+
+    doc.save(`HopDong_${contract.code || contract.id}.pdf`);
+    message.success("Đã tạo file hợp đồng PDF.");
+  };
+
+  const handleSignedContractUpload = async (url) => {
+    try {
+      if (typeof url === "undefined") {
+        return;
+      }
+      setUpdatingContractLink(true);
+      const payload = { contractLink: url || null };
+      const response = await contractService.updateContract(id, payload);
+      if (response && (response.success || response.data)) {
+        message.success(
+          url ? "Đã cập nhật tài liệu hợp đồng đã ký." : "Đã xoá tài liệu hợp đồng."
+        );
+        await fetchContractDetails();
+      } else {
+        message.error("Không thể cập nhật tài liệu hợp đồng");
+      }
+    } catch (error) {
+      console.error("❌ Error updating contract file:", error);
+      message.error("Lỗi khi cập nhật tài liệu hợp đồng");
+    } finally {
+      setUpdatingContractLink(false);
+    }
+  };
+
+  const getStatusTag = (status) => {
+    const statusConfig = {
+      DRAFT: { color: "default", text: "Bản nháp" },
+      PENDING_SIGNATURE: { color: "orange", text: "Chờ ký" },
+      ACTIVE: { color: "green", text: "Đang hoạt động" },
+      CANCELED: { color: "red", text: "Đã hủy" },
+    };
+
+    const normalizedStatus = status?.toUpperCase?.() || "";
+    const config = statusConfig[normalizedStatus] || {
+      color: "default",
+      text: normalizedStatus || "Không xác định",
+    };
     return (
       <Tag color={config.color} style={{ padding: "4px 8px", fontSize: "14px" }}>
         {config.text}
       </Tag>
     );
+  };
+
+  const getOrderStatusTag = (status) => {
+    const map = {
+      CONFIRMED: { color: "blue", text: "Đã xác nhận" },
+      AWAITING_DEPOSIT: { color: "orange", text: "Chờ đặt cọc" },
+      IN_PROGRESS: { color: "gold", text: "Đang xử lý" },
+      READY_FOR_HANDOVER: { color: "cyan", text: "Sẵn sàng bàn giao" },
+      COMPLETED: { color: "green", text: "Hoàn thành" },
+      CANCELED: { color: "red", text: "Đã hủy" },
+    };
+
+    const normalized = status?.toUpperCase?.() || "";
+    const config = map[normalized] || {
+      color: "default",
+      text: normalized || "Không xác định",
+    };
+    return <Tag color={config.color}>{config.text}</Tag>;
   };
 
   const handleEdit = () => {
@@ -117,6 +389,121 @@ const ContractDetailPage = () => {
     );
   }
 
+  const order = contract.order;
+  const customer = contract.customer || order?.customer;
+  const createdByUser = contract.createdByUser;
+  const orderDetails = order?.orderDetails || [];
+  const digitalSignatures = contract.digitalSignatures || [];
+  const deposits = order?.deposits || [];
+
+  const orderDetailColumns = [
+    {
+      title: "Mẫu xe",
+      key: "vehicleModel",
+      render: (_, record) =>
+        record.vehicleVariant?.vehicleModel?.name || "N/A",
+    },
+    {
+      title: "Biến thể",
+      key: "vehicleVariant",
+      render: (_, record) =>
+        record.vehicleVariant?.color || record.vehicleVariantId || "N/A",
+    },
+    {
+      title: "Số lượng",
+      dataIndex: "quantity",
+      key: "quantity",
+      align: "right",
+    },
+    {
+      title: "Đơn giá",
+      dataIndex: "unitPrice",
+      key: "unitPrice",
+      align: "right",
+      render: (value) => formatCurrency(value),
+    },
+    {
+      title: "Ghi chú",
+      dataIndex: "note",
+      key: "note",
+    },
+  ];
+
+  const digitalSignatureColumns = [
+    {
+      title: "Người ký",
+      dataIndex: "signerName",
+      key: "signerName",
+    },
+    {
+      title: "Email",
+      dataIndex: "signerEmail",
+      key: "signerEmail",
+    },
+    {
+      title: "Vai trò",
+      dataIndex: "signerRole",
+      key: "signerRole",
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        const map = {
+          SIGNED: { color: "green", text: "Đã ký" },
+          PENDING: { color: "orange", text: "Đang chờ" },
+          REJECTED: { color: "red", text: "Từ chối" },
+        };
+        const normalized = status?.toUpperCase?.() || "";
+        const config = map[normalized] || {
+          color: "default",
+          text: normalized || "Không xác định",
+        };
+        return <Tag color={config.color}>{config.text}</Tag>;
+      },
+    },
+    {
+      title: "Ngày ký",
+      dataIndex: "signedAt",
+      key: "signedAt",
+      render: (value) =>
+        value ? moment(value).format("DD/MM/YYYY HH:mm") : "Chưa ký",
+    },
+  ];
+
+  const depositColumns = [
+    {
+      title: "Mã đặt cọc",
+      dataIndex: "code",
+      key: "code",
+    },
+    {
+      title: "Số tiền",
+      dataIndex: "amount",
+      key: "amount",
+      align: "right",
+      render: (value) => formatCurrency(value),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdDate",
+      key: "createdDate",
+      render: (value) =>
+        value ? moment(value).format("DD/MM/YYYY HH:mm") : "N/A",
+    },
+    {
+      title: "Ghi chú",
+      dataIndex: "note",
+      key: "note",
+    },
+  ];
+
   return (
     <div className="contract-detail-page">
       <Card 
@@ -134,6 +521,12 @@ const ContractDetailPage = () => {
                 onClick={() => navigate("/dealer-staff/contracts")}
               >
                 Quay lại
+              </Button>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleDownloadPdf}
+              >
+                Tải hợp đồng PDF
               </Button>
               <Button 
                 type="primary" 
@@ -182,32 +575,197 @@ const ContractDetailPage = () => {
           <Col span={24}>
             <Card type="inner" title="Thông tin liên kết">
               <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
-                <Descriptions.Item label="ID Đơn hàng">{contract.orderId || "N/A"}</Descriptions.Item>
-                <Descriptions.Item label="ID Khách hàng">{contract.customerId || "N/A"}</Descriptions.Item>
-                <Descriptions.Item label="ID Người tạo">{contract.createdByUserId || "N/A"}</Descriptions.Item>
+                <Descriptions.Item label="Đơn hàng">
+                  <Space size={8}>
+                    <span>{order?.code || contract.orderId || "N/A"}</span>
+                    {order?.id && (
+                      <Button
+                        type="link"
+                        size="small"
+                        onClick={() => navigate(`/dealer-staff/orders/${order.id}`)}
+                      >
+                        Xem đơn hàng
+                      </Button>
+                    )}
+                  </Space>
+                </Descriptions.Item>
+                <Descriptions.Item label="Trạng thái đơn hàng">
+                  {order ? getOrderStatusTag(order.status) : "N/A"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Khách hàng">
+                  {customer?.fullName || customer?.name || contract.customerId || "N/A"}
+                </Descriptions.Item>
+                <Descriptions.Item label="SĐT khách hàng">
+                  {customer?.phone || customer?.phoneNumber || "N/A"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Người tạo hợp đồng">
+                  {createdByUser?.fullName || contract.createdByUserId || "N/A"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Điều khoản">
+                  {contract.terms || "N/A"}
+                </Descriptions.Item>
               </Descriptions>
             </Card>
           </Col>
 
-          {contract.contractLink && (
+          {order && (
             <Col span={24}>
-              <Card type="inner" title="Tài liệu hợp đồng">
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text strong>Link tài liệu hợp đồng:</Text>
-                    <Button 
-                      type="primary" 
-                      icon={<FilePdfOutlined />}
-                      onClick={() => window.open(contract.contractLink, '_blank')}
-                    >
-                      Xem tài liệu
-                    </Button>
-                  </div>
-                  <Text>{contract.contractLink}</Text>
-                </Space>
+              <Card type="inner" title="Thông tin đơn hàng">
+                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
+                  <Descriptions.Item label="Thành tiền">
+                    {formatCurrency(order.finalAmount ?? order.totalAmount)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Tổng tiền hàng">
+                    {formatCurrency(order.totalAmount)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Giảm giá">
+                    {formatCurrency(order.discountAmount)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Loại đơn">
+                    {order.orderType || "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Ngày giao dự kiến">
+                    {order.expectedDeliveryAt
+                      ? moment(order.expectedDeliveryAt).format("DD/MM/YYYY")
+                      : "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Thanh toán trả góp">
+                    {order.isFinanced ? <Tag color="blue">Có</Tag> : <Tag>Không</Tag>}
+                  </Descriptions.Item>
+                </Descriptions>
               </Card>
             </Col>
           )}
+
+          {orderDetails.length > 0 && (
+            <Col span={24}>
+              <Card type="inner" title={`Chi tiết đơn hàng (${orderDetails.length})`}>
+                <Table
+                  dataSource={orderDetails}
+                  columns={orderDetailColumns}
+                  rowKey={(record) => record.id}
+                  pagination={false}
+                  scroll={{ x: true }}
+                />
+              </Card>
+            </Col>
+          )}
+
+          {customer && (
+            <Col span={24}>
+              <Card type="inner" title="Thông tin khách hàng">
+                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
+                  <Descriptions.Item label="Họ tên">
+                    {customer.fullName || customer.name || "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Email">
+                    {customer.email || "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Số điện thoại">
+                    {customer.phone || customer.phoneNumber || "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Địa chỉ" span={3}>
+                    {customer.address || "N/A"}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Card>
+            </Col>
+          )}
+
+          {createdByUser && (
+            <Col span={24}>
+              <Card type="inner" title="Người tạo hợp đồng">
+                <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}>
+                  <Descriptions.Item label="Họ tên">
+                    {createdByUser.fullName || "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Số điện thoại">
+                    {createdByUser.phone || "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="CMND/CCCD">
+                    {createdByUser.cardId || "N/A"}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Card>
+            </Col>
+          )}
+
+          {deposits.length > 0 && (
+            <Col span={24}>
+              <Card type="inner" title="Danh sách đặt cọc">
+                <Table
+                  dataSource={deposits}
+                  columns={depositColumns}
+                  rowKey={(record) => record.id}
+                  pagination={false}
+                  scroll={{ x: true }}
+                />
+              </Card>
+            </Col>
+          )}
+
+          {digitalSignatures.length > 0 && (
+            <Col span={24}>
+              <Card type="inner" title="Chữ ký số">
+                <Table
+                  dataSource={digitalSignatures}
+                  columns={digitalSignatureColumns}
+                  rowKey={(record) => record.id}
+                  pagination={false}
+                  scroll={{ x: true }}
+                />
+              </Card>
+            </Col>
+          )}
+
+          <Col span={24}>
+            <Card type="inner" title="Tài liệu hợp đồng">
+              <Space direction="vertical" style={{ width: "100%" }} size={16}>
+                <Text>
+                  Sử dụng nút "Tải hợp đồng PDF" để tải bản nháp. Sau khi ký, tải file PDF đã ký lên đây để lưu trữ.
+                </Text>
+                <Spin spinning={updatingContractLink} tip="Đang cập nhật tài liệu...">
+                  <FileUpload
+                    acceptedFileTypes=".pdf"
+                    onUploadComplete={handleSignedContractUpload}
+                    maxFileSize={20}
+                  />
+                </Spin>
+                {contract.contractLink ? (
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    <Divider style={{ margin: "8px 0" }} />
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: 12,
+                      }}
+                    >
+                      <Text strong>File hợp đồng đã ký hiện tại:</Text>
+                      <Button
+                        type="primary"
+                        icon={<FilePdfOutlined />}
+                        href={contract.contractLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Xem hợp đồng đã ký
+                      </Button>
+                    </div>
+                    <Text ellipsis style={{ wordBreak: "break-all" }}>
+                      {contract.contractLink}
+                    </Text>
+                  </Space>
+                ) : (
+                  <Text type="secondary">
+                    Chưa có tài liệu hợp đồng đã ký được tải lên.
+                  </Text>
+                )}
+              </Space>
+            </Card>
+          </Col>
         </Row>
       </Card>
     </div>
