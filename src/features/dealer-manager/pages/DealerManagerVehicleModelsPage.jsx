@@ -14,12 +14,29 @@ const DealerManagerVehicleModelsPage = () => {
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
+    console.log("=== DealerManagerVehicleModelsPage Debug ===");
+    console.log("user from AuthContext:", user);
+    
+    // Prioritize dealerId from AuthContext
+    if (user?.dealerId) {
+      console.log("✅ Found dealerId from AuthContext:", user.dealerId);
+      setDealerId(user.dealerId);
+      setUserId(user.id || user.userProfileId);
+      return; // Exit early if we got dealerId from context
+    }
+
+    // Fallback to localStorage
     const userProfileStr = localStorage.getItem("userProfile");
     const userStr = localStorage.getItem("user");
+
+    console.log("userProfile from localStorage:", userProfileStr);
+    console.log("user from localStorage:", userStr);
 
     if (userProfileStr) {
       try {
         const userProfile = JSON.parse(userProfileStr);
+        console.log("Parsed userProfile:", userProfile);
+        console.log("dealerId from userProfile:", userProfile.dealerId);
         setDealerId(userProfile.dealerId);
         setUserId(userProfile.id);
       } catch (err) {
@@ -30,12 +47,15 @@ const DealerManagerVehicleModelsPage = () => {
     if (!userId && userStr) {
       try {
         const userData = JSON.parse(userStr);
+        console.log("Parsed user:", userData);
         setUserId(userData.id);
       } catch (err) {
         console.error("Error parsing user:", err);
       }
     }
-  }, [userId]);
+  }, [user, userId]);
+
+  console.log("Current state - dealerId:", dealerId, "userId:", userId);
 
   // Load cart from localStorage
   useEffect(() => {

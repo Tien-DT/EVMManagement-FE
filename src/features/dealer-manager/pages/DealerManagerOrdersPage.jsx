@@ -37,6 +37,45 @@ import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
 
+const STATUS_ORDER = {
+  CONFIRMED: 0,
+  AWAITING_DEPOSIT: 1,
+  IN_PROGRESS: 2,
+  READY_FOR_HANDOVER: 3,
+  COMPLETED: 4,
+  CANCELED: 5,
+};
+
+const isTerminalOrderStatus = (status) =>
+  status === "COMPLETED" || status === "CANCELED";
+
+const canTransitionOrderStatus = (currentStatus, targetStatus) => {
+  if (!currentStatus || !targetStatus) {
+    return false;
+  }
+
+  if (currentStatus === targetStatus) {
+    return true;
+  }
+
+  if (isTerminalOrderStatus(currentStatus)) {
+    return false;
+  }
+
+  if (targetStatus === "CANCELED") {
+    return true;
+  }
+
+  const currentRank = STATUS_ORDER[currentStatus];
+  const targetRank = STATUS_ORDER[targetStatus];
+
+  if (typeof currentRank !== "number" || typeof targetRank !== "number") {
+    return false;
+  }
+
+  return targetRank >= currentRank;
+};
+
 const DealerManagerOrdersPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -166,6 +205,19 @@ const DealerManagerOrdersPage = () => {
   } = useDealerManagerOrders(dealerId);
 
   const handleStatusChange = async (orderId, newStatus, currentOrder) => {
+    if (!currentOrder) {
+      return;
+    }
+
+    if (newStatus === currentOrder.status) {
+      return;
+    }
+
+    if (!canTransitionOrderStatus(currentOrder.status, newStatus)) {
+      message.warning("Khong the chuyen ve trang thai truoc do.");
+      return;
+    }
+
     setUpdatingStatus((prev) => ({ ...prev, [orderId]: true }));
 
     try {
@@ -490,6 +542,13 @@ const DealerManagerOrdersPage = () => {
       width: 190,
       render: (status, record) => {
         const config = statusConfig[status] || statusConfig.CONFIRMED;
+        const selectDisabled =
+          isTerminalOrderStatus(record.status) || updatingStatus[record.id];
+
+        // Lọc chỉ hiển thị các trạng thái có thể chuyển đến
+        const availableStatuses = Object.entries(statusConfig).filter(([key]) =>
+          canTransitionOrderStatus(record.status, key)
+        );
 
         return (
           <Select
@@ -498,7 +557,7 @@ const DealerManagerOrdersPage = () => {
               handleStatusChange(record.id, newStatus, record)
             }
             loading={updatingStatus[record.id]}
-            disabled={updatingStatus[record.id]}
+            disabled={selectDisabled}
             style={{ width: "100%" }}
             size="middle"
             dropdownStyle={{
@@ -506,7 +565,7 @@ const DealerManagerOrdersPage = () => {
             }}
             optionLabelProp="label"
           >
-            {Object.entries(statusConfig).map(([key, cfg]) => (
+            {availableStatuses.map(([key, cfg]) => (
               <Select.Option
                 key={key}
                 value={key}
