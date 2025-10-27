@@ -64,11 +64,11 @@ const EvmStaffOrdersPage = () => {
   const getStatusText = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'COMPLETED': return 'Hoàn thành';
-      case 'PROCESSING': return 'Đang xử lý';
-      case 'CONFIRMED': return 'Đã xác nhận';
-      case 'CANCELED': return 'Đã hủy';
-      default: return 'Không xác định';
+      case 'COMPLETED': return 'Completed';
+      case 'PROCESSING': return 'Processing';
+      case 'CONFIRMED': return 'Confirmed';
+      case 'CANCELED': return 'Canceled';
+      default: return 'Unknown';
     }
   };
 
@@ -169,11 +169,11 @@ const EvmStaffOrdersPage = () => {
     setIsDeleting(true);
     try {
       await deleteOrder(orderToDelete.id);
-      showSuccess('Xóa đơn hàng thành công!');
+      showSuccess('Order deleted successfully!');
       setShowDeleteModal(false);
       setOrderToDelete(null);
     } catch (error) {
-      showError(error.message || 'Có lỗi xảy ra khi xóa đơn hàng');
+      showError(error.message || 'Error occurred while deleting order');
     } finally {
       setIsDeleting(false);
     }
@@ -188,15 +188,15 @@ const EvmStaffOrdersPage = () => {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản Lý Đơn Hàng</h1>
-          <p className="text-gray-600 mt-1">Theo dõi và xử lý đơn hàng xe điện</p>
+          <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
+          <p className="text-gray-600 mt-1">Track and process electric vehicle orders</p>
         </div>
         <button
           onClick={() => navigate('/evm-staff/orders/create')}
           className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 flex items-center gap-2"
         >
           <Plus size={16} />
-          Tạo đơn hàng mới
+          Create New Order
         </button>
       </div>
 
@@ -208,7 +208,7 @@ const EvmStaffOrdersPage = () => {
               <ShoppingCart size={20} className="text-blue-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Tổng đơn hàng</p>
+              <p className="text-sm text-gray-600">Total Orders</p>
               <p className="text-xl font-bold text-gray-900">{orders.length}</p>
             </div>
           </div>
@@ -220,7 +220,7 @@ const EvmStaffOrdersPage = () => {
               <CheckCircle size={20} className="text-green-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Đã xác nhận</p>
+              <p className="text-sm text-gray-600">Confirmed</p>
               <p className="text-xl font-bold text-gray-900">
                 {orders.filter(o => o.status?.toUpperCase() === 'CONFIRMED').length}
               </p>
@@ -234,7 +234,7 @@ const EvmStaffOrdersPage = () => {
               <Clock size={20} className="text-blue-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Đang xử lý</p>
+              <p className="text-sm text-gray-600">Processing</p>
               <p className="text-xl font-bold text-gray-900">
                 {orders.filter(o => o.status?.toUpperCase() === 'PROCESSING').length}
               </p>
@@ -248,7 +248,7 @@ const EvmStaffOrdersPage = () => {
               <CheckCircle size={20} className="text-emerald-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Hoàn thành</p>
+              <p className="text-sm text-gray-600">Completed</p>
               <p className="text-xl font-bold text-gray-900">
                 {orders.filter(o => o.status?.toUpperCase() === 'COMPLETED').length}
               </p>
@@ -265,7 +265,7 @@ const EvmStaffOrdersPage = () => {
               <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm theo ID, khách hàng hoặc xe..."
+                placeholder="Search by ID, customer or vehicle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -277,11 +277,11 @@ const EvmStaffOrdersPage = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="CONFIRMED">Đã xác nhận</option>
-            <option value="PROCESSING">Đang xử lý</option>
-            <option value="COMPLETED">Hoàn thành</option>
-            <option value="CANCELED">Đã hủy</option>
+            <option value="all">All Status</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="PROCESSING">Processing</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELED">Canceled</option>
           </select>
         </div>
       </div>
@@ -298,25 +298,25 @@ const EvmStaffOrdersPage = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Đơn hàng
+                    Order
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Khách hàng
+                    Customer
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Xe
+                    Vehicle
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Giá
+                    Price
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
+                    Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ngày đặt
+                    Order Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -375,14 +375,14 @@ const EvmStaffOrdersPage = () => {
                         <button 
                           onClick={() => handleViewOrder(order.id)}
                           className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors"
-                          title="Xem chi tiết"
+                          title="View Details"
                         >
                           <Eye size={16} />
                         </button>
                         <button 
                           onClick={() => handleDeleteClick(order)}
                           className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                          title="Xóa"
+                          title="Delete"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -400,8 +400,8 @@ const EvmStaffOrdersPage = () => {
       {!loading && filteredOrders.length === 0 && (
         <div className="text-center py-12">
           <ShoppingCart size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy đơn hàng nào</h3>
-          <p className="text-gray-600">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Orders Found</h3>
+          <p className="text-gray-600">Try changing the filter or search keywords</p>
         </div>
       )}
 
@@ -413,17 +413,17 @@ const EvmStaffOrdersPage = () => {
               <div className="p-2 bg-red-100 rounded-full">
                 <Trash2 size={24} className="text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Xóa Đơn Hàng</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Delete Order</h3>
             </div>
             
             <p className="text-sm text-gray-600 mb-6">
-              Bạn có chắc chắn muốn xóa đơn hàng{' '}
+              Are you sure you want to delete order{' '}
               <strong className="font-mono">{orderToDelete.code || orderService.generateOrderCode(orderToDelete.id)}</strong>
               {orderToDelete.customerName && (
-                <> cho khách hàng <strong>{orderToDelete.customerName}</strong></>
+                <> for customer <strong>{orderToDelete.customerName}</strong></>
               )}? 
               <br />
-              <span className="text-red-600 font-medium">Hành động này không thể hoàn tác.</span>
+              <span className="text-red-600 font-medium">This action cannot be undone.</span>
             </p>
 
             <div className="flex justify-end gap-3">
@@ -435,7 +435,7 @@ const EvmStaffOrdersPage = () => {
                 disabled={isDeleting}
                 className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
@@ -445,12 +445,12 @@ const EvmStaffOrdersPage = () => {
                 {isDeleting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    Đang xóa...
+                    Deleting...
                   </>
                 ) : (
                   <>
                     <Trash2 size={16} />
-                    Xóa Đơn Hàng
+                    Delete Order
                   </>
                 )}
               </button>
