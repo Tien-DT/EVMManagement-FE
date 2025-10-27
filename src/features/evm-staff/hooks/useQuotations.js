@@ -1,5 +1,5 @@
 // src/features/evm-staff/hooks/useQuotations.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import quotationService from "../services/quotationService";
 
 const useQuotations = (dealerId = null) => {
@@ -16,7 +16,7 @@ const useQuotations = (dealerId = null) => {
   });
 
   // Fetch all quotations or by dealer with pagination
-  const fetchQuotations = async (params = {}) => {
+  const fetchQuotations = useCallback(async (params = {}) => {
     setLoading(true);
     setError(null);
     try {
@@ -48,10 +48,10 @@ const useQuotations = (dealerId = null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dealerId]);
 
   // Get quotation by ID
-  const getQuotationById = async (id) => {
+  const getQuotationById = useCallback(async (id) => {
     setLoading(true);
     setError(null);
     try {
@@ -63,10 +63,10 @@ const useQuotations = (dealerId = null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Create quotation
-  const createQuotation = async (quotationData) => {
+  const createQuotation = useCallback(async (quotationData) => {
     setLoading(true);
     setError(null);
     try {
@@ -83,10 +83,10 @@ const useQuotations = (dealerId = null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchQuotations]);
 
   // Update quotation
-  const updateQuotation = async (id, quotationData) => {
+  const updateQuotation = useCallback(async (id, quotationData) => {
     setLoading(true);
     setError(null);
     try {
@@ -100,10 +100,10 @@ const useQuotations = (dealerId = null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchQuotations]);
 
   // Delete quotation
-  const deleteQuotation = async (id) => {
+  const deleteQuotation = useCallback(async (id) => {
     setLoading(true);
     setError(null);
     try {
@@ -117,10 +117,10 @@ const useQuotations = (dealerId = null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchQuotations]);
 
   // Update quotation status
-  const updateQuotationStatus = async (id, status) => {
+  const updateQuotationStatus = useCallback(async (id, status) => {
     setLoading(true);
     setError(null);
     try {
@@ -134,10 +134,10 @@ const useQuotations = (dealerId = null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchQuotations]);
 
   // Get specific quotation by ID
-  const getSpecificQuotation = async (quotationId) => {
+  const getSpecificQuotation = useCallback(async (quotationId) => {
     setLoading(true);
     setError(null);
     try {
@@ -149,13 +149,13 @@ const useQuotations = (dealerId = null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchQuotations().catch(err => {
       console.error('Initial fetch quotations failed:', err);
     });
-  }, []);
+  }, [fetchQuotations]);
 
   return {
     quotations,
