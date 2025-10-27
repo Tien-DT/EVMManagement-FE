@@ -3,9 +3,10 @@ import { Modal, Spin, Empty, Row, Col, Descriptions, Button, message, List, Tag 
 import { ShoppingCartOutlined, CarOutlined } from "@ant-design/icons";
 import { vehicleService } from "../services/vehicleService";
 
-const VehicleVariantDetailModal = ({ visible, onClose, variant, dealerId, onAddVehicleToCart }) => {
+const VehicleVariantDetailModal = ({ visible, onClose, variant, dealerId, onAddVehicleToCart, isB2BMode = false }) => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [vehicleModelName, setVehicleModelName] = useState("");
 
   const formatPrice = (price) => {
     if (!price) return "Liên hệ";
@@ -36,10 +37,39 @@ const VehicleVariantDetailModal = ({ visible, onClose, variant, dealerId, onAddV
   };
 
   useEffect(() => {
-    if (visible && variant && dealerId) {
-      fetchVehicles();
+    if (visible && variant) {
+      // Fetch vehicle model name
+      const fetchModelName = async () => {
+        if (variant.modelName && variant.modelName !== "Unknown") {
+          setVehicleModelName(variant.modelName);
+        } else if (variant.vehicleModel?.name) {
+          setVehicleModelName(variant.vehicleModel.name);
+        } else if (variant.modelId) {
+          try {
+            const axiosInstance = (await import("../../../api/axiosInstance")).default;
+            const endpoints = (await import("../../../api/endpoints")).default;
+            const modelResponse = await axiosInstance.get(
+              endpoints.vehicleModels.getById(variant.modelId)
+            );
+            if (modelResponse.success && modelResponse.data) {
+              setVehicleModelName(modelResponse.data.name);
+            }
+          } catch (err) {
+            console.error("Error fetching model name:", err);
+            setVehicleModelName("Unknown Model");
+          }
+        } else {
+          setVehicleModelName("Unknown Model");
+        }
+      };
+      
+      fetchModelName();
+      
+      if (dealerId && !isB2BMode) {
+        fetchVehicles();
+      }
     }
-  }, [visible, variant, dealerId]);
+  }, [visible, variant, dealerId, isB2BMode]);
 
   const fetchVehicles = async () => {
     setLoading(true);
@@ -90,7 +120,16 @@ const VehicleVariantDetailModal = ({ visible, onClose, variant, dealerId, onAddV
       onCancel={onClose}
       footer={null}
       width={900}
-      title={<span style={{ fontSize: 20, fontWeight: 600 }}>Chi tiết biến thể xe</span>}
+      title={
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 600 }}>Chi tiết biến thể xe</div>
+          {vehicleModelName && (
+            <div style={{ fontSize: 16, fontWeight: 400, color: "#1890ff", marginTop: 4 }}>
+              {vehicleModelName}
+            </div>
+          )}
+        </div>
+      }
     >
       <Row gutter={[24, 24]}>
         <Col span={24}>
@@ -123,6 +162,11 @@ const VehicleVariantDetailModal = ({ visible, onClose, variant, dealerId, onAddV
           </div>
 
           <Descriptions title="Thông số kỹ thuật" bordered column={2}>
+            <Descriptions.Item label="Model" span={2}>
+              <span style={{ fontWeight: 600, fontSize: 15 }}>
+                {vehicleModelName || "Đang tải..."}
+              </span>
+            </Descriptions.Item>
             <Descriptions.Item label="Màu sắc">
               {variant?.color || "Không có thông tin"}
             </Descriptions.Item>
@@ -183,80 +227,119 @@ const VehicleVariantDetailModal = ({ visible, onClose, variant, dealerId, onAddV
           </Descriptions>
         </Col>
 
-        <Col span={24}>
-          <div style={{ marginTop: 24 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
-              Xe có sẵn ({vehicles.length})
-            </h3>
-            {loading ? (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <Spin size="large" />
+        {!isB2BMode && (
+          <Col span={24}>
+            <div style={{ marginTop: 24 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
+                Xe có sẵn ({vehicles.length})
+              </h3>
+              {loading ? (
+                <div style={{ textAlign: "center", padding: "40px 0" }}>
+                  <Spin size="large" />
+                </div>
+              ) : vehicles.length === 0 ? (
+                <Empty description="Không có xe nào trong kho" />
+              ) : (
+                <List
+                  dataSource={vehicles}
+                  bordered
+                  renderItem={(vehicle) => (
+                    <List.Item
+                      style={{
+                        padding: "16px",
+                        marginBottom: "8px",
+                        backgroundColor: "#fafafa",
+                        borderRadius: "8px",
+                        border: "1px solid #d9d9d9"
+                      }}
+                      actions={[
+                        <Button
+                          type="primary"
+                          size="large"
+                          icon={<ShoppingCartOutlined />}
+                          onClick={() => handleAddVehicle(vehicle)}
+                          style={{
+                            backgroundColor: "#52c41a",
+                            borderColor: "#52c41a",
+                            fontWeight: 600
+                          }}
+                        >
+                          Thêm vào giỏ
+                        </Button>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={<CarOutlined style={{ fontSize: 32, color: "#1890ff" }} />}
+                        title={
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontWeight: 600, fontSize: 15 }}>VIN: {vehicle.vin}</span>
+                            <Tag color={getStatusColor(vehicle.status)}>
+                              {getStatusText(vehicle.status)}
+                            </Tag>
+                          </div>
+                        }
+                        description={
+                          <div style={{ fontSize: 13, color: "#666" }}>
+                            {vehicle.imageUrl && (
+                              <img
+                                src={vehicle.imageUrl}
+                                alt={vehicle.vin}
+                                style={{
+                                  width: 60,
+                                  height: 60,
+                                  objectFit: "cover",
+                                  borderRadius: 4,
+                                  marginTop: 8,
+                                }}
+                              />
+                            )}
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              )}
+            </div>
+          </Col>
+        )}
+        
+        {isB2BMode && (
+          <Col span={24}>
+            <div style={{ marginTop: 24, textAlign: "center" }}>
+              <div style={{ 
+                padding: 24, 
+                backgroundColor: "#e6f7ff", 
+                borderRadius: 8,
+                marginBottom: 16
+              }}>
+                <p style={{ margin: 0, fontSize: 14, color: "#1890ff" }}>
+                  💡 <strong>Đặt xe từ hãng:</strong> Thêm biến thể này vào giỏ hàng B2B để đặt xe từ nhà sản xuất
+                </p>
               </div>
-            ) : vehicles.length === 0 ? (
-              <Empty description="Không có xe nào trong kho" />
-            ) : (
-              <List
-                dataSource={vehicles}
-                bordered
-                renderItem={(vehicle) => (
-                  <List.Item
-                    style={{
-                      padding: "16px",
-                      marginBottom: "8px",
-                      backgroundColor: "#fafafa",
-                      borderRadius: "8px",
-                      border: "1px solid #d9d9d9"
-                    }}
-                    actions={[
-                      <Button
-                        type="primary"
-                        size="large"
-                        icon={<ShoppingCartOutlined />}
-                        onClick={() => handleAddVehicle(vehicle)}
-                        style={{
-                          backgroundColor: "#52c41a",
-                          borderColor: "#52c41a",
-                          fontWeight: 600
-                        }}
-                      >
-                        Thêm vào giỏ
-                      </Button>,
-                    ]}
-                  >
-                    <List.Item.Meta
-                      avatar={<CarOutlined style={{ fontSize: 32, color: "#1890ff" }} />}
-                      title={
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontWeight: 600, fontSize: 15 }}>VIN: {vehicle.vin}</span>
-                          <Tag color={getStatusColor(vehicle.status)}>
-                            {getStatusText(vehicle.status)}
-                          </Tag>
-                        </div>
-                      }
-                      description={
-                        <div style={{ fontSize: 13, color: "#666" }}>
-                          {vehicle.imageUrl && (
-                            <img
-                              src={vehicle.imageUrl}
-                              alt={vehicle.vin}
-                              style={{
-                                width: 60,
-                                height: 60,
-                                objectFit: "cover",
-                                borderRadius: 4,
-                                marginTop: 8,
-                              }}
-                            />
-                          )}
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            )}
-          </div>
-        </Col>
+              <Button
+                type="primary"
+                size="large"
+                icon={<ShoppingCartOutlined />}
+                onClick={() => {
+                  if (variant) {
+                    onAddVehicleToCart(variant);
+                    onClose();
+                  }
+                }}
+                style={{
+                  backgroundColor: "#1890ff",
+                  borderColor: "#1890ff",
+                  fontWeight: 600,
+                  height: 48,
+                  fontSize: 16
+                }}
+              >
+                Thêm vào giỏ hàng B2B
+              </Button>
+            </div>
+          </Col>
+        )}
       </Row>
     </Modal>
   );

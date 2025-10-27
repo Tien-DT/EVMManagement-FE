@@ -47,19 +47,39 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
           imageUrl: item.imageUrl,
           engine: item.engine,
           batteryType: item.batteryType,
+          vehicleModelName: item.vehicleModelName || "Unknown Model", // ← Add this!
           vehicles: [],
         };
       }
-      grouped[key].vehicles.push({
-        vehicleId: item.vehicleId,
-        vin: item.vin,
-      });
+      if (item.vehicleId) {
+        grouped[key].vehicles.push({
+          vehicleId: item.vehicleId,
+          vin: item.vin,
+          quantity: item.quantity || 1,
+        });
+      } else {
+        grouped[key].vehicles.push({
+          vehicleId: null,
+          vin: null,
+          quantity: item.quantity || 1,
+          isVariantOnly: true, 
+        });
+      }
     });
     return Object.values(grouped);
   };
 
-  const removeVehicle = (vehicleId) => {
-    setCartItems((items) => items.filter((item) => item.vehicleId !== vehicleId));
+  const removeVehicle = (vehicleId, variantId) => {
+    setCartItems((items) => {
+      if (vehicleId) {
+        return items.filter((item) => item.vehicleId !== vehicleId);
+      }
+      const index = items.findIndex(item => item.variantId === variantId && !item.vehicleId);
+      if (index > -1) {
+        return [...items.slice(0, index), ...items.slice(index + 1)];
+      }
+      return items;
+    });
   };
 
   const handleClearAll = () => {
@@ -70,7 +90,8 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
 
   const calculateTotal = () => {
     return cartItems.reduce((sum, item) => {
-      return sum + (item.price || 0);
+      const quantity = item.quantity || 1;
+      return sum + (item.price || 0) * quantity;
     }, 0);
   };
 
@@ -99,26 +120,26 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
         group.vehicles.forEach((vehicle) => {
           orderDetails.push({
             vehicleVariantId: group.variantId,
-            vehicleId: vehicle.vehicleId,
-            quantity: 1,
+            vehicleId: vehicle.vehicleId, // null for variant-only items
+            quantity: vehicle.quantity || 1,
             unitPrice: group.price || 0,
             discountPercent: 0,
-            note: `VIN: ${vehicle.vin}`,
+            note: vehicle.isVariantOnly ? "Variant order" : `VIN: ${vehicle.vin}`,
           });
         });
       });
 
       const orderData = {
         code: orderCode,
-        customerId: null, // B2B không có customer
+        customerId: null, 
         dealerId: dealerId,
         createdByUserId: userId,
-        status: 1, // AWAITING_DEPOSIT - chờ báo giá từ EVM
+        status: 1, 
         totalAmount: totalAmount,
         discountAmount: discountAmount,
         finalAmount: finalAmount,
         expectedDeliveryAt: values.expectedDeliveryAt ? values.expectedDeliveryAt.toISOString() : null,
-        orderType: 1, // B2B
+        orderType: 1,
         isFinanced: false,
         orderDetails: orderDetails,
       };
@@ -227,16 +248,20 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
                 header={
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <div style={{ fontWeight: 600 }}>{group.color || "Không có màu"}</div>
+                      <div style={{ fontWeight: 600, fontSize: 15 }}>
+                        {group.vehicleModelName || "Unknown Model"}
+                      </div>
                       <div style={{ fontSize: 13, color: "#666" }}>
-                        {group.engine && `${group.engine} • `}
+                        {group.color} • {group.engine && `${group.engine} • `}
                         {group.batteryType}
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <Tag color="blue">{group.vehicles.length} xe</Tag>
+                      <Tag color="blue">
+                        {group.vehicles.reduce((sum, v) => sum + (v.quantity || 1), 0)} xe
+                      </Tag>
                       <div style={{ fontWeight: 600, color: "#1890ff", fontSize: 14 }}>
-                        {formatPrice(group.price * group.vehicles.length)}
+                        {formatPrice(group.price * group.vehicles.reduce((sum, v) => sum + (v.quantity || 1), 0))}
                       </div>
                     </div>
                   </div>
@@ -251,7 +276,7 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
                           type="text"
                           danger
                           icon={<DeleteOutlined />}
-                          onClick={() => removeVehicle(vehicle.vehicleId)}
+                          onClick={() => removeVehicle(vehicle.vehicleId, group.variantId)}
                           size="small"
                         >
                           Xóa
@@ -259,10 +284,19 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
                       ]}
                     >
                       <List.Item.Meta
-                        title={<span style={{ fontSize: 13 }}>VIN: {vehicle.vin}</span>}
+                        title={
+                          vehicle.isVariantOnly ? (
+                            <span style={{ fontSize: 13 }}>
+                              <Tag color="orange">Variant Order</Tag>
+                              Số lượng: {vehicle.quantity || 1}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 13 }}>VIN: {vehicle.vin}</span>
+                          )
+                        }
                         description={
                           <span style={{ fontSize: 12, color: "#999" }}>
-                            {formatPrice(group.price)}
+                            {formatPrice(group.price * (vehicle.quantity || 1))}
                           </span>
                         }
                       />

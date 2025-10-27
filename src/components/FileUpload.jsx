@@ -4,7 +4,7 @@ import { Upload, Button, message, Spin } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import supabaseClient from '../api/supabaseClient';
 
-const FileUpload = ({ onUploadComplete }) => {
+const FileUpload = ({ onUploadComplete, acceptedFileTypes = "image/*,.pdf,.doc,.docx", maxFileSize = 10 }) => {
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState([]);
 
@@ -55,11 +55,20 @@ const FileUpload = ({ onUploadComplete }) => {
     }
   };
 
+  const beforeUpload = (file) => {
+    const isValidSize = file.size / 1024 / 1024 < maxFileSize;
+    if (!isValidSize) {
+      message.error(`File phải nhỏ hơn ${maxFileSize}MB!`);
+    }
+    return isValidSize;
+  };
+
   const uploadProps = {
     name: 'file',
     multiple: false,
     fileList: fileList,
     customRequest: handleUpload,
+    beforeUpload: beforeUpload,
     onChange(info) {
       let newFileList = [...info.fileList];
       
@@ -79,13 +88,20 @@ const FileUpload = ({ onUploadComplete }) => {
 
   return (
     <div className="file-upload-container">
-      <Spin spinning={loading}>
-        <Upload {...uploadProps} accept="image/*,.pdf">
-          <Button icon={<UploadOutlined />}>Chọn file</Button>
+      <Spin spinning={loading} tip="Đang upload...">
+        <Upload {...uploadProps} accept={acceptedFileTypes}>
+          <Button icon={<UploadOutlined />} size="large">
+            {loading ? "Đang upload..." : "Chọn file để upload"}
+          </Button>
         </Upload>
         {fileList.length > 0 && fileList[0].status === 'done' && (
-          <div className="mt-2 text-green-600">
-            File đã được upload thành công
+          <div style={{ marginTop: 8, color: "#52c41a" }}>
+            ✅ File đã được upload thành công
+          </div>
+        )}
+        {fileList.length > 0 && fileList[0].status === 'uploading' && (
+          <div style={{ marginTop: 8, color: "#1890ff" }}>
+            ⏳ Đang upload...
           </div>
         )}
       </Spin>

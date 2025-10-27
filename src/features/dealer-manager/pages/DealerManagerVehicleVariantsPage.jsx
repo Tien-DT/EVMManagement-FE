@@ -7,6 +7,8 @@ import { useDealerVehicleVariants } from "../../dealer-staff/hooks/useDealerVehi
 import VehicleVariantCard from "../../dealer-staff/components/VehicleVariantCard";
 import VehicleVariantDetailModal from "../../dealer-staff/components/VehicleVariantDetailModal";
 import OrderCartB2B from "../components/OrderCartB2B";
+import axiosInstance from "../../../api/axiosInstance";
+import endpoints from "../../../api/endpoints";
 import "./DealerManagerVehicleVariantsPage.css";
 
 const DealerManagerVehicleVariantsPage = () => {
@@ -20,6 +22,7 @@ const DealerManagerVehicleVariantsPage = () => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [vehicleModelName, setVehicleModelName] = useState("");
 
   useEffect(() => {
     const userProfileStr = sessionStorage.getItem("userProfile");
@@ -67,23 +70,66 @@ const DealerManagerVehicleVariantsPage = () => {
 
   const { variants, loading } = useDealerVehicleVariants(dealerId, modelId);
 
+  useEffect(() => {
+    const fetchVehicleModel = async () => {
+      if (modelId) {
+        try {
+          const response = await axiosInstance.get(endpoints.vehicleModels.getById(modelId));
+          if (response.success && response.data) {
+            setVehicleModelName(response.data.name);
+          }
+        } catch (err) {
+          console.error("Error fetching vehicle model:", err);
+        }
+      }
+    };
+    fetchVehicleModel();
+  }, [modelId]);
+
   const handleVariantClick = (variant) => {
     setSelectedVariant(variant);
     setModalVisible(true);
   };
 
-  const handleAddVehicleToCart = (vehicleData) => {
-    setCartItems((items) => {
-      const existingItem = items.find((item) => item.vehicleId === vehicleData.vehicleId);
-      if (existingItem) {
-        message.info("Xe này đã có trong giỏ hàng");
-        return items;
+  const handleAddVariantToCart = async (variant) => {
+    let modelName = vehicleModelName || "Unknown Model";
+    
+    if (!vehicleModelName || vehicleModelName === "Unknown Model") {
+      if (variant.modelName && variant.modelName !== "Unknown") {
+        modelName = variant.modelName;
+      } else if (variant.vehicleModel?.name) {
+        modelName = variant.vehicleModel.name;
+      } else if (variant.modelId) {
+        try {
+          const modelResponse = await axiosInstance.get(
+            endpoints.vehicleModels.getById(variant.modelId)
+          );
+          if (modelResponse.success && modelResponse.data) {
+            modelName = modelResponse.data.name;
+          }
+        } catch (err) {
+          console.error("Error fetching model:", err);
+        }
       }
-      setAddingToCart(true);
-      setTimeout(() => setAddingToCart(false), 800);
-      message.success("Đã thêm xe vào giỏ hàng B2B");
-      return [...items, vehicleData];
-    });
+    }
+    
+    const variantData = {
+      vehicleId: null, 
+      vin: null,
+      variantId: variant.id,
+      color: variant.color,
+      price: variant.price,
+      imageUrl: variant.imageUrl,
+      engine: variant.engine,
+      batteryType: variant.batteryType,
+      vehicleModelName: modelName,
+      quantity: 1,
+    };
+
+    setCartItems((items) => [...items, variantData]);
+    setAddingToCart(true);
+    setTimeout(() => setAddingToCart(false), 800);
+    message.success(`Đã thêm ${modelName} vào giỏ hàng B2B`);
   };
 
   return (
@@ -149,6 +195,8 @@ const DealerManagerVehicleVariantsPage = () => {
                   variant={variant}
                   onClick={handleVariantClick}
                   hidePreOrder={true}
+                  isB2BMode={true}
+                  onAddToB2BCart={handleAddVariantToCart}
                 />
               </Col>
             ))}
@@ -156,12 +204,14 @@ const DealerManagerVehicleVariantsPage = () => {
         )}
       </Card>
 
+      {/* Modal for B2B ordering - only show variant details and "Order from Manufacturer" button */}
       <VehicleVariantDetailModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         variant={selectedVariant}
         dealerId={dealerId}
-        onAddVehicleToCart={handleAddVehicleToCart}
+        onAddVehicleToCart={handleAddVariantToCart}
+        isB2BMode={true}
       />
 
       <OrderCartB2B

@@ -89,6 +89,7 @@ const endpoints = {
   orders: {
     getAll: "/v1/Orders",
     getById: (id) => `/v1/Orders/${id}`,
+    getByIdWithDetails: (id) => `/v1/Orders/${id}/with-details`,
     getByDealer: (dealerId) => `/v1/Orders/dealer/${dealerId}`,
     create: "/v1/Orders",
     createWithDetails: "/v1/Orders/with-details",
@@ -96,6 +97,15 @@ const endpoints = {
     delete: (id) => `/v1/Orders/${id}`,
     createPreOrderDeposit: (orderId) => `/v1/Orders/${orderId}/deposits/preorder`,
     confirmPayment: (orderId) => `/v1/Orders/${orderId}/confirm-payment`,
+  },
+  
+  // Order Details endpoints (kept for future use)
+  orderDetails: {
+    getAll: "/v1/OrderDetails",
+    getById: (id) => `/v1/OrderDetails/${id}`,
+    create: "/v1/OrderDetails",
+    update: (id) => `/v1/OrderDetails/${id}`,
+    delete: (id) => `/v1/OrderDetails/${id}`,
   },
   
   // Handover Records endpoints

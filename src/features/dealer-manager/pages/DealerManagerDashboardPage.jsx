@@ -74,18 +74,13 @@ const DealerManagerDashboardPage = () => {
       }
 
       try {
-        console.log("Fetching user profile for user.id:", user.id);
         const response = await axiosInstance.get(
           endpoints.userProfile.getByAccount(user.id)
         );
 
-        console.log("User profile response:", response);
-
         if (response.success && response.data) {
           const userDealerId = response.data.dealerId;
           const userProfileId = response.data.id;
-          console.log("Found dealerId from profile:", userDealerId);
-          console.log("Found userId from profile:", userProfileId);
 
           if (userDealerId) {
             setDealerId(userDealerId);
@@ -95,11 +90,9 @@ const DealerManagerDashboardPage = () => {
             message.error("Không tìm thấy dealerId trong profile");
           }
         } else {
-          console.error("Profile API unsuccessful:", response);
           message.error("Không tìm thấy thông tin dealer");
         }
       } catch (error) {
-        console.error("Error fetching dealer profile:", error);
         message.error("Lỗi khi lấy thông tin dealer: " + error.message);
       } finally {
         setLoadingProfile(false);
@@ -109,7 +102,6 @@ const DealerManagerDashboardPage = () => {
     fetchDealerId();
   }, [user?.id]);
 
-  // Load cart from localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem("dealerManagerB2BCart");
     if (savedCart) {
@@ -117,12 +109,10 @@ const DealerManagerDashboardPage = () => {
         const parsedCart = JSON.parse(savedCart);
         setCartItems(parsedCart);
       } catch (err) {
-        console.error("Error loading cart from localStorage:", err);
       }
     }
   }, []);
 
-  // Save cart to localStorage
   useEffect(() => {
     if (cartItems.length > 0) {
       localStorage.setItem("dealerManagerB2BCart", JSON.stringify(cartItems));
@@ -151,35 +141,103 @@ const DealerManagerDashboardPage = () => {
   };
 
   const handleAddPreOrderToCart = async (order) => {
-    if (!order.orderDetails || order.orderDetails.length === 0) {
-      message.warning("Đơn hàng này không có chi tiết sản phẩm");
-      return;
-    }
-
+    console.log("🛒 Adding order to cart:", order);
+    
     try {
-      message.loading({ content: "Đang thêm xe vào giỏ hàng...", key: "addCart" });
+      message.loading({ content: "Đang tải thông tin xe...", key: "addCart" });
       
+      let orderWithDetails = null;
+      try {
+        const orderResponse = await axiosInstance.get(
+          endpoints.orders.getByIdWithDetails(order.id)
+        );
+        
+        if (orderResponse.success && orderResponse.data) {
+          orderWithDetails = orderResponse.data;
+        }
+      } catch (err) {
+        message.error({ content: "Không thể tải chi tiết đơn hàng", key: "addCart" });
+        return;
+      }
+
+      if (!orderWithDetails || !orderWithDetails.orderDetails || orderWithDetails.orderDetails.length === 0) {
+        message.warning({ content: "Đơn hàng này không có chi tiết sản phẩm", key: "addCart" });
+        return;
+      }
+
+      const orderDetails = orderWithDetails.orderDetails;
+
       const newItems = [];
-      for (const detail of order.orderDetails) {
-        if (detail.vehicleId && detail.vehicleVariantId) {
-          const vehicleResponse = await axiosInstance.get(
-            endpoints.vehicles.getById(detail.vehicleId)
-          );
-          
-          if (vehicleResponse.success && vehicleResponse.data) {
-            const vehicle = vehicleResponse.data;
-            const variant = vehicle.vehicleVariant;
+      for (const detail of orderDetails) {
+        if (detail.vehicleId) {
+          try {
+            const vehicleResponse = await axiosInstance.get(
+              endpoints.vehicles.getById(detail.vehicleId)
+            );
+                        
+            if (vehicleResponse.success && vehicleResponse.data) {
+              const vehicle = vehicleResponse.data;
+              const variant = vehicle.vehicleVariant;
+              
+              if (variant) {
+                newItems.push({
+                  vehicleId: vehicle.id,
+                  vin: vehicle.vin,
+                  variantId: variant.id,
+                  color: variant.color,
+                  price: variant.price,
+                  imageUrl: variant.imageUrl,
+                  engine: variant.engine,
+                  batteryType: variant.batteryType,
+                });
+              }
+            }
+          } catch (err) {
+            console.error("Error fetching vehicle:", err);
+          }
+        } else if (detail.vehicleVariantId) {
+          try {
+            const variantResponse = await axiosInstance.get(
+              endpoints.vehicleVariants.getById(detail.vehicleVariantId)
+            );
             
-            newItems.push({
-              vehicleId: vehicle.id,
-              vin: vehicle.vin,
-              variantId: variant.id,
-              color: variant.color,
-              price: variant.price,
-              imageUrl: variant.imageUrl,
-              engine: variant.engine,
-              batteryType: variant.batteryType,
-            });
+            if (variantResponse.success && variantResponse.data) {
+              const variant = variantResponse.data;
+              
+              let modelName = "Unknown Model";
+              
+              if (variant.modelName && variant.modelName !== "Unknown") {
+                modelName = variant.modelName;
+              } else if (variant.vehicleModel?.name) {
+                modelName = variant.vehicleModel.name;
+              } else if (variant.modelId) {
+                try {
+                  const modelResponse = await axiosInstance.get(
+                    endpoints.vehicleModels.getById(variant.modelId)
+                  );
+                  if (modelResponse.success && modelResponse.data) {
+                    modelName = modelResponse.data.name;
+                  }
+                } catch (err) {
+                  console.error("Error fetching model:", err);
+                }
+              }
+              
+              newItems.push({
+                vehicleId: null, 
+                vin: null, 
+                variantId: variant.id,
+                color: variant.color,
+                price: variant.price,
+                imageUrl: variant.imageUrl,
+                engine: variant.engine,
+                batteryType: variant.batteryType,
+                vehicleModelName: modelName,
+                quantity: detail.quantity || 1, 
+              });
+            }
+          } catch (err) {
+            console.error("Error fetching variant:", err);
           }
         }
       }
@@ -188,18 +246,20 @@ const DealerManagerDashboardPage = () => {
         setCartItems((items) => {
           const existingIds = items.map(item => item.vehicleId);
           const uniqueNewItems = newItems.filter(item => !existingIds.includes(item.vehicleId));
+          
           if (uniqueNewItems.length === 0) {
             message.warning({ content: "Các xe này đã có trong giỏ hàng", key: "addCart" });
             return items;
           }
+          
+          const updatedCart = [...items, ...uniqueNewItems];          
           message.success({ content: `Đã thêm ${uniqueNewItems.length} xe vào giỏ hàng B2B`, key: "addCart" });
-          return [...items, ...uniqueNewItems];
+          return updatedCart;
         });
       } else {
         message.warning({ content: "Không có xe nào được thêm vào giỏ hàng", key: "addCart" });
       }
     } catch (error) {
-      console.error("Error adding pre-order to cart:", error);
       message.error({ content: "Lỗi khi thêm xe vào giỏ hàng", key: "addCart" });
     }
   };

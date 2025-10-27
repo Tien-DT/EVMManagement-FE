@@ -41,16 +41,61 @@ const OrderDetailModal = ({ visible, onClose, orderId }) => {
   const fetchOrderDetails = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get(endpoints.orders.getById(orderId));
+
+      const orderResponse = await axiosInstance.get(
+        endpoints.orders.getByIdWithDetails(orderId)
+      );
       
-      if (response.success && response.data) {
-        console.log("Order details:", response.data);
-        setOrderData(response.data);
-      } else {
+      if (!orderResponse.success || !orderResponse.data) {
         message.error("Không thể tải thông tin đơn hàng");
+        setLoading(false);
+        return;
       }
+
+      console.log("📦 Order with details response:", orderResponse.data);
+      const order = orderResponse.data;
+
+      if (order.orderDetails && order.orderDetails.length > 0) {
+        const detailsWithVehicles = await Promise.all(
+          order.orderDetails.map(async (detail) => {
+            if (detail.vehicleId) {
+              try {
+                const vehicleResponse = await axiosInstance.get(
+                  endpoints.vehicles.getById(detail.vehicleId)
+                );
+                if (vehicleResponse.success && vehicleResponse.data) {
+                  return { ...detail, vehicle: vehicleResponse.data };
+                }
+              } catch (err) {
+                console.error("⚠️ Error fetching vehicle:", err);
+              }
+            } else if (detail.vehicleVariantId) {
+              try {
+                const variantResponse = await axiosInstance.get(
+                  endpoints.vehicleVariants.getById(detail.vehicleVariantId)
+                );
+                if (variantResponse.success && variantResponse.data) {
+                  const pseudoVehicle = {
+                    id: null,
+                    vin: "N/A (Preorder)",
+                    vehicleVariant: variantResponse.data
+                  };
+                  return { ...detail, vehicle: pseudoVehicle };
+                }
+              } catch (err) {
+                console.error("⚠️ Error fetching variant:", err);
+              }
+            }
+            return detail;
+          })
+        );
+        order.orderDetails = detailsWithVehicles;
+        console.log("🚗 Order with vehicles/variants:", order);
+      }
+      
+      setOrderData(order);
     } catch (error) {
-      console.error("Error fetching order details:", error);
+      console.error("❌ Error fetching order details:", error);
       message.error("Lỗi khi tải thông tin đơn hàng");
     } finally {
       setLoading(false);

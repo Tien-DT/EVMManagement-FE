@@ -2,7 +2,7 @@ import React from "react";
 import { Card, Tag, Button } from "antd";
 import { ShoppingCartOutlined, CalendarOutlined } from "@ant-design/icons";
 
-const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false }) => {
+const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false, isB2BMode = false, onAddToB2BCart }) => {
   const isOutOfStock = !variant.availableStock || variant.availableStock === 0;
 
   const formatPrice = (price) => {
@@ -97,7 +97,29 @@ const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false
               {isOutOfStock ? "Hết hàng" : `Có sẵn: ${variant.availableStock} xe`}
             </div>
             
-            {isOutOfStock && !hidePreOrder ? (
+            {isB2BMode ? (
+              <div style={{ marginTop: 12 }}>
+                <Button
+                  type="primary"
+                  icon={<ShoppingCartOutlined />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToB2BCart && onAddToB2BCart(variant);
+                  }}
+                  block
+                  style={{
+                    backgroundColor: "#1890ff",
+                    borderColor: "#1890ff",
+                    fontWeight: 600,
+                  }}
+                >
+                  Đặt từ hãng
+                </Button>
+                <div style={{ fontSize: 12, color: "#999", marginTop: 6, textAlign: "center", fontStyle: "italic" }}>
+                  {isOutOfStock ? "Đặt xe từ nhà sản xuất" : `Còn ${variant.availableStock} xe - Đặt thêm từ hãng`}
+                </div>
+              </div>
+            ) : isOutOfStock && !hidePreOrder ? (
               <div style={{ marginTop: 12 }}>
                 <Button
                   type="primary"

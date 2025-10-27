@@ -50,30 +50,37 @@ const CreateContractPage = () => {
   useEffect(() => {
     // Auto-select order if orderId is provided in query params
     if (prefilledOrderId && orders.length > 0) {
+      
       const order = orders.find((o) => o.id === prefilledOrderId);
+      
       if (order) {
         form.setFieldsValue({
           orderId: order.id,
         });
         handleOrderChange(order.id);
+      } else {
+        console.log("Order not found in list");
       }
     }
-  }, [prefilledOrderId, orders, form]);
+  }, [prefilledOrderId, orders]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      
       const response = await orderService.getAllOrders();
+      
       if (response && (response.success || response.data)) {
         // Filter only B2C orders (orderType = 0)
-        const allOrders = response.data.items || [];
-        const b2cOrders = allOrders.filter(order => order.orderType === 0);
+        const allOrders = response.data.items || response.data || [];
+        
+        const b2cOrders = allOrders.filter(order => order.orderType === 0 || order.orderType === "B2C");
+        
         setOrders(b2cOrders);
       } else {
         message.error("Không thể tải danh sách đơn hàng");
       }
     } catch (error) {
-      console.error("Error fetching orders:", error);
       message.error("Lỗi khi tải danh sách đơn hàng");
     } finally {
       setLoading(false);
@@ -81,7 +88,8 @@ const CreateContractPage = () => {
   };
 
   const handleOrderChange = (orderId) => {
-    const order = orders.find((o) => o.id === orderId);
+    
+    const order = orders.find((o) => o.id === orderId);    
     setSelectedOrder(order);
 
     if (order) {
