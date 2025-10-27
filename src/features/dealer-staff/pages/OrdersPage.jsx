@@ -24,7 +24,6 @@ import {
   DeleteOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
-  SyncOutlined,
   RocketOutlined,
   StopOutlined,
   ShoppingCartOutlined,
@@ -313,8 +312,8 @@ const OrdersPage = () => {
         color: "#52c41a",
         bgColor: "#f6ffed",
         borderColor: "#b7eb8f",
-        text: "Đang xử lý",
-        icon: <SyncOutlined spin />,
+        text: "Đã ký",
+        icon: <CheckCircleOutlined />,
       },
       READY_FOR_HANDOVER: {
         color: "#13c2c2",

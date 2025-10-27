@@ -91,7 +91,7 @@ const OrderDetailPage = () => {
     const statusConfig = {
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       AWAITING_DEPOSIT: { color: "orange", text: "Chờ đặt cọc" },
-      IN_PROGRESS: { color: "processing", text: "Đang xử lý" },
+      IN_PROGRESS: { color: "green", text: "Đã ký" },
       READY_FOR_HANDOVER: { color: "cyan", text: "Sẵn sàng bàn giao" },
       COMPLETED: { color: "success", text: "Hoàn thành" },
       CANCELED: { color: "error", text: "Đã hủy" },

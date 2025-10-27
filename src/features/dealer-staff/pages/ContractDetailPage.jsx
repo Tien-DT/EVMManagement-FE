@@ -101,7 +101,7 @@ const ContractDetailPage = () => {
     const orderStatusMap = {
       CONFIRMED: "Đã xác nhận",
       AWAITING_DEPOSIT: "Chờ đặt cọc",
-      IN_PROGRESS: "Đang xử lý",
+      IN_PROGRESS: "Đã ký",
       READY_FOR_HANDOVER: "Sẵn sàng bàn giao",
       COMPLETED: "Hoàn thành",
       CANCELED: "Đã hủy",
@@ -328,7 +328,7 @@ const ContractDetailPage = () => {
     const map = {
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       AWAITING_DEPOSIT: { color: "orange", text: "Chờ đặt cọc" },
-      IN_PROGRESS: { color: "gold", text: "Đang xử lý" },
+      IN_PROGRESS: { color: "green", text: "Đã ký" },
       READY_FOR_HANDOVER: { color: "cyan", text: "Sẵn sàng bàn giao" },
       COMPLETED: { color: "green", text: "Hoàn thành" },
       CANCELED: { color: "red", text: "Đã hủy" },
