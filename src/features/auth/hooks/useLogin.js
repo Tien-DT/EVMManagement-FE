@@ -113,8 +113,8 @@ export const useLogin = () => {
           userInfo.fullName = profileResponse.data.fullName || userInfo.name;
           userInfo.phoneNumber = profileResponse.data.phoneNumber;
 
-          // Save full profile to sessionStorage
-          sessionStorage.setItem(
+          // Save full profile to localStorage
+          localStorage.setItem(
             "userProfile",
             JSON.stringify(profileResponse.data)
           );

@@ -34,16 +34,16 @@ export const AuthProvider = ({ children }) => {
     console.log("💾 Saving to context:", { userData, userToken });
     setUser(userData);
     setToken(userToken);
-    // Dùng sessionStorage - tự động xóa khi đóng browser
-    sessionStorage.setItem("accessToken", userToken);
-    sessionStorage.setItem("user", JSON.stringify(userData));
+    // Dùng localStorage - lưu lại khi đóng browser
+    localStorage.setItem("accessToken", userToken);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
   };
 
   const isAuthenticated = !!token && !!user;
@@ -53,8 +53,8 @@ export const AuthProvider = ({ children }) => {
 
     const initAuth = async () => {
       try {
-        const storedToken = sessionStorage.getItem("accessToken");
-        const storedUser = sessionStorage.getItem("user");
+        const storedToken = localStorage.getItem("accessToken");
+        const storedUser = localStorage.getItem("user");
 
         console.log("🔍 Checking stored auth:", {
           hasToken: !!storedToken,
@@ -78,8 +78,8 @@ export const AuthProvider = ({ children }) => {
             try {
               const parsedUser = JSON.parse(storedUser);
               
-              // Also load userProfile from sessionStorage if available
-              const storedUserProfile = sessionStorage.getItem("userProfile");
+              // Also load userProfile from localStorage if available
+              const storedUserProfile = localStorage.getItem("userProfile");
               if (storedUserProfile) {
                 try {
                   const profileData = JSON.parse(storedUserProfile);
@@ -93,16 +93,16 @@ export const AuthProvider = ({ children }) => {
                     dealerId: parsedUser.dealerId
                   });
                 } catch (e) {
-                  console.warn("Could not parse userProfile from sessionStorage");
+                  console.warn("Could not parse userProfile from localStorage");
                 }
               }
               
-              console.log("Loaded user from sessionStorage:", parsedUser);
+              console.log("Loaded user from localStorage:", parsedUser);
               setUser(parsedUser);
             } catch (parseError) {
               console.error("Error parsing stored user:", parseError);
-              sessionStorage.removeItem("user");
-              sessionStorage.removeItem("accessToken");
+              localStorage.removeItem("user");
+              localStorage.removeItem("accessToken");
             }
           } else {
             const decodedToken = decodeToken(storedToken);
@@ -125,11 +125,11 @@ export const AuthProvider = ({ children }) => {
               };
               console.log("Decoded user from token:", userFromToken);
               setUser(userFromToken);
-              sessionStorage.setItem("user", JSON.stringify(userFromToken));
+              localStorage.setItem("user", JSON.stringify(userFromToken));
             } else {
               console.warn("⚠️ Invalid token, clearing storage");
-              sessionStorage.removeItem("accessToken");
-              sessionStorage.removeItem("user");
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("user");
             }
           }
         } else {
@@ -137,8 +137,8 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.error("Auth init error:", err);
-        sessionStorage.removeItem("accessToken");
-        sessionStorage.removeItem("user");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
       } finally {
         if (isMounted) {
           setLoading(false);

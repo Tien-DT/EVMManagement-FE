@@ -40,18 +40,18 @@ const pageStyles = `
   .orders-page {
     min-height: 100%;
     padding: 32px 32px 48px;
-    background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%);
+    background: linear-gradient(135deg, #f6f9ff 0%, #ffffff 100%);
   }
 
   .orders-hero-card {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    background: linear-gradient(135deg, rgba(24, 144, 255, 0.12), rgba(82, 196, 26, 0.1));
-    border-radius: 18px;
+    border-radius: 20px;
     padding: 28px 32px;
-    box-shadow: 0 20px 45px rgba(24, 144, 255, 0.12);
-    margin-bottom: 28px;
+    background: linear-gradient(135deg, rgba(24, 144, 255, 0.18), rgba(82, 196, 26, 0.12));
+    box-shadow: 0 18px 48px rgba(24, 144, 255, 0.18);
+    margin-bottom: 32px;
   }
 
   @media (min-width: 768px) {
@@ -63,20 +63,21 @@ const pageStyles = `
   }
 
   .orders-hero-card__title {
-    margin-bottom: 4px !important;
+    margin-bottom: 6px !important;
   }
 
   .orders-hero-card__subtitle {
     color: #4b5563;
     font-size: 14px;
+    max-width: 520px;
   }
 
   .orders-hero-card__cta {
     border-radius: 999px;
-    height: 46px;
-    padding: 0 28px;
+    height: 48px;
+    padding: 0 30px;
     font-weight: 600;
-    box-shadow: 0 16px 28px rgba(24, 144, 255, 0.25);
+    box-shadow: 0 20px 32px rgba(24, 144, 255, 0.26);
   }
 
   .orders-metrics {
@@ -87,22 +88,22 @@ const pageStyles = `
     display: flex;
     align-items: center;
     gap: 16px;
-    border-radius: 16px !important;
+    border-radius: 18px !important;
     border: none !important;
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
     padding: 22px 24px !important;
-    min-height: 124px;
+    min-height: 120px;
     background: #ffffff !important;
   }
 
   .orders-metric-card__icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 24px;
   }
 
   .orders-metric-card__title {
@@ -110,35 +111,37 @@ const pageStyles = `
     font-size: 13px;
     font-weight: 500;
     color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .orders-metric-card__value {
-    margin: 6px 0 0;
-    font-size: 22px;
+    margin: 8px 0 0;
+    font-size: 24px;
     font-weight: 700;
-    color: #1f2937;
+    color: #0f172a;
   }
 
   .orders-metric-card__caption {
     margin: 6px 0 0;
     font-size: 12px;
-    color: #9ca3af;
+    color: #94a3b8;
   }
 
   .orders-card {
-    border-radius: 20px !important;
+    border-radius: 22px !important;
     border: none !important;
-    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
   }
 
   .orders-card__toolbar {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     margin-bottom: 20px;
   }
 
-  @media (min-width: 768px) {
+  @media (min-width: 992px) {
     .orders-card__toolbar {
       flex-direction: row;
       justify-content: space-between;
@@ -146,7 +149,7 @@ const pageStyles = `
     }
   }
 
-  .orders-card__toolbar-right {
+  .orders-card__filters {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -165,41 +168,212 @@ const pageStyles = `
   }
 
   .orders-card__type-filter {
-    min-width: 170px;
+    min-width: 160px;
+  }
+
+  .orders-status-segment {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  .orders-status-segment__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .orders-status-segment__count {
+    background: rgba(15, 23, 42, 0.08);
+    color: #0f172a;
+    border-radius: 999px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 20px;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .orders-table__order-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .orders-table__order-code {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1d4ed8;
+  }
+
+  .orders-table__order-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  .orders-table__customer {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .orders-table__customer-name {
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .orders-table__customer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    color: #475569;
+  }
+
+  .orders-table__amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .orders-table__amount-final {
+    font-weight: 700;
+    font-size: 15px;
+    color: #16a34a;
+  }
+
+  .orders-table__amount-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    color: #64748b;
+  }
+
+  .orders-table__amount-discount {
+    color: #dc2626;
+  }
+
+  .orders-table__delivery {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #475569;
+  }
+
+  .orders-table__delivery-date {
+    font-weight: 600;
+    font-size: 13px;
+    color: #1f2937;
+  }
+
+  .orders-status-control {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .orders-status-control__tag {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border: none;
+  }
+
+  .orders-status-control__icon {
+    display: flex;
+    align-items: center;
   }
 
   .orders-status-option {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 13px;
   }
 
-  .orders-status-option__icon {
-    display: flex;
-    align-items: center;
+  .orders-status-option--dropdown {
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: rgba(241, 245, 249, 0.6);
+    transition: background 0.2s ease;
   }
 
-  .table-row-light {
-    background-color: #f9fbff;
-  }
-
-  .table-row-dark {
-    background-color: #ffffff;
+  .orders-status-option--dropdown:hover {
+    background: rgba(191, 219, 254, 0.5);
   }
 
   :global(.orders-card .ant-card-body) {
-    padding: 24px !important;
+    padding: 26px !important;
+  }
+
+  :global(.orders-card .ant-segmented) {
+    background: #f3f4f6;
+    border-radius: 16px;
+    padding: 6px;
+  }
+
+  :global(.orders-card .ant-segmented-item-selected) {
+    background: #ffffff !important;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+  }
+
+  :global(.orders-card .ant-segmented-item-label) {
+    padding: 0 !important;
+  }
+
+  :global(.orders-card .ant-input-search .ant-input) {
+    border-radius: 999px 0 0 999px;
+  }
+
+  :global(.orders-card .ant-input-search .ant-input-search-button) {
+    border-radius: 0 999px 999px 0;
+  }
+
+  :global(.orders-card .ant-select-selector) {
+    border-radius: 12px !important;
+    padding: 6px 12px !important;
+    background: #f8fafc !important;
+  }
+
+  :global(.orders-card .ant-select-selection-item) {
+    font-weight: 600;
+    color: #1f2937 !important;
+  }
+
+  :global(.orders-card .ant-select-dropdown) {
+    border-radius: 14px;
+    padding: 6px;
   }
 
   :global(.orders-card .ant-table) {
-    border-radius: 14px;
+    border-radius: 18px;
     overflow: hidden;
+    background: #ffffff;
   }
 
   :global(.orders-card .ant-table-thead > tr > th) {
     background-color: #f1f5f9 !important;
     font-weight: 600 !important;
     color: #1f2937 !important;
+    border-bottom: none !important;
   }
 
   :global(.orders-card .ant-table-tbody > tr > td) {
@@ -214,25 +388,12 @@ const pageStyles = `
     margin-top: 24px !important;
   }
 
-  :global(.orders-card__toolbar-right .ant-input-search .ant-input) {
-    border-radius: 999px 0 0 999px;
+  .table-row-light {
+    background-color: #f9fbff;
   }
 
-  :global(.orders-card__toolbar-right .ant-input-search .ant-input-search-button) {
-    border-radius: 0 999px 999px 0;
-  }
-
-  :global(.orders-card__toolbar-right .ant-select-selector) {
-    border-radius: 999px !important;
-    background: #f8fafc !important;
-  }
-
-  :global(.orders-card .ant-select-dropdown) {
-    border-radius: 12px;
-  }
-
-  :global(.orders-card .ant-select-item-option-active) {
-    background-color: #f5f7ff !important;
+  .table-row-dark {
+    background-color: #ffffff;
   }
 
   .orders-state-card {
@@ -254,24 +415,41 @@ const OrdersPage = () => {
   const [orderTypeFilter, setOrderTypeFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const statusTransitions = useMemo(
-    () => ({
-      CONFIRMED: ["CONFIRMED", "AWAITING_DEPOSIT", "CANCELED"],
-      AWAITING_DEPOSIT: [
-        "AWAITING_DEPOSIT",
-        "IN_PROGRESS",
-        "CANCELED",
-      ],
-      IN_PROGRESS: ["IN_PROGRESS", "READY_FOR_HANDOVER", "CANCELED"],
-      READY_FOR_HANDOVER: [
-        "READY_FOR_HANDOVER",
-        "COMPLETED",
-      ],
-      COMPLETED: ["COMPLETED"],
-      CANCELED: ["CANCELED"],
-    }),
+  const statusSequence = useMemo(
+    () => [
+      "CONFIRMED",
+      "AWAITING_DEPOSIT",
+      "IN_PROGRESS",
+      "READY_FOR_HANDOVER",
+      "COMPLETED",
+    ],
     []
   );
+
+  const statusFlow = useMemo(() => {
+    const cancellableStatuses = new Set([
+      "CONFIRMED",
+      "AWAITING_DEPOSIT",
+      "IN_PROGRESS",
+    ]);
+    const map = {};
+
+    statusSequence.forEach((status, index) => {
+      const options = new Set([status]);
+      const next = statusSequence[index + 1];
+      if (next) {
+        options.add(next);
+      }
+      if (cancellableStatuses.has(status)) {
+        options.add("CANCELED");
+      }
+      map[status] = Array.from(options);
+    });
+
+    map.CANCELED = ["CANCELED"];
+
+    return map;
+  }, [statusSequence]);
 
   const orderFilters = useMemo(() => {
     const roleValue = user?.role;
@@ -349,29 +527,6 @@ const OrdersPage = () => {
     []
   );
 
-  const statusFilterOptions = useMemo(
-    () => [
-      { value: "ALL", label: "Tất cả" },
-      ...Object.keys(statusConfig).map((key) => ({
-        value: key,
-        label: (
-          <span className="orders-status-option">
-            <span
-              className="orders-status-option__icon"
-              style={{ color: statusConfig[key].color }}
-            >
-              {React.cloneElement(statusConfig[key].icon, {
-                style: { fontSize: 14 },
-              })}
-            </span>
-            {statusConfig[key].text}
-          </span>
-        ),
-      })),
-    ],
-    [statusConfig]
-  );
-
   const orderTypeFilterOptions = useMemo(
     () => [
       { value: "ALL", label: "Tất cả loại đơn" },
@@ -393,6 +548,15 @@ const OrdersPage = () => {
     }
     return "B2C";
   };
+
+  const formatCurrency = (value) =>
+    `${Number(value || 0).toLocaleString("vi-VN")} ₫`;
+
+  const formatDate = (value, fallback = "Chưa cập nhật") =>
+    value ? moment(value).format("DD/MM/YYYY") : fallback;
+
+  const formatDateTime = (value, fallback = "Chưa tạo") =>
+    value ? moment(value).format("HH:mm DD/MM") : fallback;
 
 
   useEffect(() => {
@@ -458,6 +622,25 @@ const OrdersPage = () => {
     console.log("OrdersPage - error:", error);
   }, [user, dealerId, orders, isLoading, error]);
 
+  const statusCounts = useMemo(() => {
+    const counts = { ALL: orders.length };
+
+    statusSequence.forEach((status) => {
+      counts[status] = 0;
+    });
+    counts.CANCELED = 0;
+
+    orders.forEach((order) => {
+      const normalizedStatus = getNormalizedStatus(order.status);
+      if (counts[normalizedStatus] === undefined) {
+        counts[normalizedStatus] = 0;
+      }
+      counts[normalizedStatus] += 1;
+    });
+
+    return counts;
+  }, [orders, statusSequence]);
+
   const summaryCards = useMemo(() => {
     const formatNumber = (value) =>
       Number(value || 0).toLocaleString("vi-VN");
@@ -510,6 +693,67 @@ const OrdersPage = () => {
     ];
   }, [orders]);
 
+  const statusFilterOptions = useMemo(() => {
+    const baseOptions = [
+      {
+        value: "ALL",
+        label: (
+          <div className="orders-status-segment">
+            <span>Tất cả</span>
+            <span className="orders-status-segment__count">
+              {statusCounts.ALL || 0}
+            </span>
+          </div>
+        ),
+      },
+    ];
+
+    statusSequence.forEach((key) => {
+      const config = statusConfig[key];
+      baseOptions.push({
+        value: key,
+        label: (
+          <div className="orders-status-segment">
+            <span
+              className="orders-status-segment__icon"
+              style={{ color: config.color }}
+            >
+              {React.cloneElement(config.icon, { style: { fontSize: 14 } })}
+            </span>
+            <span>{config.text}</span>
+            <span className="orders-status-segment__count">
+              {statusCounts[key] || 0}
+            </span>
+          </div>
+        ),
+      });
+    });
+
+    const canceledConfig = statusConfig.CANCELED;
+
+    baseOptions.push({
+      value: "CANCELED",
+      label: (
+        <div className="orders-status-segment">
+          <span
+            className="orders-status-segment__icon"
+            style={{ color: canceledConfig.color }}
+          >
+            {React.cloneElement(canceledConfig.icon, {
+              style: { fontSize: 14 },
+            })}
+          </span>
+          <span>{canceledConfig.text}</span>
+          <span className="orders-status-segment__count">
+            {statusCounts.CANCELED || 0}
+          </span>
+        </div>
+      ),
+    });
+
+    return baseOptions;
+  }, [statusCounts, statusConfig, statusSequence]);
+
   const filteredOrders = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -543,10 +787,10 @@ const OrdersPage = () => {
 
   const handleStatusChange = async (orderId, newStatus, currentOrder) => {
     const currentStatus = (currentOrder.status || "CONFIRMED").toUpperCase();
-    const allowedStatuses = statusTransitions[currentStatus] || [currentStatus];
+    const allowedStatuses = statusFlow[currentStatus] || [currentStatus];
 
     if (!allowedStatuses.includes(newStatus)) {
-      message.warning("Trạng thái phải được cập nhật theo thứ tự");
+      message.warning("Không thể quay về trạng thái trước đó");
       return;
     }
 
@@ -614,228 +858,176 @@ const OrdersPage = () => {
 
   const columns = [
     {
-      title: "Mã đơn hàng",
-      dataIndex: "code",
-      key: "code",
-      width: 130,
+      title: "Đơn hàng",
+      key: "order",
+      width: 220,
       fixed: "left",
-      render: (text) => (
-        <span
-          style={{
-            fontWeight: 600,
-            color: "#1890ff",
-            fontSize: "13px",
-          }}
-        >
-          {text || "N/A"}
-        </span>
-      ),
+      render: (_, record) => {
+        const code = record.code || "N/A";
+        const typeKey = getOrderTypeKey(record.orderType);
+        const typeConfig =
+          orderTypeDisplayConfig[typeKey] || orderTypeDisplayConfig.B2C;
+        const created = record.createdDate || record.createdAt;
+
+        return (
+          <div className="orders-table__order-cell">
+            <span className="orders-table__order-code">{code}</span>
+            <div className="orders-table__order-meta">
+              <Tag color={typeConfig.color}>{typeConfig.text}</Tag>
+              <span>{formatDateTime(created)}</span>
+            </div>
+          </div>
+        );
+      },
     },
     {
       title: "Khách hàng",
       key: "customer",
-      width: 170,
-      ellipsis: true,
+      width: 220,
       render: (_, record) => {
-        return (
-          <span style={{ fontWeight: 500 }}>
-            {record.customer?.fullName || <span style={{ color: "#999" }}>N/A</span>}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Loại đơn",
-      dataIndex: "orderType",
-      key: "orderType",
-      width: 90,
-      align: "center",
-      render: (orderType) => {
-        const key = getOrderTypeKey(orderType);
-        const config = orderTypeDisplayConfig[key] || orderTypeDisplayConfig.B2C;
+        const name = record.customer?.fullName || "Không rõ";
+        const phone =
+          record.customer?.phoneNumber ||
+          record.customer?.phone ||
+          record.customer?.contactNumber ||
+          record.customer?.mobile;
+        const email = record.customer?.email;
 
         return (
-          <Tag color={config.color} style={{ fontWeight: 500 }}>
-            {config.text}
-          </Tag>
+          <div className="orders-table__customer">
+            <span className="orders-table__customer-name">{name}</span>
+            <div className="orders-table__customer-meta">
+              {phone && <span>{phone}</span>}
+              {email && <span>{email}</span>}
+            </div>
+          </div>
         );
       },
     },
     {
-      title: "Tổng tiền",
-      dataIndex: "totalAmount",
-      key: "totalAmount",
-      width: 130,
-      align: "right",
-      render: (amount) => (
-        <span style={{ fontWeight: 500, fontSize: "13px" }}>
-          {amount ? `${amount.toLocaleString()}` : "0"} ₫
-        </span>
-      ),
-    },
-    {
-      title: "Giảm giá",
-      dataIndex: "discountAmount",
-      key: "discountAmount",
-      width: 110,
-      align: "right",
-      render: (amount) => (
-        <span style={{ color: amount && amount > 0 ? "#ff4d4f" : "#999", fontSize: "13px" }}>
-          {amount && amount > 0 ? `-${amount.toLocaleString()} ₫` : "-"}
-        </span>
-      ),
-    },
-    {
-      title: "Thành tiền",
+      title: "Giá trị",
+      key: "amount",
       dataIndex: "finalAmount",
-      key: "finalAmount",
-      width: 130,
       align: "right",
-      render: (amount) => (
-        <span
-          style={{
-            fontWeight: 700,
-            color: "#52c41a",
-            fontSize: "13px",
-          }}
-        >
-          {amount ? `${amount.toLocaleString()} ₫` : "0 ₫"}
-        </span>
-      ),
+      width: 170,
+      render: (_, record) => {
+        const totalAmount = formatCurrency(record.totalAmount);
+        const finalAmount = formatCurrency(record.finalAmount);
+        const discount = Number(record.discountAmount || 0);
+
+        return (
+          <div className="orders-table__amount">
+            <span className="orders-table__amount-final">{finalAmount}</span>
+            <div className="orders-table__amount-meta">
+              <span>Tạm tính: {totalAmount}</span>
+              {discount > 0 && (
+                <span className="orders-table__amount-discount">
+                  Giảm: -{formatCurrency(discount)}
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      },
     },
     {
-      title: "Ngày giao",
+      title: "Bàn giao dự kiến",
       dataIndex: "expectedDeliveryAt",
       key: "expectedDeliveryAt",
-      width: 110,
+      width: 160,
       align: "center",
       render: (date) => (
-        <span style={{ fontSize: "13px" }}>
-          {date ? moment(date).format("DD/MM/YYYY") : "N/A"}
-        </span>
+        <div className="orders-table__delivery">
+          <span className="orders-table__delivery-date">
+            {formatDate(date, "Chưa hẹn")}
+          </span>
+        </div>
       ),
     },
     {
-      title: "Trạng thái",
+      title: "Tiến trình",
       dataIndex: "status",
       key: "status",
-      width: 200,
+      width: 230,
       render: (status, record) => {
         const normalizedStatus = getNormalizedStatus(status);
         const config = statusConfig[normalizedStatus] || statusConfig.CONFIRMED;
         const allowedStatuses =
-          statusTransitions[normalizedStatus] || [normalizedStatus];
+          statusFlow[normalizedStatus] || [normalizedStatus];
         const isSelectionDisabled =
           updatingStatus[record.id] || allowedStatuses.length <= 1;
 
         return (
-          <Select
-            value={normalizedStatus}
-            onChange={(nextStatus) =>
-              handleStatusChange(record.id, nextStatus, record)
-            }
-            loading={updatingStatus[record.id]}
-            disabled={isSelectionDisabled}
-            style={{ width: "100%" }}
-            size="middle"
-            dropdownStyle={{
-              padding: "4px",
-            }}
-            optionLabelProp="label"
-          >
-            {allowedStatuses.map((key) => {
-              const cfg = statusConfig[key] || statusConfig.CONFIRMED;
-              return (
-                <Option
-                  key={key}
-                  value={key}
-                  label={
+          <div className="orders-status-control">
+            <Tag
+              className="orders-status-control__tag"
+              color={config.bgColor}
+              style={{
+                color: config.color,
+                border: `1px solid ${config.borderColor}`,
+              }}
+            >
+              <span className="orders-status-control__icon">
+                {React.cloneElement(config.icon, { style: { fontSize: 14 } })}
+              </span>
+              {config.text}
+            </Tag>
+            <Select
+              value={normalizedStatus}
+              onChange={(nextStatus) =>
+                handleStatusChange(record.id, nextStatus, record)
+              }
+              loading={updatingStatus[record.id]}
+              disabled={isSelectionDisabled}
+              size="middle"
+              dropdownMatchSelectWidth={false}
+              className="orders-status-control__select"
+              optionLabelProp="label"
+              style={{ width: "100%" }}
+            >
+              {allowedStatuses.map((key) => {
+                const cfg = statusConfig[key] || statusConfig.CONFIRMED;
+                return (
+                  <Option
+                    key={key}
+                    value={key}
+                    label={
+                      <div className="orders-status-option">
+                        <span style={{ color: cfg.color }}>
+                          {React.cloneElement(cfg.icon, {
+                            style: { fontSize: 14 },
+                          })}
+                        </span>
+                        <span>{cfg.text}</span>
+                      </div>
+                    }
+                  >
                     <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "2px 0",
-                      }}
+                      className="orders-status-option orders-status-option--dropdown"
+                      style={{ color: cfg.color }}
                     >
-                      <span
-                        style={{
-                          color: cfg.color,
-                          fontSize: "14px",
-                          display: "flex",
-                          alignItems: "center",
-                        }}
-                      >
+                      <span>
                         {React.cloneElement(cfg.icon, {
-                          style: { fontSize: 14 },
+                          style: { fontSize: 16 },
                         })}
                       </span>
-                      <span
-                        style={{
-                          color: cfg.color,
-                          fontWeight: 500,
-                          fontSize: "13px",
-                        }}
-                      >
-                        {cfg.text}
-                      </span>
+                      <span>{cfg.text}</span>
+                      {normalizedStatus === key && (
+                        <CheckCircleOutlined style={{ marginLeft: "auto" }} />
+                      )}
                     </div>
-                  }
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "6px 8px",
-                      borderRadius: "4px",
-                      backgroundColor: cfg.bgColor,
-                      border: `1px solid ${cfg.borderColor}`,
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: cfg.color,
-                        fontSize: "16px",
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      {React.cloneElement(cfg.icon, {
-                        style: { fontSize: 16 },
-                      })}
-                    </span>
-                    <span
-                      style={{
-                        color: cfg.color,
-                        fontWeight: 500,
-                        fontSize: "13px",
-                        flex: 1,
-                      }}
-                    >
-                      {cfg.text}
-                    </span>
-                    {normalizedStatus === key && (
-                      <CheckCircleOutlined
-                        style={{
-                          color: cfg.color,
-                          fontSize: "14px",
-                        }}
-                      />
-                    )}
-                  </div>
-                </Option>
-              );
-            })}
-          </Select>
+                  </Option>
+                );
+              })}
+            </Select>
+          </div>
         );
       },
     },
     {
       title: "Thao tác",
       key: "actions",
-      width: 180,
+      width: 170,
       fixed: "right",
       render: (_, record) => (
         <Space size="small" style={{ justifyContent: "flex-end" }}>
@@ -845,10 +1037,7 @@ const OrdersPage = () => {
             onClick={() => navigate(`/dealer-staff/orders/${record.id}`)}
             size="small"
             title="Xem chi tiết"
-            style={{
-              color: "#1890ff",
-              padding: "4px 8px",
-            }}
+            style={{ color: "#1890ff", padding: "4px 8px" }}
           />
           <Button
             type="text"
@@ -856,10 +1045,7 @@ const OrdersPage = () => {
             onClick={() => navigate(`/dealer-staff/orders/edit/${record.id}`)}
             size="small"
             title="Chỉnh sửa"
-            style={{
-              color: "#52c41a",
-              padding: "4px 8px",
-            }}
+            style={{ color: "#52c41a", padding: "4px 8px" }}
           />
           <Popconfirm
             title="Xác nhận xóa"
@@ -994,9 +1180,13 @@ const OrdersPage = () => {
             size="large"
           />
 
-          <div className="orders-card__toolbar-right">
+          <div className="orders-card__filters">
             <Text type="secondary" className="orders-card__count">
-              Hiển thị {filteredOrders.length} / {orders.length} đơn trong trang
+              {statusFilter === "ALL"
+                ? `Hiển thị ${filteredOrders.length}/${orders.length} đơn`
+                : `Có ${filteredOrders.length} đơn ${
+                    statusConfig[statusFilter]?.text?.toLowerCase() || ""
+                  }`}
             </Text>
             <Select
               value={orderTypeFilter}
@@ -1012,11 +1202,12 @@ const OrdersPage = () => {
             </Select>
             <Search
               allowClear
-              placeholder="Tìm kiếm theo mã hoặc khách hàng"
+              placeholder="Tìm theo mã hoặc khách hàng"
               className="orders-card__search"
               onChange={(event) => setSearchTerm(event.target.value)}
               onSearch={(value) => setSearchTerm(value)}
               enterButton
+              size="middle"
             />
           </div>
         </div>
@@ -1026,7 +1217,7 @@ const OrdersPage = () => {
           dataSource={filteredOrders}
           rowKey="id"
           loading={isLoading}
-          scroll={{ x: 1400 }}
+          scroll={{ x: 1200 }}
           pagination={{
             current: pagination.currentPage,
             pageSize: pagination.pageSize,

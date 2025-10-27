@@ -25,8 +25,8 @@ const DealerManagerVehicleVariantsPage = () => {
   const [vehicleModelName, setVehicleModelName] = useState("");
 
   useEffect(() => {
-    const userProfileStr = sessionStorage.getItem("userProfile");
-    const userStr = sessionStorage.getItem("user");
+    const userProfileStr = localStorage.getItem("userProfile");
+    const userStr = localStorage.getItem("user");
 
     if (userProfileStr) {
       try {
@@ -227,3 +227,4 @@ const DealerManagerVehicleVariantsPage = () => {
 };
 
 export default DealerManagerVehicleVariantsPage;
+

@@ -26,8 +26,8 @@ const DealerVehicleVariantsPage = () => {
   const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
-    const userProfileStr = sessionStorage.getItem("userProfile");
-    const userStr = sessionStorage.getItem("user");
+    const userProfileStr = localStorage.getItem("userProfile");
+    const userStr = localStorage.getItem("user");
 
     if (userProfileStr) {
       try {
@@ -256,3 +256,4 @@ const DealerVehicleVariantsPage = () => {
 };
 
 export default DealerVehicleVariantsPage;
+

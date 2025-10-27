@@ -5,23 +5,23 @@ const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
-  // Load cart from sessionStorage on mount
+  // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = sessionStorage.getItem("cart");
+    const savedCart = localStorage.getItem("cart");
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart);
         setCartItems(parsedCart);
       } catch (error) {
-        console.error("Error loading cart from sessionStorage:", error);
-        sessionStorage.removeItem("cart");
+        console.error("Error loading cart from localStorage:", error);
+        localStorage.removeItem("cart");
       }
     }
   }, []);
 
-  // Save cart to sessionStorage whenever it changes
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
-    sessionStorage.setItem("cart", JSON.stringify(cartItems));
+    localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
   const addToCart = (vehicle, variant, modelId) => {
@@ -65,7 +65,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([]);
-    sessionStorage.removeItem("cart");
+    localStorage.removeItem("cart");
   };
 
   const getCartCount = () => {

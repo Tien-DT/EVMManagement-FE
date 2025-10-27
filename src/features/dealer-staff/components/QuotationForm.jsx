@@ -37,7 +37,7 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
 
   // Get dealerId and userId
   useEffect(() => {
-    const userStr = sessionStorage.getItem("user");
+    const userStr = localStorage.getItem("user");
     let accountId = null;
 
     if (userStr) {
@@ -63,7 +63,7 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
       }
 
       if (profile.dealerId) {
-        sessionStorage.setItem("dealerId", profile.dealerId);
+        localStorage.setItem("dealerId", profile.dealerId);
         setDealerId(profile.dealerId);
         console.log("✅ DealerId set from profile:", profile.dealerId);
       } else {
@@ -71,7 +71,7 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
       }
     };
 
-    const cachedProfileStr = sessionStorage.getItem("userProfile");
+    const cachedProfileStr = localStorage.getItem("userProfile");
     if (cachedProfileStr) {
       try {
         const cachedProfile = JSON.parse(cachedProfileStr);
@@ -79,11 +79,11 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
         setProfileData(cachedProfile);
       } catch (err) {
         console.error("❌ Error parsing cached userProfile:", err);
-        sessionStorage.removeItem("userProfile");
+        localStorage.removeItem("userProfile");
       }
     }
 
-    const cachedDealerId = sessionStorage.getItem("dealerId");
+    const cachedDealerId = localStorage.getItem("dealerId");
     if (cachedDealerId) {
       console.log("✅ Found cached dealerId:", cachedDealerId);
       setDealerId(cachedDealerId);
@@ -105,7 +105,7 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
         console.log("📦 User profile response:", userProfile);
 
         if (userProfile.success && userProfile.data) {
-          sessionStorage.setItem(
+          localStorage.setItem(
             "userProfile",
             JSON.stringify(userProfile.data)
           );
@@ -121,12 +121,12 @@ const QuotationForm = ({ onSubmit, mode = "create" }) => {
 
     if (!cachedProfileStr) {
       console.log(
-        "❌ No user profile cached in sessionStorage, fetching from API..."
+        "❌ No user profile cached in localStorage, fetching from API..."
       );
       fetchUserProfile();
     } else if (!cachedDealerId) {
       console.log(
-        "❌ DealerId missing in sessionStorage, ensuring profile has dealer info"
+        "❌ DealerId missing in localStorage, ensuring profile has dealer info"
       );
       fetchUserProfile();
     }

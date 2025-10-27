@@ -37,8 +37,8 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
   useEffect(() => {
     const fetchDealerAndCustomers = async () => {
       try {
-        // Get dealerId from sessionStorage
-        const cachedDealerId = sessionStorage.getItem("dealerId");
+        // Get dealerId from localStorage
+        const cachedDealerId = localStorage.getItem("dealerId");
         if (cachedDealerId) {
           setDealerId(cachedDealerId);
           
@@ -209,10 +209,10 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
         return;
       }
 
-      // Lấy thông tin từ sessionStorage
-      const userStr = sessionStorage.getItem("user");
-      const userProfileStr = sessionStorage.getItem("userProfile");
-      const cachedDealerId = sessionStorage.getItem("dealerId");
+      // Lấy thông tin từ localStorage
+      const userStr = localStorage.getItem("user");
+      const userProfileStr = localStorage.getItem("userProfile");
+      const cachedDealerId = localStorage.getItem("dealerId");
 
       let accountId = null;
       let userProfileId = null;

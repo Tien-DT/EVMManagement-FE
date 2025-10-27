@@ -20,22 +20,22 @@ const VehicleVariantsPage = () => {
   const [error, setError] = useState(null);
   const [dealerId, setDealerId] = useState(null);
 
-  // Fetch dealerId from sessionStorage or API
+  // Fetch dealerId from localStorage or API
   useEffect(() => {
     const fetchDealerId = async () => {
       try {
-        // Check if dealerId already in sessionStorage
-        const cachedDealerId = sessionStorage.getItem("dealerId");
+        // Check if dealerId already in localStorage
+        const cachedDealerId = localStorage.getItem("dealerId");
         if (cachedDealerId) {
           console.log("✅ Using cached dealerId:", cachedDealerId);
           setDealerId(cachedDealerId);
           return;
         }
 
-        // Get user from sessionStorage
-        const userStr = sessionStorage.getItem("user");
+        // Get user from localStorage
+        const userStr = localStorage.getItem("user");
         if (!userStr) {
-          console.error("❌ No user found in sessionStorage");
+          console.error("❌ No user found in localStorage");
           setError("Không tìm thấy thông tin người dùng");
           return;
         }
@@ -64,8 +64,8 @@ const VehicleVariantsPage = () => {
           const fetchedDealerId = userProfile.data.dealerId;
           console.log("✅ DealerId fetched from API:", fetchedDealerId);
 
-          // Save to sessionStorage for future use
-          sessionStorage.setItem("dealerId", fetchedDealerId);
+          // Save to localStorage for future use
+          localStorage.setItem("dealerId", fetchedDealerId);
           setDealerId(fetchedDealerId);
         } else {
           console.error("❌ No dealerId found in user profile");

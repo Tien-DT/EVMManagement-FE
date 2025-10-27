@@ -23,22 +23,22 @@ const CustomersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dealerId, setDealerId] = useState(null);
 
-  // Get dealerId from sessionStorage or context
+  // Get dealerId from localStorage or context
   useEffect(() => {
     const fetchDealerId = async () => {
       try {
-        // Check if dealerId already in sessionStorage
-        const cachedDealerId = sessionStorage.getItem("dealerId");
+        // Check if dealerId already in localStorage
+        const cachedDealerId = localStorage.getItem("dealerId");
         if (cachedDealerId) {
           console.log("✅ Using cached dealerId:", cachedDealerId);
           setDealerId(cachedDealerId);
           return;
         }
 
-        // Get user from sessionStorage
-        const userStr = sessionStorage.getItem("user");
+        // Get user from localStorage
+        const userStr = localStorage.getItem("user");
         if (!userStr) {
-          console.error("❌ No user found in sessionStorage");
+          console.error("❌ No user found in localStorage");
           setDealerId(null);
           return;
         }
@@ -67,12 +67,12 @@ const CustomersPage = () => {
           const fetchedDealerId = userProfile.data.dealerId;
           console.log("✅ DealerId fetched from API:", fetchedDealerId);
 
-          // Save to sessionStorage for future use
-          sessionStorage.setItem(
+          // Save to localStorage for future use
+          localStorage.setItem(
             "userProfile",
             JSON.stringify(userProfile.data)
           );
-          sessionStorage.setItem("dealerId", fetchedDealerId);
+          localStorage.setItem("dealerId", fetchedDealerId);
 
           setDealerId(fetchedDealerId);
         } else {

@@ -14,8 +14,8 @@ const DealerManagerVehicleModelsPage = () => {
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
-    const userProfileStr = sessionStorage.getItem("userProfile");
-    const userStr = sessionStorage.getItem("user");
+    const userProfileStr = localStorage.getItem("userProfile");
+    const userStr = localStorage.getItem("user");
 
     if (userProfileStr) {
       try {
@@ -125,3 +125,4 @@ const DealerManagerVehicleModelsPage = () => {
 };
 
 export default DealerManagerVehicleModelsPage;
+

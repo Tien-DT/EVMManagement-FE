@@ -13,7 +13,7 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem("accessToken");
+    const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -51,9 +51,9 @@ axiosInstance.interceptors.response.use(
 
     // Xử lý token expired
     if (error.response?.status === 401) {
-      sessionStorage.removeItem("accessToken");
-      sessionStorage.removeItem("user");
-      sessionStorage.removeItem("userProfile");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("userProfile");
 
       const currentPath = window.location.pathname;
       if (!currentPath.includes("/login")) {

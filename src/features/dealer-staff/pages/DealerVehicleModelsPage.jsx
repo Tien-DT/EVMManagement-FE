@@ -10,7 +10,7 @@ const DealerVehicleModelsPage = () => {
   const [dealerId, setDealerId] = useState(null);
 
   useEffect(() => {
-    const userProfileStr = sessionStorage.getItem("userProfile");
+    const userProfileStr = localStorage.getItem("userProfile");
     if (userProfileStr) {
       try {
         const userProfile = JSON.parse(userProfileStr);
@@ -61,3 +61,4 @@ const DealerVehicleModelsPage = () => {
 };
 
 export default DealerVehicleModelsPage;
+

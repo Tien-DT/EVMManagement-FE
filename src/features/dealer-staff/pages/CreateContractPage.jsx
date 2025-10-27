@@ -43,13 +43,13 @@ const CreateContractPage = () => {
   const [dealerWarningShown, setDealerWarningShown] = useState(false);
   const storedUserProfile = useMemo(() => {
     try {
-      const raw = sessionStorage.getItem("userProfile");
+      const raw = localStorage.getItem("userProfile");
       if (raw) {
         const profile = JSON.parse(raw);
         return profile;
       }
     } catch (error) {
-      console.error("Error parsing userProfile from sessionStorage:", error);
+      console.error("Error parsing userProfile from localStorage:", error);
     }
     return null;
   }, []);
@@ -714,3 +714,4 @@ const CreateContractPage = () => {
 };
 
 export default CreateContractPage;
+
