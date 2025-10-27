@@ -10,6 +10,7 @@ const endpoints = {
   auth: {
     signup: "/v1/Auth/accounts",
     login: "/v1/Auth/login",
+    logout: "/v1/Auth/logout",
     refresh: "/v1/Auth/refresh",
     forgotPassword: "/v1/Auth/forgot-password",
     verifyOtp: "/v1/Auth/verify-otp",

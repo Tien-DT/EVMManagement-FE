@@ -153,4 +153,15 @@ export const authService = {
       throw error;
     }
   },
+
+  logout: async () => {
+    try {
+      const response = await axiosInstance.post(endpoints.auth.logout);
+      return response;
+    } catch (error) {
+      console.error("Logout service error:", error);
+      // Even if the API call fails, we should still clear local storage
+      throw error;
+    }
+  },
 };

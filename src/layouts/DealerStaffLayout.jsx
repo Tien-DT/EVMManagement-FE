@@ -12,11 +12,15 @@ const DealerStaffLayout = () => {
 
   const handleLogout = async () => {
     try {
+      // Try to call logout API
       await authService.logout();
-      logout();
-      navigate("/login");
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout API error:", error);
+      // Continue with logout even if API fails
+    } finally {
+      // Always clear local state and redirect
+      logout();
+      navigate("/login", { replace: true });
     }
   };
 
