@@ -79,7 +79,6 @@ import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPa
 import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
 import EvmStaffOrderDetailPage from "../features/evm-staff/pages/EvmStaffOrderDetailPage";
 import EvmStaffOrderFormPage from "../features/evm-staff/pages/EvmStaffOrderFormPage";
-import EvmStaffCustomersPage from "../features/evm-staff/pages/EvmStaffCustomersPage";
 import HandoverRecordsPage from "../features/evm-staff/pages/HandoverRecordsPage";
 import CreateHandoverRecordPage from "../features/evm-staff/pages/CreateHandoverRecordPage";
 import HandoverRecordDetailPage from "../features/evm-staff/pages/HandoverRecordDetailPage";
@@ -272,10 +271,6 @@ const AppRouter = () => (
             <Route path="/evm-staff/orders/:id" element={<EvmStaffOrderDetailPage />} />
             <Route path="/evm-staff/orders/:id/edit" element={<EvmStaffOrderFormPage />} />
             
-            <Route
-              path="/evm-staff/customers"
-              element={<EvmStaffCustomersPage />}
-            />
             
             {/* Handover Records Routes */}
             <Route path="/evm-staff/handover-records" element={<HandoverRecordsPage />} />
