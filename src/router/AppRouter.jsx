@@ -23,6 +23,9 @@ import RegisterDealerManagerPage from "../features/admin/pages/RegisterDealerMan
 import EvmStaffListPage from "../features/admin/pages/EvmStaffListPage";
 import EvmStaffFormPage from "../features/admin/pages/EvmStaffFormPage";
 import EvmStaffDetailPage from "../features/admin/pages/EvmStaffDetailPage";
+import DealerContractsListPage from "../features/admin/pages/contracts/DealerContractsListPage";
+import CreateDealerContractPage from "../features/admin/pages/contracts/CreateDealerContractPage";
+import AdminDealerContractDetailPage from "../features/admin/pages/contracts/DealerContractDetailPage";
 
 // Dealer Pages
 import DealerListPage from "../features/dealer/pages/DealerListPage";
@@ -52,6 +55,8 @@ import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerM
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
+import DealerContractsPage from "../features/dealer-manager/pages/DealerContractsPage";
+import DealerContractDetailPage from "../features/dealer-manager/pages/DealerContractDetailPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
@@ -75,9 +80,6 @@ import EvmStaffOrderRequestsPage from "../features/evm-staff/pages/EvmStaffOrder
 import EvmStaffQuotationsPage from "../features/evm-staff/pages/EvmStaffQuotationsPage";
 import EvmStaffCreateQuotationPage from "../features/evm-staff/pages/EvmStaffCreateQuotationPage";
 import EvmStaffQuotationDetailPage from "../features/evm-staff/pages/EvmStaffQuotationDetailPage";
-import EvmStaffContractsPage from "../features/evm-staff/pages/EvmStaffContractsPage";
-import EvmStaffContractDetailPage from "../features/evm-staff/pages/EvmStaffContractDetailPage";
-import EvmStaffCreateDealerContractPage from "../features/evm-staff/pages/EvmStaffCreateDealerContractPage";
 import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
 import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
 import EvmStaffOrderDetailPage from "../features/evm-staff/pages/EvmStaffOrderDetailPage";
@@ -175,6 +177,19 @@ const AppRouter = () => (
               path="/admin/user-profile-test"
               element={<UserProfileTestPage />}
             />
+            {/* Dealer Contracts Routes */}
+            <Route
+              path="/admin/dealer-contracts"
+              element={<DealerContractsListPage />}
+            />
+            <Route
+              path="/admin/dealer-contracts/create"
+              element={<CreateDealerContractPage />}
+            />
+            <Route
+              path="/admin/dealer-contracts/:id"
+              element={<AdminDealerContractDetailPage />}
+            />
           </Route>
         </Route>
       </Route>
@@ -195,6 +210,15 @@ const AppRouter = () => (
             <Route
               path="/dealer/register-staff"
               element={<RegisterStaffPage />}
+            />
+            {/* Dealer Manager Contract Routes */}
+            <Route
+              path="/dealer-manager/contracts"
+              element={<DealerContractsPage />}
+            />
+            <Route
+              path="/dealer-manager/contracts/:id"
+              element={<DealerContractDetailPage />}
             />
           </Route>
         </Route>
@@ -267,11 +291,6 @@ const AppRouter = () => (
             <Route path="/evm-staff/quotations/create/:requestId" element={<EvmStaffCreateQuotationPage />} />
             <Route path="/evm-staff/quotations/edit/:id" element={<EvmStaffCreateQuotationPage />} />
             <Route path="/evm-staff/quotations/:id" element={<EvmStaffQuotationDetailPage />} />
-            
-            {/* Contract Routes */}
-            <Route path="/evm-staff/contracts" element={<EvmStaffContractsPage />} />
-            <Route path="/evm-staff/contracts/create" element={<EvmStaffCreateDealerContractPage />} />
-            <Route path="/evm-staff/contracts/:id" element={<EvmStaffContractDetailPage />} />
             
             <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
             

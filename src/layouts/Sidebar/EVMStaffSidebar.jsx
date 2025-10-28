@@ -33,11 +33,6 @@ const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
       icon: <ShoppingCart size={20} />,
     },
     {
-      name: "Contracts",
-      path: "/evm-staff/contracts",
-      icon: <FileText size={20} />,
-    },
-    {
       name: "Vehicles",
       path: "/evm-staff/vehicles",
       icon: <Car size={20} />,

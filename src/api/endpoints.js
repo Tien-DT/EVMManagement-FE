@@ -104,6 +104,17 @@ const endpoints = {
     update: (id) => `/v1/HandoverRecords/${id}`,
     delete: (id) => `/v1/HandoverRecords/${id}`,
   },
+
+  // Digital Signatures endpoints
+  digitalSignatures: {
+    requestOtp: "/v1/DigitalSignatures/request-otp",
+    verifyOtp: "/v1/DigitalSignatures/verify-otp",
+    complete: "/v1/DigitalSignatures/complete",
+    getById: (id) => `/v1/DigitalSignatures/${id}`,
+    getByContract: (contractId) => `/v1/DigitalSignatures/contracts/${contractId}`,
+    getByHandoverRecord: (recordId) => `/v1/DigitalSignatures/handover-records/${recordId}`,
+    getByDealerContract: (dealerContractId) => `/v1/DigitalSignatures/dealer-contracts/${dealerContractId}`,
+  },
 };
 
 export default endpoints;

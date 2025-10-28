@@ -73,12 +73,24 @@ const dealerContractService = {
    */
   createContract: async (contractData) => {
     try {
-      console.log('Service: Creating dealer contract with data:', contractData);
-      const response = await axiosInstance.post(endpoints.dealerContracts.create, contractData);
-      console.log('Service: Dealer contract created:', response);
+      console.log('📝 Service: Creating dealer contract with data:', JSON.stringify(contractData, null, 2));
+      console.log('📝 Service: Data being sent:', contractData);
+      
+      // Ensure dates are properly formatted
+      const formattedData = {
+        ...contractData,
+        effectiveDate: contractData.effectiveDate ? new Date(contractData.effectiveDate).toISOString() : null,
+        expirationDate: contractData.expirationDate ? new Date(contractData.expirationDate).toISOString() : null,
+      };
+      
+      console.log('📝 Service: Formatted data:', JSON.stringify(formattedData, null, 2));
+      
+      const response = await axiosInstance.post(endpoints.dealerContracts.create, formattedData);
+      console.log('✅ Service: Dealer contract created:', response);
       return response;
     } catch (error) {
-      console.error('Service: Error creating dealer contract:', error);
+      console.error('❌ Service: Error creating dealer contract:', error);
+      console.error('❌ Service: Error response:', error.response?.data);
       throw error;
     }
   },
