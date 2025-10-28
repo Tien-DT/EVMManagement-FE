@@ -153,6 +153,32 @@ const endpoints = {
     update: (id) => `/v1/Vehicles/${id}`,
     delete: (id) => `/v1/Vehicles/${id}`,
   },
+
+  masterTimeSlots: {
+    getAll: "/v1/MasterTimeSlots",
+    getById: (id) => `/v1/MasterTimeSlots/${id}`,
+    getActive: "/v1/MasterTimeSlots/active",
+    getByDealer: (dealerId) => `/v1/MasterTimeSlots/dealer/${dealerId}`,
+    getActiveByDealer: (dealerId) => `/v1/MasterTimeSlots/dealer/${dealerId}/active`,
+    create: "/v1/MasterTimeSlots",
+    update: (id) => `/v1/MasterTimeSlots/${id}`,
+    updateIsActive: (id) => `/v1/MasterTimeSlots/${id}/is-active`,
+    delete: (id) => `/v1/MasterTimeSlots/${id}`,
+  },
+
+  vehicleTimeSlots: {
+    getAll: "/v1/VehicleTimeSlots",
+    getById: (id) => `/v1/VehicleTimeSlots/${id}`,
+    getByVehicle: (vehicleId) => `/v1/VehicleTimeSlots/by-vehicle/${vehicleId}`,
+    getByDealer: (dealerId) => `/v1/VehicleTimeSlots/by-dealer/${dealerId}`,
+    getByStatus: "/v1/VehicleTimeSlots/by-status",
+    create: "/v1/VehicleTimeSlots",
+    update: (id) => `/v1/VehicleTimeSlots/${id}`,
+    delete: (id) => `/v1/VehicleTimeSlots/${id}`,
+    bulkAssign: "/v1/VehicleTimeSlots/bulk-assign",
+    getAvailableByModel: "/v1/VehicleTimeSlots/available-by-model",
+    getVehiclesInSlot: "/v1/VehicleTimeSlots/available-by-model/vehicles-in-slot",
+  },
 };
 
 export default endpoints;

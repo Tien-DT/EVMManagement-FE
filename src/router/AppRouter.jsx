@@ -14,7 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EVMStaffLayout"; 
+import EVMStaffLayout from "../layouts/EVMStaffLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -55,6 +55,8 @@ import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehous
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
 import DealerManagerVehicleModelsPage from "../features/dealer-manager/pages/DealerManagerVehicleModelsPage";
 import DealerManagerVehicleVariantsPage from "../features/dealer-manager/pages/DealerManagerVehicleVariantsPage";
+import MasterTimeSlotsPage from "../features/dealer-manager/pages/MasterTimeSlotsPage";
+import TestDriveSchedulePage from "../features/dealer-manager/pages/TestDriveSchedulePage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
@@ -128,7 +130,10 @@ const AppRouter = () => (
             <Route path="/admin/dashboard" element={<DashboardPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
-            <Route path="/admin/register-dealer-manager" element={<RegisterDealerManagerPage />} />
+            <Route
+              path="/admin/register-dealer-manager"
+              element={<RegisterDealerManagerPage />}
+            />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
             <Route path="/admin/dealers/:id" element={<DealerDetailPage />} />
@@ -187,14 +192,35 @@ const AppRouter = () => (
               element={<DealerManagerDashboardPage />}
             />
             {/* Orders Management */}
-            <Route path="/dealer/orders" element={<DealerManagerOrdersPage />} />
-            
+            <Route
+              path="/dealer/orders"
+              element={<DealerManagerOrdersPage />}
+            />
+
             {/* Contracts Management */}
-            <Route path="/dealer/contracts" element={<DealerManagerContractsPage />} />
-            
+            <Route
+              path="/dealer/contracts"
+              element={<DealerManagerContractsPage />}
+            />
+
             {/* Deposits Management */}
-            <Route path="/dealer/deposits" element={<DealerManagerDepositsPage />} />
-            
+            <Route
+              path="/dealer/deposits"
+              element={<DealerManagerDepositsPage />}
+            />
+
+            {/* Master Time Slots Management */}
+            <Route
+              path="/dealer/master-time-slots"
+              element={<MasterTimeSlotsPage />}
+            />
+
+            {/* Test Drive Schedule */}
+            <Route
+              path="/dealer/test-drive-schedule"
+              element={<TestDriveSchedulePage />}
+            />
+
             <Route path="/dealer/warehouses" element={<WarehousesPage />} />
             <Route
               path="/dealer/warehouses/create"
@@ -205,10 +231,19 @@ const AppRouter = () => (
               element={<RegisterStaffPage />}
             />
             {/* Vehicle Routes for B2B Orders */}
-            <Route path="/dealer/vehicles" element={<DealerManagerVehicleModelsPage />} />
-            <Route path="/dealer/vehicles/:modelId/variants" element={<DealerManagerVehicleVariantsPage />} />
+            <Route
+              path="/dealer/vehicles"
+              element={<DealerManagerVehicleModelsPage />}
+            />
+            <Route
+              path="/dealer/vehicles/:modelId/variants"
+              element={<DealerManagerVehicleVariantsPage />}
+            />
             {/* Contract Routes */}
-            <Route path="/dealer/contracts/create" element={<DealerManagerCreateContractPage />} />
+            <Route
+              path="/dealer/contracts/create"
+              element={<DealerManagerCreateContractPage />}
+            />
           </Route>
         </Route>
       </Route>
@@ -218,9 +253,15 @@ const AppRouter = () => (
         <Route element={<RoleBasedRoute allowedRoles={["dealer-staff"]} />}>
           <Route element={<DealerStaffLayout />}>
             {/* Vehicle Routes */}
-            <Route path="/dealer-staff/vehicles" element={<DealerVehicleModelsPage />} />
-            <Route path="/dealer-staff/vehicles/:modelId/variants" element={<DealerVehicleVariantsPage />} />
-            
+            <Route
+              path="/dealer-staff/vehicles"
+              element={<DealerVehicleModelsPage />}
+            />
+            <Route
+              path="/dealer-staff/vehicles/:modelId/variants"
+              element={<DealerVehicleVariantsPage />}
+            />
+
             {/* Customer Routes */}
             <Route path="/dealer-staff/customers" element={<CustomersPage />} />
             <Route
@@ -275,40 +316,94 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["evm-staff"]} />}>
           <Route element={<EVMStaffLayout />}>
-            <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
-            <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
-            
+            <Route
+              path="/evm-staff/dashboard"
+              element={<EvmStaffDashboardPage />}
+            />
+            <Route
+              path="/evm-staff/order-requests"
+              element={<EvmStaffOrderRequestsPage />}
+            />
+
             {/* Quotation Routes */}
-            <Route path="/evm-staff/quotations" element={<EvmStaffQuotationsPage />} />
-            <Route path="/evm-staff/quotations/create" element={<EvmStaffCreateQuotationPage />} />
-            <Route path="/evm-staff/quotations/create/:requestId" element={<EvmStaffCreateQuotationPage />} />
-            <Route path="/evm-staff/quotations/edit/:id" element={<EvmStaffCreateQuotationPage />} />
-            <Route path="/evm-staff/quotations/:id" element={<EvmStaffQuotationDetailPage />} />
-            
+            <Route
+              path="/evm-staff/quotations"
+              element={<EvmStaffQuotationsPage />}
+            />
+            <Route
+              path="/evm-staff/quotations/create"
+              element={<EvmStaffCreateQuotationPage />}
+            />
+            <Route
+              path="/evm-staff/quotations/create/:requestId"
+              element={<EvmStaffCreateQuotationPage />}
+            />
+            <Route
+              path="/evm-staff/quotations/edit/:id"
+              element={<EvmStaffCreateQuotationPage />}
+            />
+            <Route
+              path="/evm-staff/quotations/:id"
+              element={<EvmStaffQuotationDetailPage />}
+            />
+
             {/* Contract Routes */}
-            <Route path="/evm-staff/contracts" element={<EvmStaffContractsPage />} />
-            <Route path="/evm-staff/contracts/create" element={<EvmStaffCreateDealerContractPage />} />
-            <Route path="/evm-staff/contracts/:id" element={<EvmStaffContractDetailPage />} />
-            
-            <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
-            
+            <Route
+              path="/evm-staff/contracts"
+              element={<EvmStaffContractsPage />}
+            />
+            <Route
+              path="/evm-staff/contracts/create"
+              element={<EvmStaffCreateDealerContractPage />}
+            />
+            <Route
+              path="/evm-staff/contracts/:id"
+              element={<EvmStaffContractDetailPage />}
+            />
+
+            <Route
+              path="/evm-staff/vehicles"
+              element={<EvmStaffVehiclesPage />}
+            />
+
             {/* Order Routes */}
             <Route path="/evm-staff/orders" element={<EvmStaffOrdersPage />} />
-            <Route path="/evm-staff/orders/create" element={<EvmStaffOrderFormPage />} />
-            <Route path="/evm-staff/orders/:id" element={<EvmStaffOrderDetailPage />} />
-            <Route path="/evm-staff/orders/:id/edit" element={<EvmStaffOrderFormPage />} />
-            
+            <Route
+              path="/evm-staff/orders/create"
+              element={<EvmStaffOrderFormPage />}
+            />
+            <Route
+              path="/evm-staff/orders/:id"
+              element={<EvmStaffOrderDetailPage />}
+            />
+            <Route
+              path="/evm-staff/orders/:id/edit"
+              element={<EvmStaffOrderFormPage />}
+            />
+
             <Route
               path="/evm-staff/customers"
               element={<EvmStaffCustomersPage />}
             />
-            
+
             {/* Handover Records Routes */}
-            <Route path="/evm-staff/handover-records" element={<HandoverRecordsPage />} />
-            <Route path="/evm-staff/handover-records/create" element={<CreateHandoverRecordPage />} />
-            <Route path="/evm-staff/handover-records/:id" element={<HandoverRecordDetailPage />} />
-            <Route path="/evm-staff/handover-records/:id/edit" element={<HandoverRecordDetailPage />} />
-            
+            <Route
+              path="/evm-staff/handover-records"
+              element={<HandoverRecordsPage />}
+            />
+            <Route
+              path="/evm-staff/handover-records/create"
+              element={<CreateHandoverRecordPage />}
+            />
+            <Route
+              path="/evm-staff/handover-records/:id"
+              element={<HandoverRecordDetailPage />}
+            />
+            <Route
+              path="/evm-staff/handover-records/:id/edit"
+              element={<HandoverRecordDetailPage />}
+            />
+
             <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>
         </Route>

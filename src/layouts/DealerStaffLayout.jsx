@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
-import DealerStaffSidebar from "./sidebar/DealerStaffSidebar";
+import DealerStaffSidebar from "./Sidebar/DealerStaffSidebar";
 
 const DealerStaffLayout = () => {
   const { user, logout } = useAuth();

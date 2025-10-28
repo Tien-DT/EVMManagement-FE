@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
-import EVMStaffSidebar from "./sidebar/EVMStaffSidebar";
+import EVMStaffSidebar from "./Sidebar/EVMStaffSidebar";
 
 const EVMStaffLayout = () => {
   const { user, logout } = useAuth();

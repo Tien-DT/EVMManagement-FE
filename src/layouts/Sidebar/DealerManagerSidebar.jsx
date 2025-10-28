@@ -9,6 +9,8 @@ import {
   ChevronRight,
   Menu,
   X,
+  Clock,
+  Calendar,
 } from "lucide-react";
 
 const DealerManagerSidebar = () => {
@@ -30,6 +32,16 @@ const DealerManagerSidebar = () => {
       path: "/dealer/vehicles",
       icon: Car,
       label: "Xe (B2B)",
+    },
+    {
+      path: "/dealer/master-time-slots",
+      icon: Clock,
+      label: "Master Time Slots",
+    },
+    {
+      path: "/dealer/test-drive-schedule",
+      icon: Calendar,
+      label: "Test Drive Schedule",
     },
     {
       path: "/dealer/warehouses",
