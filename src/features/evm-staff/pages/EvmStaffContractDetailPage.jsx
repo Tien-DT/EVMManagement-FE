@@ -286,12 +286,33 @@ const EvmStaffContractDetailPage = () => {
         return;
       }
       setUpdatingContractLink(true);
+      
+      // 1. Update contract with PDF link
       const payload = { contractLink: url || null };
       const response = await contractService.updateContract(id, payload);
+      
       if (response && (response.success || response.data)) {
         message.success(
-          url ? "Đã cập nhật tài liệu hợp đồng đã ký." : "Đã xoá tài liệu hợp đồng."
+          url ? "Đã upload PDF hợp đồng thành công!" : "Đã xoá tài liệu hợp đồng."
         );
+        
+        // 2. Auto update order status to SIGNED_CONTRACT if PDF uploaded
+        if (url && contract.orderId) {
+          try {
+            const axiosInstance = (await import('../../../api/axiosInstance')).default;
+            const endpoints = (await import('../../../api/endpoints')).default;
+            
+            await axiosInstance.patch(
+              endpoints.orders.updateStatus(contract.orderId),
+              { status: 'SIGNED_CONTRACT' }
+            );
+            message.success('Đã tự động cập nhật trạng thái order → Hợp đồng đã ký');
+          } catch (statusError) {
+            console.error('Error updating order status:', statusError);
+            message.warning('Upload thành công nhưng không thể tự động cập nhật trạng thái order');
+          }
+        }
+        
         await fetchContractDetails();
       } else {
         message.error("Không thể cập nhật tài liệu hợp đồng");

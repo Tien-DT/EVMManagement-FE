@@ -56,47 +56,58 @@ const EvmStaffOrdersPage = () => {
     }).format(amount);
   };
 
-  const getStatusColor = (status, hasQuotation = false) => {
+  const getStatusColor = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'PROCESSING':
-      case 'IN_PROGRESS': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'CONFIRMED': return 'bg-green-50 text-green-700 border-green-200';
-      case 'AWAITING_DEPOSIT':
-        // If has quotation, show purple (quotation sent), otherwise show orange (waiting)
-        return hasQuotation
-          ? 'bg-purple-50 text-purple-700 border-purple-200'
-          : 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'QUOTATION_RECEIVED': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'QUOTATION_ACCEPTED': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'CREATED_CONTRACT': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'SIGNED_CONTRACT': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+      case 'AWAITING_DEPOSIT': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'DEPOSIT_SUCCESS': return 'bg-teal-50 text-teal-700 border-teal-200';
+      case 'IN_PROGRESS': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'IN_TRANSIT': return 'bg-sky-50 text-sky-700 border-sky-200';
+      case 'READY_FOR_HANDOVER': return 'bg-lime-50 text-lime-700 border-lime-200';
+      case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'CANCELED': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status, hasQuotation = false) => {
+  const getStatusIcon = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'COMPLETED': return <CheckCircle size={16} />;
-      case 'PROCESSING':
-      case 'IN_PROGRESS': return <Clock size={16} />;
       case 'CONFIRMED': return <CheckCircle size={16} />;
-      case 'AWAITING_DEPOSIT':
-        return hasQuotation ? <FileText size={16} /> : <Clock size={16} />;
+      case 'QUOTATION_RECEIVED': return <FileText size={16} />;
+      case 'QUOTATION_ACCEPTED': return <CheckCircle size={16} />;
+      case 'CREATED_CONTRACT': return <FileText size={16} />;
+      case 'SIGNED_CONTRACT': return <CheckCircle size={16} />;
+      case 'AWAITING_DEPOSIT': return <Clock size={16} />;
+      case 'DEPOSIT_SUCCESS': return <DollarSign size={16} />;
+      case 'IN_PROGRESS': return <Clock size={16} />;
+      case 'IN_TRANSIT': return <Car size={16} />;
+      case 'READY_FOR_HANDOVER': return <CheckCircle size={16} />;
+      case 'COMPLETED': return <CheckCircle size={16} />;
       case 'CANCELED': return <XCircle size={16} />;
       default: return <AlertCircle size={16} />;
     }
   };
 
-  const getStatusText = (status, hasQuotation = false) => {
+  const getStatusText = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'COMPLETED': return 'Hoàn thành';
-      case 'PROCESSING':
-      case 'IN_PROGRESS': return 'Đang xử lý';
       case 'CONFIRMED': return 'Đã xác nhận';
-      case 'AWAITING_DEPOSIT':
-        // If has quotation, show "Đã gửi báo giá", otherwise show "Chờ báo giá"
-        return hasQuotation ? 'Đã gửi báo giá' : 'Chờ báo giá';
+      case 'QUOTATION_RECEIVED': return 'Đã gửi báo giá';
+      case 'QUOTATION_ACCEPTED': return 'Báo giá được chấp nhận';
+      case 'CREATED_CONTRACT': return 'Đã tạo hợp đồng';
+      case 'SIGNED_CONTRACT': return 'Hợp đồng đã ký';
+      case 'AWAITING_DEPOSIT': return 'Chờ đặt cọc';
+      case 'DEPOSIT_SUCCESS': return 'Đã đặt cọc';
+      case 'IN_PROGRESS': return 'Đang chuẩn bị xe';
+      case 'IN_TRANSIT': return 'Đang vận chuyển';
+      case 'READY_FOR_HANDOVER': return 'Sẵn sàng bàn giao';
+      case 'COMPLETED': return 'Hoàn thành';
       case 'CANCELED': return 'Đã hủy';
       default: return 'Không xác định';
     }
@@ -218,6 +229,51 @@ const EvmStaffOrdersPage = () => {
     window.location.reload();
   };
 
+  // Update order status to AWAITING_DEPOSIT after contract signed
+  const handleUpdateStatusToAwaitingDeposit = async (order) => {
+    try {
+      await axiosInstance.patch(
+        endpoints.orders.updateStatus(order.id),
+        { status: 'AWAITING_DEPOSIT' }
+      );
+      showSuccess('Đã cập nhật trạng thái → Chờ đặt cọc');
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      showError('Lỗi khi cập nhật trạng thái');
+    }
+  };
+
+  // Prepare vehicle: DEPOSIT_SUCCESS → IN_PROGRESS
+  const handlePrepareVehicle = async (order) => {
+    try {
+      await axiosInstance.patch(
+        endpoints.orders.updateStatus(order.id),
+        { status: 'IN_PROGRESS' }
+      );
+      showSuccess('Đã chuyển sang trạng thái Đang chuẩn bị xe');
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      showError('Lỗi khi cập nhật trạng thái');
+    }
+  };
+
+  // Confirm deposit received: AWAITING_DEPOSIT → DEPOSIT_SUCCESS
+  const handleConfirmDepositReceived = async (order) => {
+    try {
+      await axiosInstance.patch(
+        endpoints.orders.updateStatus(order.id),
+        { status: 'DEPOSIT_SUCCESS' }
+      );
+      showSuccess('Đã xác nhận nhận tiền đặt cọc');
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      showError('Lỗi khi xác nhận nhận tiền');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -306,9 +362,16 @@ const EvmStaffOrdersPage = () => {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="CONFIRMED">Chờ báo giá</option>
-            <option value="AWAITING_DEPOSIT">Chờ Dealer chấp nhận</option>
-            <option value="IN_PROGRESS">Đang xử lý</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="QUOTATION_RECEIVED">Đã gửi báo giá</option>
+            <option value="QUOTATION_ACCEPTED">Báo giá được chấp nhận</option>
+            <option value="CREATED_CONTRACT">Đã tạo hợp đồng</option>
+            <option value="SIGNED_CONTRACT">Hợp đồng đã ký</option>
+            <option value="AWAITING_DEPOSIT">Chờ đặt cọc</option>
+            <option value="DEPOSIT_SUCCESS">Đã đặt cọc</option>
+            <option value="IN_PROGRESS">Đang chuẩn bị xe</option>
+            <option value="IN_TRANSIT">Đang vận chuyển</option>
+            <option value="READY_FOR_HANDOVER">Sẵn sàng bàn giao</option>
             <option value="COMPLETED">Hoàn thành</option>
             <option value="CANCELED">Đã hủy</option>
           </select>
@@ -390,9 +453,9 @@ const EvmStaffOrdersPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border-2 ${getStatusColor(order.status, !!order.quotationId)}`}>
-                        {getStatusIcon(order.status, !!order.quotationId)}
-                        <span className="ml-1.5">{getStatusText(order.status, !!order.quotationId)}</span>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border-2 ${getStatusColor(order.status)}`}>
+                        {getStatusIcon(order.status)}
+                        <span className="ml-1.5">{getStatusText(order.status)}</span>
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -416,8 +479,8 @@ const EvmStaffOrdersPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center justify-center gap-2">
-                        {/* Create Quotation button - only show if status=CONFIRMED and no quotation */}
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        {/* 1. CONFIRMED → Nút "Tạo báo giá" */}
                         {order.status?.toUpperCase() === 'CONFIRMED' && !order.quotationId && (
                           <button
                             onClick={() => {
@@ -432,18 +495,16 @@ const EvmStaffOrdersPage = () => {
                           </button>
                         )}
 
-                        {/* Show "Đã gửi báo giá" badge if quotation exists and status is AWAITING_DEPOSIT */}
-                        {order.quotationId && order.status?.toUpperCase() === 'AWAITING_DEPOSIT' && (
+                        {/* 2. QUOTATION_RECEIVED → Badge "Đã gửi báo giá - Chờ dealer" */}
+                        {order.status?.toUpperCase() === 'QUOTATION_RECEIVED' && (
                           <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 border border-purple-200">
                             <FileText size={14} />
-                            <span className="text-xs font-medium">Đã gửi báo giá</span>
+                            <span className="text-xs font-medium">Đã gửi - Chờ dealer</span>
                           </span>
                         )}
 
-                        {/* Create Contract button - only show if quotation ACCEPTED and order AWAITING_DEPOSIT and no contract */}
-                        {order.quotationId && 
-                         order.status?.toUpperCase() === 'AWAITING_DEPOSIT' && 
-                         !order.contractId && (
+                        {/* 3. QUOTATION_ACCEPTED → Nút "Tạo hợp đồng" */}
+                        {order.status?.toUpperCase() === 'QUOTATION_ACCEPTED' && !order.contractId && (
                           <button
                             onClick={() => handleCreateContract(order)}
                             className="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors border border-blue-200 flex items-center gap-1"
@@ -454,32 +515,83 @@ const EvmStaffOrdersPage = () => {
                           </button>
                         )}
 
-                        {/* Create Deposit button - only show if contract ACTIVE and order AWAITING_DEPOSIT */}
-                        {order.contractId && 
-                         order.status?.toUpperCase() === 'AWAITING_DEPOSIT' && (
+                        {/* 4. CREATED_CONTRACT → Nút "Xem hợp đồng" để upload PDF */}
+                        {order.status?.toUpperCase() === 'CREATED_CONTRACT' && order.contractId && (
                           <button
-                            onClick={() => handleCreateDeposit(order)}
-                            className="text-green-600 hover:bg-green-50 px-3 py-1.5 rounded-lg transition-colors border border-green-200 flex items-center gap-1"
-                            title="Tạo yêu cầu đặt cọc"
+                            onClick={() => navigate(`/evm-staff/contracts/${order.contractId}`)}
+                            className="text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors border border-indigo-200 flex items-center gap-1"
+                            title="Xem hợp đồng để upload PDF"
                           >
-                            <DollarSign size={14} />
-                            <span className="text-xs font-medium">Tạo đặt cọc</span>
+                            <FileText size={14} />
+                            <span className="text-xs font-medium">Upload PDF</span>
                           </button>
                         )}
-                        
+
+                        {/* 5. SIGNED_CONTRACT → Nút "Cập nhật → Chờ đặt cọc" */}
+                        {order.status?.toUpperCase() === 'SIGNED_CONTRACT' && (
+                          <button
+                            onClick={() => handleUpdateStatusToAwaitingDeposit(order)}
+                            className="text-cyan-600 hover:bg-cyan-50 px-3 py-1.5 rounded-lg transition-colors border border-cyan-200 flex items-center gap-1"
+                            title="Cập nhật trạng thái sang Chờ đặt cọc"
+                          >
+                            <CheckCircle size={14} />
+                            <span className="text-xs font-medium">→ Chờ đặt cọc</span>
+                          </button>
+                        )}
+
+                        {/* 6. AWAITING_DEPOSIT → Badge + Nút confirm */}
+                        {order.status?.toUpperCase() === 'AWAITING_DEPOSIT' && (
+                          <>
+                            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200">
+                              <Clock size={14} />
+                              <span className="text-xs font-medium">Chờ dealer thanh toán</span>
+                            </span>
+                            <button
+                              onClick={() => handleConfirmDepositReceived(order)}
+                              className="text-teal-600 hover:bg-teal-50 px-3 py-1.5 rounded-lg transition-colors border border-teal-200 flex items-center gap-1"
+                              title="Xác nhận đã nhận tiền"
+                            >
+                              <CheckCircle size={14} />
+                              <span className="text-xs font-medium">Đã nhận tiền</span>
+                            </button>
+                          </>
+                        )}
+
+                        {/* 7. DEPOSIT_SUCCESS → Nút "Chuẩn bị xe" */}
+                        {order.status?.toUpperCase() === 'DEPOSIT_SUCCESS' && (
+                          <button
+                            onClick={() => handlePrepareVehicle(order)}
+                            className="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors border border-blue-200 flex items-center gap-1"
+                            title="Bắt đầu chuẩn bị xe"
+                          >
+                            <Car size={14} />
+                            <span className="text-xs font-medium">Chuẩn bị xe</span>
+                          </button>
+                        )}
+
+                        {/* 8. IN_PROGRESS → Badge "Chờ dealer xác nhận" */}
+                        {order.status?.toUpperCase() === 'IN_PROGRESS' && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                            <Clock size={14} />
+                            <span className="text-xs font-medium">Chờ dealer xác nhận</span>
+                          </span>
+                        )}
+
+                        {/* 9. IN_TRANSIT → Badge "Đang vận chuyển" */}
+                        {order.status?.toUpperCase() === 'IN_TRANSIT' && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200">
+                            <Car size={14} />
+                            <span className="text-xs font-medium">Đang vận chuyển</span>
+                          </span>
+                        )}
+
+                        {/* Always show View button */}
                         <button 
                           onClick={() => handleViewOrder(order.id)}
                           className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors"
                           title="Xem chi tiết"
                         >
                           <Eye size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteClick(order)}
-                          className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                          title="Xóa"
-                        >
-                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
