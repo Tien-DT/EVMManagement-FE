@@ -1,5 +1,6 @@
 // src/features/evm-staff/components/CreateContractModal.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal, Form, Input, message } from 'antd';
 import { FileTextOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../api/axiosInstance';
@@ -12,82 +13,59 @@ const CreateContractModal = ({ visible, onClose, order, quotation, onSuccess }) 
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
-      // Generate contract code
-      const contractCode = `CONTRACT-${Date.now().toString().slice(-8)}`;
-
-      // Check if quotation is accepted
-      if (quotation?.status !== 'ACCEPTED') {
-        message.error('Chỉ có thể tạo hợp đồng khi báo giá đã được chấp nhận');
+      // Validate required fields
+      if (!order?.id) {
+        message.error('Không tìm thấy thông tin đơn hàng');
+        setLoading(false);
         return;
       }
 
-      let customerId = order.customerId;
-
-      // For B2B orders without customer, create customer from dealer info
-      if (!customerId && order.dealerId) {
-        try {
-          console.log('B2B order without customer, creating customer from dealer info...');
-          
-          // Fetch dealer info
-          const dealerResponse = await axiosInstance.get(`/v1/Dealers/${order.dealerId}`);
-          const dealer = dealerResponse.data;
-          
-          // Create customer from dealer
-          const customerData = {
-            fullName: dealer.name || 'Dealer Company',
-            phone: dealer.phone || '0000000000',
-            email: dealer.email,
-            address: dealer.address || '',
-          };
-          
-          const customerResponse = await axiosInstance.post(endpoints.customers.create, customerData);
-          customerId = customerResponse.data?.id || customerResponse.data;
-          
-          console.log('Customer created for B2B contract:', customerId);
-          
-          // Update order with customerId
-          await axiosInstance.put(endpoints.orders.update(order.id), {
-            ...order,
-            customerId: customerId,
-          });
-          
-        } catch (customerError) {
-          console.error('Error creating customer:', customerError);
-          message.error('Không thể tạo thông tin khách hàng cho hợp đồng');
-          setLoading(false);
-          return;
-        }
+      // Get createdByUserId
+      const createdByUserId = user?.userProfileId || user?.id;
+      if (!createdByUserId) {
+        message.error('Không tìm thấy thông tin người tạo');
+        setLoading(false);
+        return;
       }
 
       const contractData = {
-        code: contractCode,
+        code: values.code || `CONTRACT-${Date.now().toString().slice(-8)}`,
         orderId: order.id,
-        customerId: customerId,
-        createdByUserId: user?.userProfileId || user?.id,
+        createdByUserId: createdByUserId,
         terms: values.terms || '',
-        status: 'PENDING_SIGNATURE', // ContractStatus.PENDING_SIGNATURE
-        contractLink: values.contractLink || '',
+        status: 'PENDING_SIGNATURE',
+        // customerId, signedAt, contractLink will be null/empty as per requirement
       };
 
-      console.log('Creating contract:', contractData);
+      console.log('📝 Creating contract with data:', contractData);
 
       const response = await axiosInstance.post(endpoints.contracts.create, contractData);
 
       if (response.success || response.data) {
-        message.success('Tạo hợp đồng thành công! Dealer Manager sẽ nhận được thông báo để ký hợp đồng.');
+        message.success('Tạo hợp đồng thành công!');
         form.resetFields();
-        onSuccess && onSuccess();
         onClose();
+        
+        // Navigate to contracts page after successful creation
+        setTimeout(() => {
+          navigate('/evm-staff/contracts');
+        }, 500);
+      } else {
+        throw new Error(response.message || 'Không thể tạo hợp đồng');
       }
     } catch (error) {
-      console.error('Error creating contract:', error);
-      message.error(error.response?.data?.message || 'Không thể tạo hợp đồng');
+      console.error('❌ Error creating contract:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Không thể tạo hợp đồng';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -141,13 +119,21 @@ const CreateContractModal = ({ visible, onClose, order, quotation, onSuccess }) 
 
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
           <p className="text-sm text-yellow-800">
-            <strong>Lưu ý:</strong> Sau khi tạo hợp đồng, Dealer Manager sẽ nhận được thông báo 
-            và cần ký hợp đồng thông qua xác thực OTP qua email.
+            <strong>Lưu ý:</strong> Hợp đồng sẽ được tạo với trạng thái "Chờ ký". 
+            Sau khi upload PDF hợp đồng đã ký, trạng thái sẽ tự động chuyển sang "Đang hoạt động".
           </p>
         </div>
       </div>
 
       <Form form={form} layout="vertical">
+        <Form.Item
+          label="Tên hợp đồng (Mã hợp đồng)"
+          name="code"
+          rules={[{ required: true, message: 'Vui lòng nhập tên hợp đồng' }]}
+        >
+          <Input placeholder="Nhập tên/mã hợp đồng..." />
+        </Form.Item>
+
         <Form.Item
           label="Điều khoản hợp đồng"
           name="terms"
@@ -156,15 +142,6 @@ const CreateContractModal = ({ visible, onClose, order, quotation, onSuccess }) 
           <TextArea
             rows={6}
             placeholder="Nhập các điều khoản và điều kiện của hợp đồng..."
-          />
-        </Form.Item>
-
-        <Form.Item
-          label="Link hợp đồng (nếu có)"
-          name="contractLink"
-        >
-          <Input
-            placeholder="https://..."
           />
         </Form.Item>
       </Form>
