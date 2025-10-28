@@ -20,7 +20,9 @@ const HandoverRecordForm = ({
   onCancel, 
   initialData = null, 
   loading = false,
-  isEdit = false 
+  isEdit = false,
+  orders = [],
+  vehicles = []
 }) => {
   const {
     register,
@@ -70,16 +72,21 @@ const HandoverRecordForm = ({
                 ID Đơn Hàng
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <input
+              <select
                 {...register('orderId')}
-                type="text"
                 className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
                   errors.orderId
                     ? 'border-red-300 bg-red-50'
                     : 'border-gray-200 hover:border-emerald-300 focus:border-emerald-500'
                 }`}
-                placeholder="Nhập ID đơn hàng (GUID)"
-              />
+              >
+                <option value="">Chọn đơn hàng ({orders.length})</option>
+                {orders.map((order) => (
+                  <option key={order.id} value={order.id}>
+                    {order.code || `Order-${order.id?.slice(-8)}`}
+                  </option>
+                ))}
+              </select>
               {errors.orderId && (
                 <p className="mt-2 text-sm text-red-600 flex items-center">
                   <AlertCircle size={14} className="mr-1" />
@@ -97,16 +104,21 @@ const HandoverRecordForm = ({
                 ID Xe
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <input
+              <select
                 {...register('vehicleId')}
-                type="text"
                 className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
                   errors.vehicleId
                     ? 'border-red-300 bg-red-50'
                     : 'border-gray-200 hover:border-emerald-300 focus:border-emerald-500'
                 }`}
-                placeholder="Nhập ID xe (GUID)"
-              />
+              >
+                <option value="">Chọn xe ({vehicles.length})</option>
+                {vehicles.map((vehicle) => (
+                  <option key={vehicle.id} value={vehicle.id}>
+                    {vehicle.name || vehicle.modelName || `Vehicle-${vehicle.id?.slice(-8)}`}
+                  </option>
+                ))}
+              </select>
               {errors.vehicleId && (
                 <p className="mt-2 text-sm text-red-600 flex items-center">
                   <AlertCircle size={14} className="mr-1" />

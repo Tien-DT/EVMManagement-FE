@@ -1,5 +1,5 @@
 // src/features/evm-staff/pages/HandoverRecordsPage.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Truck, 
@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import useHandoverRecords from '../hooks/useHandoverRecords';
 import { useNotification } from '../../../context/NotificationContext';
+import orderService from '../services/orderService';
+import vehicleService from '../../vehicle/services/vehicleService';
 
 const HandoverRecordsPage = () => {
   const navigate = useNavigate();
@@ -36,6 +38,59 @@ const HandoverRecordsPage = () => {
     fetchRecords,
     deleteRecord
   } = useHandoverRecords();
+
+  const [orderMap, setOrderMap] = useState({});
+  const [vehicleMap, setVehicleMap] = useState({});
+
+  // Fetch order and vehicle info
+  useEffect(() => {
+    const fetchRelatedData = async () => {
+      if (!records || records.length === 0) return;
+
+      const orderIds = [...new Set(records.filter(r => r.orderId).map(r => r.orderId))];
+      const vehicleIds = [...new Set(records.filter(r => r.vehicleId).map(r => r.vehicleId))];
+
+      const orderPromises = orderIds.map(async (orderId) => {
+        try {
+          const res = await orderService.getOrderById(orderId);
+          return { id: orderId, data: res.data || res };
+        } catch (error) {
+          console.error(`Error fetching order ${orderId}:`, error);
+          return { id: orderId, data: null };
+        }
+      });
+
+      const vehiclePromises = vehicleIds.map(async (vehicleId) => {
+        try {
+          const res = await vehicleService.getById(vehicleId);
+          return { id: vehicleId, data: res.data || res };
+        } catch (error) {
+          console.error(`Error fetching vehicle ${vehicleId}:`, error);
+          return { id: vehicleId, data: null };
+        }
+      });
+
+      const [orderResults, vehicleResults] = await Promise.all([
+        Promise.all(orderPromises),
+        Promise.all(vehiclePromises)
+      ]);
+
+      const newOrderMap = {};
+      orderResults.forEach(({ id, data }) => {
+        if (data) newOrderMap[id] = data;
+      });
+
+      const newVehicleMap = {};
+      vehicleResults.forEach(({ id, data }) => {
+        if (data) newVehicleMap[id] = data;
+      });
+
+      setOrderMap(newOrderMap);
+      setVehicleMap(newVehicleMap);
+    };
+
+    fetchRelatedData();
+  }, [records]);
 
   const getStatusColor = (isAccepted) => {
     return isAccepted 
@@ -246,21 +301,27 @@ const HandoverRecordsPage = () => {
                 {filteredRecords.map((record) => (
                   <tr key={record.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900 font-mono">
+                      <div className="text-sm font-medium text-gray-900">
                         {record.id?.substring(0, 8)}...
                       </div>
-                      <div className="text-sm text-gray-500">Order: {record.orderId?.substring(0, 8)}...</div>
+                      <div className="text-sm text-gray-500">
+                        Order: {orderMap[record.orderId]?.code || 'N/A'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <Car size={16} className="text-gray-400 mr-2 flex-shrink-0" />
-                        <div className="text-sm font-medium text-gray-900">{record.vehicleId?.substring(0, 12)}...</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {vehicleMap[record.vehicleId]?.name || vehicleMap[record.vehicleId]?.modelName || 'N/A'}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <Truck size={16} className="text-gray-400 mr-2 flex-shrink-0" />
-                        <div className="text-sm text-gray-900">{record.transportDetailId?.substring(0, 12)}...</div>
+                        <div className="text-sm text-gray-900">
+                          {record.transportDetailId ? record.transportDetailId.substring(0, 12) + '...' : 'N/A'}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

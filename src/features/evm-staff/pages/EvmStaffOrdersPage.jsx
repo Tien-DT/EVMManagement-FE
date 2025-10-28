@@ -40,7 +40,7 @@ const EvmStaffOrdersPage = () => {
   };
 
   const getStatusColor = (status) => {
-    const upperStatus = status?.toUpperCase();
+    const upperStatus = String(status || '').toUpperCase();
     switch(upperStatus) {
       case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'PROCESSING': return 'bg-blue-50 text-blue-700 border-blue-200';
@@ -51,7 +51,7 @@ const EvmStaffOrdersPage = () => {
   };
 
   const getStatusIcon = (status) => {
-    const upperStatus = status?.toUpperCase();
+    const upperStatus = String(status || '').toUpperCase();
     switch(upperStatus) {
       case 'COMPLETED': return <CheckCircle size={16} />;
       case 'PROCESSING': return <Clock size={16} />;
@@ -62,7 +62,7 @@ const EvmStaffOrdersPage = () => {
   };
 
   const getStatusText = (status) => {
-    const upperStatus = status?.toUpperCase();
+    const upperStatus = String(status || '').toUpperCase();
     switch(upperStatus) {
       case 'COMPLETED': return 'Completed';
       case 'PROCESSING': return 'Processing';
@@ -154,7 +154,7 @@ const EvmStaffOrdersPage = () => {
     const matchesSearch = orderCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.dealerName?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || order.status?.toUpperCase() === filterStatus.toUpperCase();
+    const matchesFilter = filterStatus === 'all' || String(order.status || '').toUpperCase() === filterStatus.toUpperCase();
     return matchesSearch && matchesFilter;
   });
 
@@ -222,7 +222,7 @@ const EvmStaffOrdersPage = () => {
             <div className="ml-3">
               <p className="text-sm text-gray-600">Confirmed</p>
               <p className="text-xl font-bold text-gray-900">
-                {orders.filter(o => o.status?.toUpperCase() === 'CONFIRMED').length}
+                {orders.filter(o => String(o.status || '').toUpperCase() === 'CONFIRMED').length}
               </p>
             </div>
           </div>
@@ -236,7 +236,7 @@ const EvmStaffOrdersPage = () => {
             <div className="ml-3">
               <p className="text-sm text-gray-600">Processing</p>
               <p className="text-xl font-bold text-gray-900">
-                {orders.filter(o => o.status?.toUpperCase() === 'PROCESSING').length}
+                {orders.filter(o => String(o.status || '').toUpperCase() === 'PROCESSING').length}
               </p>
             </div>
           </div>
@@ -250,7 +250,7 @@ const EvmStaffOrdersPage = () => {
             <div className="ml-3">
               <p className="text-sm text-gray-600">Completed</p>
               <p className="text-xl font-bold text-gray-900">
-                {orders.filter(o => o.status?.toUpperCase() === 'COMPLETED').length}
+                {orders.filter(o => String(o.status || '').toUpperCase() === 'COMPLETED').length}
               </p>
             </div>
           </div>

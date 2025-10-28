@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, FileText, Search } from 'lucide-react';
 import dealerContractService from '../../../evm-staff/services/dealerContractService';
+import dealerService from '../../../dealer/services/dealerService';
 
 const DealerContractsListPage = () => {
   const navigate = useNavigate();
   const [contracts, setContracts] = useState([]);
+  const [dealerMap, setDealerMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -18,7 +20,40 @@ const DealerContractsListPage = () => {
       setLoading(true);
       const response = await dealerContractService.getAllContracts();
       const contractsData = response.data || response;
-      setContracts(contractsData.items || []);
+      const contractsList = contractsData.items || [];
+      setContracts(contractsList);
+      
+      // Log contract data to see available date fields
+      if (contractsList.length > 0) {
+        console.log('📅 Sample contract data:', contractsList[0]);
+        console.log('📅 Date fields available:', {
+          createdAt: contractsList[0].createdAt,
+          createdDate: contractsList[0].createdDate,
+          created_date: contractsList[0].created_date,
+          created_at: contractsList[0].created_at,
+          signedAt: contractsList[0].signedAt,
+          signedDate: contractsList[0].signedDate,
+          signed_date: contractsList[0].signed_date,
+          signed_at: contractsList[0].signed_at
+        });
+      }
+      
+      // Fetch dealer info for each unique dealerId
+      const uniqueDealerIds = [...new Set(contractsList.map(c => c.dealerId).filter(Boolean))];
+      const dealerInfoMap = {};
+      
+      for (const dealerId of uniqueDealerIds) {
+        try {
+          const dealerResponse = await dealerService.getById(dealerId);
+          const dealerData = dealerResponse.data || dealerResponse;
+          dealerInfoMap[dealerId] = dealerData;
+        } catch (error) {
+          console.error(`Error fetching dealer ${dealerId}:`, error);
+        }
+      }
+      
+      setDealerMap(dealerInfoMap);
+      console.log('✅ Dealer info loaded:', dealerInfoMap);
     } catch (error) {
       console.error('Error fetching dealer contracts:', error);
       alert('Không thể tải danh sách hợp đồng');
@@ -100,16 +135,16 @@ const DealerContractsListPage = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mã hợp đồng
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày tạo
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày ký
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Hành động
                 </th>
               </tr>
@@ -129,20 +164,30 @@ const DealerContractsListPage = () => {
                       <div className="text-sm font-medium text-gray-900">
                         {contract.code || `DC-${contract.id?.slice(-8).toUpperCase()}`}
                       </div>
-                      <div className="text-xs text-gray-500">{contract.id}</div>
+                      <div className="text-xs text-gray-500">
+                        {dealerMap[contract.dealerId]?.dealerName || dealerMap[contract.dealerId]?.name || 'Dealer'}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(contract.status)}`}>
                         {getStatusText(contract.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {contract.createdAt || contract.createdDate || contract.created_date 
+                        ? new Date(contract.createdAt || contract.createdDate || contract.created_date).toLocaleDateString('vi-VN') 
+                        : contract.created_at 
+                        ? new Date(contract.created_at).toLocaleDateString('vi-VN') 
+                        : 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {contract.signedAt ? new Date(contract.signedAt).toLocaleDateString('vi-VN') : 'Chưa ký'}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {contract.signedAt || contract.signedDate || contract.signed_date 
+                        ? new Date(contract.signedAt || contract.signedDate || contract.signed_date).toLocaleDateString('vi-VN') 
+                        : contract.signed_at 
+                        ? new Date(contract.signed_at).toLocaleDateString('vi-VN') 
+                        : 'Chưa ký'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                       <button
                         onClick={() => navigate(`/admin/dealer-contracts/${contract.id}`)}
                         className="text-gray-900 hover:text-gray-700"

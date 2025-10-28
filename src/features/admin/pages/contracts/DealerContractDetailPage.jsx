@@ -12,11 +12,13 @@ import {
   Trash2,
 } from "lucide-react";
 import dealerContractService from "../../../evm-staff/services/dealerContractService";
+import dealerService from "../../../dealer/services/dealerService";
 
 const DealerContractDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [contract, setContract] = useState(null);
+  const [dealerInfo, setDealerInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -32,6 +34,28 @@ const DealerContractDetailPage = () => {
       const contractData = response.data || response;
       setContract(contractData);
       console.log("✅ Contract details loaded:", contractData);
+      console.log("📅 Date fields in contract:", {
+        createdAt: contractData.createdAt,
+        createdDate: contractData.createdDate,
+        created_date: contractData.created_date,
+        created_at: contractData.created_at,
+        signedAt: contractData.signedAt,
+        signedDate: contractData.signedDate,
+        signed_date: contractData.signed_date,
+        signed_at: contractData.signed_at
+      });
+      
+      // Fetch dealer info if dealerId exists
+      if (contractData.dealerId) {
+        try {
+          const dealerResponse = await dealerService.getById(contractData.dealerId);
+          const dealerData = dealerResponse.data || dealerResponse;
+          setDealerInfo(dealerData);
+          console.log("✅ Dealer info loaded:", dealerData);
+        } catch (error) {
+          console.error("❌ Error fetching dealer info:", error);
+        }
+      }
     } catch (error) {
       console.error("❌ Error fetching contract details:", error);
       alert("Không thể tải thông tin hợp đồng");
@@ -57,13 +81,20 @@ const DealerContractDetailPage = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "N/A";
+      
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      
+      return `lúc ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${day} tháng ${month}, ${year}`;
+    } catch (error) {
+      return "N/A";
+    }
   };
 
   const getStatusIcon = (status) => {
@@ -202,18 +233,21 @@ const DealerContractDetailPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium text-gray-600">
-                    Dealer ID
+                    Dealer
                   </label>
-                  <p className="text-sm font-mono text-gray-900 mt-1">
-                    {contract.dealerId}
+                  <p className="text-sm text-gray-900 mt-1">
+                    {dealerInfo?.dealerName || dealerInfo?.name || contract.dealerName || "N/A"}
                   </p>
+                  {dealerInfo?.address && (
+                    <p className="text-xs text-gray-500 mt-1">{dealerInfo.address}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-600">
-                    Tên Dealer
+                    Trạng thái ký
                   </label>
                   <p className="text-sm text-gray-900 mt-1">
-                    {contract.dealerName || "N/A"}
+                    {contract.isSigned ? "Đã ký" : "Chưa ký"}
                   </p>
                 </div>
               </div>
@@ -267,7 +301,7 @@ const DealerContractDetailPage = () => {
                   <span className="text-xs font-medium">Ngày tạo</span>
                 </div>
                 <p className="text-sm text-gray-900 ml-5">
-                  {formatDate(contract.createdAt)}
+                  {formatDate(contract.createdAt || contract.createdDate || contract.created_date || contract.created_at)}
                 </p>
               </div>
 
@@ -295,14 +329,14 @@ const DealerContractDetailPage = () => {
                 </div>
               )}
 
-              {contract.signedAt && (
+              {(contract.signedAt || contract.signedDate || contract.signed_date || contract.signed_at) && (
                 <div>
                   <div className="flex items-center gap-2 text-gray-600 mb-1">
                     <CheckCircle size={14} />
                     <span className="text-xs font-medium">Ngày ký</span>
                   </div>
                   <p className="text-sm text-gray-900 ml-5">
-                    {formatDate(contract.signedAt)}
+                    {formatDate(contract.signedAt || contract.signedDate || contract.signed_date || contract.signed_at)}
                   </p>
                 </div>
               )}

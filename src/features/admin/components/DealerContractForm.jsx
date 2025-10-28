@@ -198,9 +198,8 @@ const DealerContractForm = ({
             ) : (
               dealers.map((dealer) => (
                 <option key={dealer.id} value={dealer.id}>
-                  {dealer.dealerName || dealer.name || `Dealer ${dealer.id?.substring(0, 8)}...`}
+                  {dealer.dealerName || dealer.name || 'Dealer'}
                   {dealer.address && ` - ${dealer.address}`}
-                  {dealer.phoneNumber && ` - ${dealer.phoneNumber}`}
                 </option>
               ))
             )}
