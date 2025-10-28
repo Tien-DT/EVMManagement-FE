@@ -28,6 +28,7 @@ const endpoints = {
     dashboard: "/v1/Admin/dashboard",
     users: "/v1/UserProfile",
     dealers: "/v1/Dealers",
+    evmStaff: "/v1/UserProfile",
     vehicleModels: "/v1/VehicleModels",
     vehicleVariants: "/v1/VehicleVariants",
     promotions: "/v1/Promotions",

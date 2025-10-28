@@ -1,229 +1,271 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
-  TrendingUp, 
-  ShoppingCart, 
-  Package, 
-  DollarSign,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle
+  Building2,
+  UserCheck,
+  Car,
+  Tag,
+  TrendingUp,
+  Users,
+  ArrowRight
 } from 'lucide-react';
+import axiosInstance from '../../../api/axiosInstance';
+import endpoints from '../../../api/endpoints';
 
 const DashboardPage = () => {
-  // Mock data - thay bằng API call thực tế
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    monthlyRevenue: 125000000,
-    quarterlySales: 45,
-    inventoryCount: 28,
-    pendingOrders: 12,
-    completedOrders: 33,
-    canceledOrders: 2
+    totalDealers: 0,
+    activeDealers: 0,
+    totalStaff: 0,
+    totalVehicles: 0,
+    activeVehicles: 0,
+    totalPromotions: 0,
+    activePromotions: 0
   });
 
-  const [salesByModel, setSalesByModel] = useState([
-    { model: 'Sedan A', sales: 15, revenue: 45000000, percentage: 33 },
-    { model: 'SUV B', sales: 12, revenue: 48000000, percentage: 27 },
-    { model: 'Hatchback C', sales: 10, revenue: 20000000, percentage: 22 },
-    { model: 'Truck D', sales: 8, revenue: 32000000, percentage: 18 }
-  ]);
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // Fetch all data in parallel
+        const [dealersRes, staffRes, vehiclesRes, promotionsRes] = await Promise.allSettled([
+          axiosInstance.get(endpoints.admin.dealers),
+          axiosInstance.get(endpoints.admin.evmStaff),
+          axiosInstance.get(endpoints.admin.vehicleModels),
+          axiosInstance.get(endpoints.admin.promotions)
+        ]);
 
-  const [recentOrders, setRecentOrders] = useState([
-    { id: '#ORD-001', customer: 'Nguyễn Văn A', model: 'Sedan A', status: 'completed', date: '2025-10-12' },
-    { id: '#ORD-002', customer: 'Trần Thị B', model: 'SUV B', status: 'pending', date: '2025-10-13' },
-    { id: '#ORD-003', customer: 'Lê Văn C', model: 'Truck D', status: 'processing', date: '2025-10-14' },
-  ]);
+        // Process dealers
+        const dealers = dealersRes.status === 'fulfilled' 
+          ? (dealersRes.value?.data?.items || dealersRes.value?.data || [])
+          : [];
+        
+        // Process staff
+        const staff = staffRes.status === 'fulfilled' 
+          ? (staffRes.value?.data?.items || staffRes.value?.data || [])
+          : [];
+        
+        // Filter EVM staff only
+        const evmStaff = staff.filter(s => s.role === 'EVM_STAFF');
+        
+        // Process vehicles
+        const vehicles = vehiclesRes.status === 'fulfilled'
+          ? (vehiclesRes.value?.data?.items || vehiclesRes.value?.data || [])
+          : [];
+        
+        // Process promotions
+        const promotions = promotionsRes.status === 'fulfilled'
+          ? (promotionsRes.value?.data?.items || promotionsRes.value?.data || [])
+          : [];
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
-  };
+        setStats({
+          totalDealers: dealers.length,
+          activeDealers: dealers.filter(d => d.isActive).length,
+          totalStaff: evmStaff.length,
+          totalVehicles: vehicles.length,
+          activeVehicles: vehicles.filter(v => v.isActive).length,
+          totalPromotions: promotions.length,
+          activePromotions: promotions.filter(p => p.isActive).length
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'canceled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+    fetchDashboardData();
+  }, []);
 
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case 'completed': return <CheckCircle size={16} />;
-      case 'pending': return <Clock size={16} />;
-      case 'processing': return <AlertCircle size={16} />;
-      case 'canceled': return <XCircle size={16} />;
-      default: return null;
-    }
-  };
+  const StatCard = ({ icon: Icon, title, value, subtitle, color, link }) => (
+    <Link 
+      to={link}
+      className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 group"
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+            <Icon size={24} className="text-white" />
+          </div>
+          <h3 className="text-sm font-medium text-gray-600 mb-1">{title}</h3>
+          <p className="text-3xl font-bold text-gray-900 mb-2">
+            {loading ? '...' : value}
+          </p>
+          {subtitle && (
+            <p className="text-sm text-gray-500">{subtitle}</p>
+          )}
+        </div>
+        <ArrowRight className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" size={20} />
+      </div>
+    </Link>
+  );
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Tổng quan hoạt động kinh doanh</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Welcome to EVM Management System</p>
+        </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Revenue Card */}
-        <div className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <DollarSign size={24} />
-            </div>
-            <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded">THÁNG</span>
-          </div>
-          <h3 className="text-sm font-medium opacity-90 mb-1">Doanh Thu</h3>
-          <p className="text-2xl font-bold">{formatCurrency(stats.monthlyRevenue)}</p>
-          <div className="flex items-center mt-3 text-xs">
-            <TrendingUp size={14} className="mr-1" />
-            <span>+12.5% so với tháng trước</span>
-          </div>
-        </div>
+        <StatCard
+          icon={Building2}
+          title="Total Dealers"
+          value={stats.totalDealers}
+          subtitle={`${stats.activeDealers} active`}
+          color="bg-gradient-to-br from-blue-500 to-blue-600"
+          link="/admin/dealers"
+        />
+        
+        <StatCard
+          icon={UserCheck}
+          title="EVM Staff"
+          value={stats.totalStaff}
+          subtitle="Team members"
+          color="bg-gradient-to-br from-green-500 to-green-600"
+          link="/admin/evm-staff"
+        />
+        
+        <StatCard
+          icon={Car}
+          title="Vehicle Models"
+          value={stats.totalVehicles}
+          subtitle={`${stats.activeVehicles} available`}
+          color="bg-gradient-to-br from-purple-500 to-purple-600"
+          link="/admin/vehiclemodels"
+        />
+        
+        <StatCard
+          icon={Tag}
+          title="Promotions"
+          value={stats.totalPromotions}
+          subtitle={`${stats.activePromotions} active`}
+          color="bg-gradient-to-br from-orange-500 to-orange-600"
+          link="/admin/promotions"
+        />
+      </div>
 
-        {/* Quarterly Sales Card */}
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <ShoppingCart size={24} className="text-blue-600" />
+      {/* Quick Actions */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link
+            to="/admin/dealers/new"
+            className="flex items-center space-x-3 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+          >
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+              <Building2 size={20} className="text-blue-600" />
             </div>
-            <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">QUÝ</span>
-          </div>
-          <h3 className="text-sm font-medium text-gray-600 mb-1">Xe Bán Ra</h3>
-          <p className="text-2xl font-bold text-gray-900">{stats.quarterlySales} xe</p>
-          <div className="flex items-center mt-3 text-xs text-green-600">
-            <TrendingUp size={14} className="mr-1" />
-            <span>+8.3% so với quý trước</span>
-          </div>
-        </div>
+            <div>
+              <p className="font-medium text-gray-900">Add Dealer</p>
+              <p className="text-xs text-gray-500">Create new dealer</p>
+            </div>
+          </Link>
 
-        {/* Inventory Card */}
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Package size={24} className="text-purple-600" />
+          <Link
+            to="/admin/evm-staff/new"
+            className="flex items-center space-x-3 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all group"
+          >
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+              <UserCheck size={20} className="text-green-600" />
             </div>
-            <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">HIỆN TẠI</span>
-          </div>
-          <h3 className="text-sm font-medium text-gray-600 mb-1">Tồn Kho</h3>
-          <p className="text-2xl font-bold text-gray-900">{stats.inventoryCount} xe</p>
-          <div className="flex items-center mt-3 text-xs text-gray-500">
-            <span>Cần nhập thêm 12 xe</span>
-          </div>
-        </div>
+            <div>
+              <p className="font-medium text-gray-900">Add Staff</p>
+              <p className="text-xs text-gray-500">Register new staff</p>
+            </div>
+          </Link>
 
-        {/* Orders Card */}
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Clock size={24} className="text-orange-600" />
+          <Link
+            to="/admin/vehiclemodels/new"
+            className="flex items-center space-x-3 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all group"
+          >
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+              <Car size={20} className="text-purple-600" />
             </div>
-            <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">ĐANG XỬ LÝ</span>
-          </div>
-          <h3 className="text-sm font-medium text-gray-600 mb-1">Đơn Chờ</h3>
-          <p className="text-2xl font-bold text-gray-900">{stats.pendingOrders} đơn</p>
-          <div className="flex items-center mt-3 text-xs text-gray-500">
-            <span>{stats.completedOrders} hoàn thành, {stats.canceledOrders} hủy</span>
-          </div>
+            <div>
+              <p className="font-medium text-gray-900">Add Vehicle</p>
+              <p className="text-xs text-gray-500">New vehicle model</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/promotions/new"
+            className="flex items-center space-x-3 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-orange-500 hover:bg-orange-50 transition-all group"
+          >
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+              <Tag size={20} className="text-orange-600" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">Add Promotion</p>
+              <p className="text-xs text-gray-500">Create promotion</p>
+            </div>
+          </Link>
         </div>
       </div>
 
-      {/* Sales by Model & Recent Orders */}
+      {/* System Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales by Model */}
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Doanh Số Theo Dòng Xe</h2>
-          <div className="space-y-4">
-            {salesByModel.map((item, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center text-white font-bold">
-                      {item.sales}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{item.model}</p>
-                      <p className="text-sm text-gray-500">{formatCurrency(item.revenue)}</p>
-                    </div>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-700">{item.percentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-teal-500 to-cyan-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${item.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Orders */}
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+        {/* Dealers Overview */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Đơn Hàng Gần Đây</h2>
-            <button className="text-sm text-teal-600 hover:text-teal-700 font-medium">
-              Xem tất cả →
-            </button>
+            <h2 className="text-lg font-bold text-gray-900">Dealers Status</h2>
+            <Link to="/admin/dealers" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              View all →
+            </Link>
           </div>
           <div className="space-y-3">
-            {recentOrders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <p className="font-semibold text-gray-900">{order.id}</p>
-                    <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                      <span className="capitalize">{order.status}</span>
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">{order.customer} - {order.model}</p>
-                  <p className="text-xs text-gray-400 mt-1">{order.date}</p>
-                </div>
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Active Dealers</span>
               </div>
-            ))}
+              <span className="text-lg font-bold text-green-700">
+                {loading ? '...' : stats.activeDealers}
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Inactive Dealers</span>
+              </div>
+              <span className="text-lg font-bold text-gray-700">
+                {loading ? '...' : stats.totalDealers - stats.activeDealers}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Order Statistics */}
-      <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Tình Trạng Đơn Hàng</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-700 font-medium mb-1">Hoàn Thành</p>
-                <p className="text-2xl font-bold text-green-900">{stats.completedOrders}</p>
-              </div>
-              <CheckCircle size={32} className="text-green-600" />
-            </div>
+        {/* Vehicles Overview */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-gray-900">Vehicles Status</h2>
+            <Link to="/admin/vehiclemodels" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              View all →
+            </Link>
           </div>
-          
-          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-yellow-700 font-medium mb-1">Đang Xử Lý</p>
-                <p className="text-2xl font-bold text-yellow-900">{stats.pendingOrders}</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Available Models</span>
               </div>
-              <Clock size={32} className="text-yellow-600" />
+              <span className="text-lg font-bold text-blue-700">
+                {loading ? '...' : stats.activeVehicles}
+              </span>
             </div>
-          </div>
-          
-          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-red-700 font-medium mb-1">Đã Hủy</p>
-                <p className="text-2xl font-bold text-red-900">{stats.canceledOrders}</p>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Inactive Models</span>
               </div>
-              <XCircle size={32} className="text-red-600" />
+              <span className="text-lg font-bold text-gray-700">
+                {loading ? '...' : stats.totalVehicles - stats.activeVehicles}
+              </span>
             </div>
           </div>
         </div>
@@ -231,5 +273,5 @@ const DashboardPage = () => {
     </div>
   );
 };
-//
+
 export default DashboardPage;

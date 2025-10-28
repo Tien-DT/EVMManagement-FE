@@ -2,69 +2,89 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  UserPlus, 
-  ChevronRight,
   Menu,
   X,
   User,
   Building2,
   Car,
   Tag,
-  UserCog
+  UserCog,
+  UserCheck,
+  Settings
 } from 'lucide-react';
 
 const AdminSidebar = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const menuItems = [
+  const menuGroups = [
     {
-      path: '/admin/dashboard',
-      icon: LayoutDashboard,
-      label: 'Dashboard'
+      title: 'Main',
+      items: [
+        {
+          path: '/admin/dashboard',
+          icon: LayoutDashboard,
+          label: 'Dashboard'
+        }
+      ]
     },
     {
-      path: '/admin/dealers',
-      icon: Building2,
-      label: 'Dealers'
+      title: 'Management',
+      items: [
+        {
+          path: '/admin/dealers',
+          icon: Building2,
+          label: 'Dealers'
+        },
+        {
+          path: '/admin/evm-staff',
+          icon: UserCheck,
+          label: 'EVM Staff'
+        },
+        {
+          path: '/admin/vehiclemodels',
+          icon: Car,
+          label: 'Vehicles'
+        },
+        {
+          path: '/admin/promotions',
+          icon: Tag,
+          label: 'Promotions'
+        }
+      ]
     },
     {
-      path: '/admin/register-dealer-manager',
-      icon: UserCog,
-      label: 'Register Dealer Manager'
+      title: 'Actions',
+      items: [
+        {
+          path: '/admin/register-dealer-manager',
+          icon: UserCog,
+          label: 'Register Manager'
+        }
+      ]
     },
     {
-      path: '/admin/vehiclemodels',
-      icon: Car,
-      label: 'Vehicle Models'
-    },
-    {
-      path: '/admin/promotions',
-      icon: Tag,
-      label: 'Promotions'
-    },
-    {
-      path: '/admin/register',
-      icon: UserPlus,
-      label: 'Register EVM Staff'
-    },
-    {
-      path: '/admin/profile',
-      icon: User,
-      label: 'Profile'
+      title: 'Settings',
+      items: [
+        {
+          path: '/admin/profile',
+          icon: User,
+          label: 'My Profile'
+        }
+      ]
     }
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   return (
     <>
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow"
       >
-        {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+        {isMobileOpen ? <X size={20} className="text-gray-700" /> : <Menu size={20} className="text-gray-700" />}
       </button>
 
       {/* Overlay for Mobile */}
@@ -78,81 +98,66 @@ const AdminSidebar = () => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-screen bg-gradient-to-b from-slate-900 to-slate-800 
-          text-white transition-transform duration-300 ease-in-out z-40
+          fixed top-0 left-0 h-screen bg-white border-r border-gray-200
+          transition-transform duration-300 ease-in-out z-40
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 lg:fixed
-          w-64 shadow-2xl overflow-y-auto
+          w-64 shadow-sm overflow-y-auto
         `}
       >
-        {/* Header */}
-        <div className="p-6 border-b border-slate-700">
+        {/* Header / Logo */}
+        <div className="p-6 border-b border-gray-100">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">PU</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-lg">EV</span>
             </div>
             <div>
-              <h2 className="text-xl font-bold">PURITY UI</h2>
-              <p className="text-xs text-slate-400">Admin Dashboard</p>
+              <h2 className="text-lg font-bold text-gray-900">EVM System</h2>
+              <p className="text-xs text-gray-500">Admin Panel</p>
             </div>
           </div>
         </div>
 
         {/* Navigation Menu */}
-        <nav className="p-4 space-y-2">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-3">
-            Account Pages
-          </p>
-          
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsMobileOpen(false)}
-                className={`
-                  flex items-center justify-between px-4 py-3 rounded-lg
-                  transition-all duration-200 group
-                  ${active 
-                    ? 'bg-gradient-to-r from-teal-500 to-cyan-500 shadow-lg shadow-teal-500/50' 
-                    : 'hover:bg-slate-700/50'
-                  }
-                `}
-              >
-                <div className="flex items-center space-x-3">
-                  <Icon 
-                    size={20} 
-                    className={active ? 'text-white' : 'text-slate-400 group-hover:text-white'}
-                  />
-                  <span className={`font-medium ${active ? 'text-white' : 'text-slate-300'}`}>
-                    {item.label}
-                  </span>
-                </div>
-                <ChevronRight 
-                  size={16} 
-                  className={`transition-transform ${active ? 'text-white' : 'text-slate-500 group-hover:text-white group-hover:translate-x-1'}`}
-                />
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Help Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <div className="bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-lg p-4 border border-teal-500/30">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-3">
-              <span className="text-2xl">💡</span>
+        <nav className="p-4 space-y-6">
+          {menuGroups.map((group) => (
+            <div key={group.title}>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
+                {group.title}
+              </p>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.path);
+                  
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileOpen(false)}
+                      className={`
+                        flex items-center space-x-3 px-3 py-2.5 rounded-lg
+                        transition-all duration-200 group
+                        ${active 
+                          ? 'bg-blue-50 text-blue-700' 
+                          : 'text-gray-700 hover:bg-gray-50'
+                        }
+                      `}
+                    >
+                      <Icon 
+                        size={20} 
+                        className={active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}
+                      />
+                      <span className={`text-sm font-medium ${active ? 'text-blue-700' : 'text-gray-700'}`}>
+                        {item.label}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-            <h3 className="text-sm font-semibold mb-2">Need help?</h3>
-            <p className="text-xs text-slate-400 mb-3">Please check our docs</p>
-            <button className="w-full py-2 px-4 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors">
-              DOCUMENTATION
-            </button>
-          </div>
-        </div>
+          ))}
+        </nav>
       </aside>
     </>
   );
