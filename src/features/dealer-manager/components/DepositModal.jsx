@@ -19,30 +19,41 @@ const DepositModal = ({ visible, order, onClose, onSuccess }) => {
   const VNPAY_MIN_AMOUNT = 10000;
 
   const handleDeposit = async () => {
+    console.log('=== handleDeposit called ===');
+    console.log('Order:', order);
+    console.log('Deposit amount:', depositAmount);
+    console.log('VNPay minimum:', VNPAY_MIN_AMOUNT);
+
     // Validate minimum amount
     if (depositAmount < VNPAY_MIN_AMOUNT) {
-      message.error(`Số tiền đặt cọc tối thiểu là ${VNPAY_MIN_AMOUNT.toLocaleString('vi-VN')} ₫. Số tiền đặt cọc hiện tại: ${depositAmount.toLocaleString('vi-VN')} ₫`);
+      const errorMsg = `Số tiền đặt cọc tối thiểu là ${VNPAY_MIN_AMOUNT.toLocaleString('vi-VN')} ₫. Số tiền đặt cọc hiện tại: ${depositAmount.toLocaleString('vi-VN')} ₫`;
+      console.error('Validation failed:', errorMsg);
+      message.error(errorMsg);
       return;
     }
 
-    console.log('Order data:', order);
-    console.log('Deposit amount:', depositAmount);
-
     setLoading(true);
     try {
-      // Call VNPay API to create payment URL
-      const response = await axiosInstance.post(endpoints.payments.vnpayCreate, {
+      const requestData = {
         orderId: order.id,
         amount: depositAmount,
         orderInfo: `Đặt cọc 10% cho đơn hàng ${order.code}`,
         isDeposit: true,
         locale: 'vn'
-      });
+      };
 
-      console.log('VNPay create payment response:', response.data);
+      console.log('Calling VNPay API with data:', requestData);
+      console.log('Endpoint:', endpoints.payments.vnpayCreate);
+
+      const response = await axiosInstance.post(endpoints.payments.vnpayCreate, requestData);
+
+      console.log('VNPay API Response:', response);
+      console.log('Response data:', response.data);
+      console.log('Response data.data:', response.data?.data);
 
       // Check if response has paymentUrl (could be in data.data or data directly)
       const paymentUrl = response.data?.data?.paymentUrl || response.data?.paymentUrl;
+      console.log('Extracted paymentUrl:', paymentUrl);
 
       if (paymentUrl) {
         message.success('Đang chuyển đến trang thanh toán VNPay...', 1);
@@ -55,11 +66,18 @@ const DepositModal = ({ visible, order, onClose, onSuccess }) => {
       } else {
         setLoading(false);
         console.error('No payment URL found in response:', response.data);
-        throw new Error('Không tìm thấy link thanh toán trong response');
+        console.error('Full response object:', JSON.stringify(response, null, 2));
+        message.error('Không tìm thấy link thanh toán trong response. Vui lòng kiểm tra console.');
       }
     } catch (error) {
-      console.error('Error creating deposit payment:', error);
-      message.error(error.response?.data?.message || error.message || 'Không thể tạo thanh toán đặt cọc');
+      console.error('=== Error creating deposit payment ===');
+      console.error('Error object:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Không thể tạo thanh toán đặt cọc';
+      message.error(errorMessage);
       setLoading(false);
     }
   };
@@ -121,6 +139,16 @@ const DepositModal = ({ visible, order, onClose, onSuccess }) => {
           </Descriptions.Item>
         </Descriptions>
 
+        {depositAmount < VNPAY_MIN_AMOUNT && (
+          <Alert
+            message="Cảnh báo"
+            description={`Số tiền đặt cọc (${depositAmount.toLocaleString('vi-VN')} ₫) nhỏ hơn mức tối thiểu của VNPay (${VNPAY_MIN_AMOUNT.toLocaleString('vi-VN')} ₫). Vui lòng kiểm tra lại tổng tiền đơn hàng trong cơ sở dữ liệu.`}
+            type="error"
+            showIcon
+            style={{ marginTop: 16 }}
+          />
+        )}
+
         <Alert
           message="Lưu ý"
           description={
@@ -128,6 +156,7 @@ const DepositModal = ({ visible, order, onClose, onSuccess }) => {
               <li>Sau khi đặt cọc thành công, đơn hàng sẽ được xác nhận</li>
               <li>Số tiền còn lại sẽ được thanh toán khi nhận xe</li>
               <li>Bạn sẽ được chuyển đến trang thanh toán VNPay Sandbox (test)</li>
+              <li style={{ color: '#ff4d4f', fontWeight: 500 }}>Lưu ý: Số tiền đặt cọc tối thiểu là {VNPAY_MIN_AMOUNT.toLocaleString('vi-VN')} ₫</li>
             </ul>
           }
           type="warning"
