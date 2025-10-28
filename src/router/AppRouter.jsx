@@ -84,9 +84,6 @@ import EvmStaffOrderRequestsPage from "../features/evm-staff/pages/EvmStaffOrder
 import EvmStaffQuotationsPage from "../features/evm-staff/pages/EvmStaffQuotationsPage";
 import EvmStaffCreateQuotationPage from "../features/evm-staff/pages/EvmStaffCreateQuotationPage";
 import EvmStaffQuotationDetailPage from "../features/evm-staff/pages/EvmStaffQuotationDetailPage";
-import EvmStaffContractsPage from "../features/evm-staff/pages/EvmStaffContractsPage";
-import EvmStaffContractDetailPage from "../features/evm-staff/pages/EvmStaffContractDetailPage";
-import EvmStaffCreateDealerContractPage from "../features/evm-staff/pages/EvmStaffCreateDealerContractPage";
 import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
 import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
 import EvmStaffOrderDetailPage from "../features/evm-staff/pages/EvmStaffOrderDetailPage";
@@ -305,11 +302,6 @@ const AppRouter = () => (
             <Route path="/evm-staff/quotations/create/:requestId" element={<EvmStaffCreateQuotationPage />} />
             <Route path="/evm-staff/quotations/edit/:id" element={<EvmStaffCreateQuotationPage />} />
             <Route path="/evm-staff/quotations/:id" element={<EvmStaffQuotationDetailPage />} />
-            
-            {/* Contract Routes */}
-            <Route path="/evm-staff/contracts" element={<EvmStaffContractsPage />} />
-            <Route path="/evm-staff/contracts/create" element={<EvmStaffCreateDealerContractPage />} />
-            <Route path="/evm-staff/contracts/:id" element={<EvmStaffContractDetailPage />} />
             
             <Route path="/evm-staff/vehicles" element={<EvmStaffVehiclesPage />} />
             
