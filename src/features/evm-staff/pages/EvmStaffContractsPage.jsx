@@ -1,340 +1,610 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  FileText, 
-  Search, 
-  Eye,
-  Plus,
-  Trash2
-} from 'lucide-react';
-import useContracts from '../hooks/useContracts';
-import { useNotification } from '../../../context/NotificationContext';
+// src/features/evm-staff/pages/EvmStaffContractsPage.jsx
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Table,
+  Button,
+  Card,
+  Space,
+  message,
+  Tag,
+  Spin,
+  Popconfirm,
+  Row,
+  Col,
+  Typography,
+  Input,
+  Select,
+} from "antd";
+import {
+  PlusOutlined,
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
+import { useAuth } from "../../../hooks/useAuth";
+import { contractService } from "../../dealer-staff/services/contractService";
+import moment from "moment";
 
 const EvmStaffContractsPage = () => {
   const navigate = useNavigate();
-  const { showSuccess, showError } = useNotification();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [contractToDelete, setContractToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  
-  const { 
-    contracts, 
-    loading, 
-    error, 
-    pagination,
-    fetchContracts,
-    deleteContract
-  } = useContracts();
-
-  // Format contract ID to readable code
-  const formatContractCode = (uuid) => {
-    if (!uuid) return 'N/A';
-    // Extract last 8 characters and convert to uppercase
-    const shortId = uuid.slice(-8).toUpperCase();
-    return `CNT-${shortId}`;
-  };
-
-  // Format quotation ID to readable code
-  const formatQuotationCode = (uuid) => {
-    if (!uuid) return 'N/A';
-    const shortId = uuid.slice(-8).toUpperCase();
-    return `QUO-${shortId}`;
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
-  };
-
-  const getStatusStyle = (status) => {
-    switch(status) {
-      case 'DRAFT': 
-        return 'bg-gray-50 text-gray-700 border border-gray-200';
-      case 'PENDING_SIGNATURE': 
-        return 'bg-amber-50 text-amber-700 border border-amber-200';
-      case 'ACTIVE': 
-        return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-      case 'CANCELED': 
-        return 'bg-slate-50 text-slate-600 border border-slate-200';
-      default: 
-        return 'bg-gray-50 text-gray-700 border border-gray-200';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch(status) {
-      case 'DRAFT': return 'Draft';
-      case 'PENDING_SIGNATURE': return 'Pending Signature';
-      case 'ACTIVE': return 'Active';
-      case 'CANCELED': return 'Canceled';
-      default: return 'Unknown';
-    }
-  };
-
-  const filteredContracts = contracts.filter(contract => {
-    const contractCode = contract.code || formatContractCode(contract.id);
-    const quotationCode = contract.quotationCode || formatQuotationCode(contract.quotationId);
-    const matchesSearch = contractCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contract.dealerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         quotationCode.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || contract.status === filterStatus;
-    return matchesSearch && matchesFilter;
+  const { user } = useAuth();
+  const [contracts, setContracts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
   });
 
-  const handleViewContract = (contractId) => {
-    navigate(`/evm-staff/contracts/${contractId}`);
-  };
+  const { Text } = Typography;
+  const { Search } = Input;
+  const { Option } = Select;
 
-  const handleDeleteClick = (contract) => {
-    setContractToDelete(contract);
-    setShowDeleteModal(true);
-  };
+  // Cấu hình status với màu sắc và icon đẹp hơn
+  const statusConfig = useMemo(
+    () => ({
+      DRAFT: {
+        color: "#6b7280",
+        bgColor: "#f3f4f6",
+        borderColor: "#d1d5db",
+        text: "Bản nháp",
+        icon: <ClockCircleOutlined />,
+      },
+      PENDING_SIGNATURE: {
+        color: "#f59e0b",
+        bgColor: "#fef3c7",
+        borderColor: "#fcd34d",
+        text: "Chờ ký",
+        icon: <ClockCircleOutlined />,
+      },
+      ACTIVE: {
+        color: "#52c41a",
+        bgColor: "#f6ffed",
+        borderColor: "#b7eb8f",
+        text: "Đã ký",
+        icon: <CheckCircleOutlined />,
+      },
+      CANCELED: {
+        color: "#ff4d4f",
+        bgColor: "#fff1f0",
+        borderColor: "#ffccc7",
+        text: "Đã hủy",
+        icon: <DeleteOutlined />,
+      },
+    }),
+    []
+  );
 
-  const handleDeleteConfirm = async () => {
-    if (!contractToDelete) return;
-    
-    setIsDeleting(true);
+  const statusFilterOptions = useMemo(
+    () => [
+      { value: "ALL", label: "Tất cả" },
+      ...Object.keys(statusConfig).map((key) => ({
+        value: key,
+        label: (
+          <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ color: statusConfig[key].color }}>
+              {React.cloneElement(statusConfig[key].icon, {
+                style: { fontSize: 14 },
+              })}
+            </span>
+            {statusConfig[key].text}
+          </span>
+        ),
+      })),
+    ],
+    [statusConfig]
+  );
+
+  useEffect(() => {
+    fetchContracts();
+  }, [pagination.current, pagination.pageSize]);
+
+  const fetchContracts = async () => {
     try {
-      await deleteContract(contractToDelete.id);
-      showSuccess('Contract deleted successfully');
-      setShowDeleteModal(false);
-      setContractToDelete(null);
+      setLoading(true);
+      const response = await contractService.getAllContracts(
+        pagination.current,
+        pagination.pageSize
+      );
+      
+      if (response && (response.success || response.data)) {
+        let items = [];
+        if (Array.isArray(response.data?.items)) {
+          items = response.data.items;
+        } else if (Array.isArray(response.data?.data)) {
+          items = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          items = response.data;
+        }
+
+        const sortedItems = [...items].sort((a, b) => {
+          const createdA = a?.createdDate ? new Date(a.createdDate).getTime() : 0;
+          const createdB = b?.createdDate ? new Date(b.createdDate).getTime() : 0;
+          return createdB - createdA;
+        });
+
+        setContracts(sortedItems);
+        setPagination((prev) => ({
+          ...prev,
+          total:
+            response.data?.totalItems ||
+            response.data?.totalCount ||
+            sortedItems.length,
+        }));
+      } else {
+        setError("Không thể tải danh sách hợp đồng");
+      }
     } catch (error) {
-      console.error('Error deleting contract:', error);
-      showError(error.response?.data?.message || 'Failed to delete contract');
+      console.error("Error fetching contracts:", error);
+      setError("Lỗi khi tải danh sách hợp đồng");
     } finally {
-      setIsDeleting(false);
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="space-y-6 p-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Dealer Contracts</h1>
-          <p className="text-sm text-gray-600 mt-1">Manage and track dealer contracts</p>
-        </div>
-        <button
-          onClick={() => navigate('/evm-staff/contracts/create')}
-          className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800 flex items-center gap-2"
+  const handleTableChange = (pagination) => {
+    setPagination({
+      ...pagination,
+    });
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await contractService.deleteContract(id);
+      if (response && (response.success || response.data)) {
+        message.success("Xóa hợp đồng thành công");
+        fetchContracts();
+      } else {
+        message.error("Không thể xóa hợp đồng");
+      }
+    } catch (error) {
+      console.error("Error deleting contract:", error);
+      message.error("Lỗi khi xóa hợp đồng");
+    }
+  };
+
+  const filteredContracts = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return contracts.filter((contract) => {
+      const matchesStatus =
+        statusFilter === "ALL" || contract.status === statusFilter;
+
+      if (!normalizedSearch) {
+        return matchesStatus;
+      }
+
+      const code = (contract.code || "").toLowerCase();
+      const customerName = (contract.customer?.fullName || "").toLowerCase();
+      const orderCode = (contract.order?.code || "").toLowerCase();
+
+      const matchesSearch =
+        code.includes(normalizedSearch) ||
+        customerName.includes(normalizedSearch) ||
+        orderCode.includes(normalizedSearch);
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [contracts, statusFilter, searchTerm]);
+
+  const columns = [
+    {
+      title: "Mã hợp đồng",
+      dataIndex: "code",
+      key: "code",
+      width: 130,
+      fixed: "left",
+      render: (text) => (
+        <span
+          style={{
+            fontWeight: 600,
+            color: "#1890ff",
+            fontSize: "13px",
+          }}
         >
-          <Plus size={16} />
-          New Contract
-        </button>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-white p-4 border border-gray-200 rounded-md">
-          <p className="text-xs text-gray-600 mb-1">Total</p>
-          <p className="text-2xl font-semibold text-gray-900">{contracts.length}</p>
-        </div>
-        <div className="bg-white p-4 border border-gray-200 rounded-md">
-          <p className="text-xs text-gray-600 mb-1">Pending</p>
-          <p className="text-2xl font-semibold text-gray-900">
-            {contracts.filter(c => c.status === 'PENDING_SIGNATURE').length}
-          </p>
-        </div>
-        <div className="bg-white p-4 border border-gray-200 rounded-md">
-          <p className="text-xs text-gray-600 mb-1">Active</p>
-          <p className="text-2xl font-semibold text-gray-900">
-            {contracts.filter(c => c.status === 'ACTIVE').length}
-          </p>
-        </div>
-        <div className="bg-white p-4 border border-gray-200 rounded-md">
-          <p className="text-xs text-gray-600 mb-1">Canceled</p>
-          <p className="text-2xl font-semibold text-gray-900">
-            {contracts.filter(c => c.status === 'CANCELED').length}
-          </p>
-        </div>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="bg-white p-4 border border-gray-200 rounded-md">
-        <div className="flex gap-3">
-          <div className="flex-1 relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
+          {text || "N/A"}
+        </span>
+      ),
+    },
+    {
+      title: "Mã đơn hàng",
+      key: "orderCode",
+      width: 130,
+      ellipsis: true,
+      render: (_, record) => (
+        <span style={{ fontWeight: 500 }}>
+          {record.order?.code || record.orderId || "N/A"}
+        </span>
+      ),
+    },
+    {
+      title: "Khách hàng",
+      key: "customer",
+      width: 170,
+      ellipsis: true,
+      render: (_, record) => (
+        <span style={{ fontWeight: 500 }}>
+          {record.customer?.fullName || record.customerId || "N/A"}
+        </span>
+      ),
+    },
+    {
+      title: "Thành tiền",
+      key: "finalAmount",
+      width: 130,
+      align: "right",
+      render: (_, record) => (
+        <span
+          style={{
+            fontWeight: 700,
+            color: "#52c41a",
+            fontSize: "13px",
+          }}
+        >
+          {record.order?.finalAmount
+            ? `${record.order.finalAmount.toLocaleString()} ₫`
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      width: 160,
+      render: (status) => {
+        const config = statusConfig[status] || statusConfig.DRAFT;
+        return (
+          <Tag
+            color={config.color}
+            style={{
+              padding: "4px 8px",
+              fontWeight: 500,
+              fontSize: "12px",
+            }}
+          >
+            {config.text}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Ngày ký",
+      dataIndex: "signedAt",
+      key: "signedAt",
+      width: 110,
+      align: "center",
+      render: (date) => (
+        <span style={{ fontSize: "13px" }}>
+          {date ? moment(date).format("DD/MM/YYYY") : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Thao tác",
+      key: "actions",
+      width: 180,
+      fixed: "right",
+      render: (_, record) => (
+        <Space size="small" style={{ justifyContent: "flex-end" }}>
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/evm-staff/contracts/${record.id}`)}
+            size="small"
+            title="Xem chi tiết"
+            style={{
+              color: "#1890ff",
+              padding: "4px 8px",
+            }}
+          />
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/evm-staff/contracts/edit/${record.id}`)}
+            size="small"
+            title="Chỉnh sửa"
+            style={{
+              color: "#52c41a",
+              padding: "4px 8px",
+            }}
+          />
+          <Popconfirm
+            title="Xác nhận xóa"
+            description="Bạn có chắc chắn muốn xóa hợp đồng này?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+          >
+            <Button
               type="text"
-              placeholder="Search by code or dealer name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+              title="Xóa"
+              style={{ padding: "4px 8px" }}
+            />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  if (loading && contracts.length === 0) {
+    return (
+      <Card>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <Spin size="large" />
+          <p style={{ marginTop: "16px" }}>Đang tải danh sách hợp đồng...</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p style={{ color: "#ff4d4f", fontSize: "16px" }}>Lỗi: {error}</p>
+          <Button
+            type="primary"
+            onClick={fetchContracts}
+            style={{ marginTop: "16px" }}
+          >
+            Thử lại
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  const pageStyles = `
+    .contracts-page {
+      min-height: 100%;
+      padding: 32px 32px 48px;
+      background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%);
+    }
+
+    .contracts-hero-card {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: linear-gradient(135deg, rgba(24, 144, 255, 0.12), rgba(82, 196, 26, 0.1));
+      border-radius: 18px;
+      padding: 28px 32px;
+      box-shadow: 0 20px 45px rgba(24, 144, 255, 0.12);
+      margin-bottom: 28px;
+    }
+
+    @media (min-width: 768px) {
+      .contracts-hero-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .contracts-hero-card__title {
+      margin-bottom: 4px !important;
+    }
+
+    .contracts-hero-card__subtitle {
+      color: #4b5563;
+      font-size: 14px;
+    }
+
+    .contracts-hero-card__cta {
+      border-radius: 999px;
+      height: 46px;
+      padding: 0 28px;
+      font-weight: 600;
+      box-shadow: 0 16px 28px rgba(24, 144, 255, 0.25);
+    }
+
+    .contracts-card {
+      border-radius: 20px !important;
+      border: none !important;
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+    }
+
+    .contracts-card__toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .contracts-card__toolbar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .contracts-card__toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .contracts-card__count {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .contracts-card__search {
+      max-width: 280px;
+      flex: 1 1 auto;
+    }
+
+    .table-row-light {
+      background-color: #f9fbff;
+    }
+
+    .table-row-dark {
+      background-color: #ffffff;
+    }
+
+    :global(.contracts-card .ant-card-body) {
+      padding: 24px !important;
+    }
+
+    :global(.contracts-card .ant-table) {
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    :global(.contracts-card .ant-table-thead > tr > th) {
+      background-color: #f1f5f9 !important;
+      font-weight: 600 !important;
+      color: #1f2937 !important;
+    }
+
+    :global(.contracts-card .ant-table-tbody > tr > td) {
+      border-bottom: 1px solid #eef2f7;
+    }
+
+    :global(.contracts-card .ant-table-tbody > tr:hover > td) {
+      background: #ecf3ff !important;
+    }
+
+    :global(.contracts-card .ant-table-pagination) {
+      margin-top: 24px !important;
+    }
+
+    :global(.contracts-card__toolbar-right .ant-input-search .ant-input) {
+      border-radius: 999px 0 0 999px;
+    }
+
+    :global(.contracts-card__toolbar-right .ant-input-search .ant-input-search-button) {
+      border-radius: 0 999px 999px 0;
+    }
+
+    :global(.contracts-card__toolbar-right .ant-select-selector) {
+      border-radius: 999px !important;
+      background: #f8fafc !important;
+    }
+
+    :global(.contracts-card .ant-select-dropdown) {
+      border-radius: 12px;
+    }
+
+    :global(.contracts-card .ant-select-item-option-active) {
+      background-color: #f5f7ff !important;
+    }
+  `;
+
+  const { Title } = Typography;
+
+  return (
+    <div className="contracts-page">
+      <div className="contracts-hero-card">
+        <div>
+          <Title level={3} className="contracts-hero-card__title">
+            Quản lý hợp đồng
+          </Title>
+          <Text className="contracts-hero-card__subtitle">
+            Theo dõi và quản lý tất cả các hợp đồng kinh doanh với khách hàng.
+          </Text>
+        </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          size="large"
+          className="contracts-hero-card__cta"
+          onClick={() => navigate("/evm-staff/contracts/create")}
+        >
+          Tạo hợp đồng mới
+        </Button>
+      </div>
+
+      <Card className="contracts-card" bordered={false}>
+        <div className="contracts-card__toolbar">
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <Text type="secondary" className="contracts-card__count">
+              Hiển thị {filteredContracts.length} / {contracts.length} hợp đồng
+            </Text>
+          </div>
+
+          <div className="contracts-card__toolbar-right">
+            <Select
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value)}
+              className="contracts-card__type-filter"
+              style={{ minWidth: "170px" }}
+              size="middle"
+            >
+              {statusFilterOptions.map((option) => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+            <Search
+              allowClear
+              placeholder="Tìm kiếm theo mã, đơn hàng hoặc khách hàng"
+              className="contracts-card__search"
+              onChange={(event) => setSearchTerm(event.target.value)}
+              onSearch={(value) => setSearchTerm(value)}
+              enterButton
             />
           </div>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
-          >
-            <option value="all">All Status</option>
-            <option value="DRAFT">Draft</option>
-            <option value="PENDING_SIGNATURE">Pending</option>
-            <option value="ACTIVE">Active</option>
-            <option value="CANCELED">Canceled</option>
-          </select>
         </div>
-      </div>
 
-      {/* Contracts Table */}
-      <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-900 border-t-transparent"></div>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full table-fixed">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="w-36 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Contract Code</th>
-                  <th className="w-56 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Dealer</th>
-                  <th className="w-36 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Quotation</th>
-                  <th className="w-40 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Value</th>
-                  <th className="w-32 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
-                  <th className="w-36 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Created</th>
-                  <th className="w-48 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {filteredContracts.map((contract) => (
-                  <tr key={contract.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4 align-middle text-center">
-                      <span className="text-sm font-mono font-medium text-gray-900">
-                        {contract.code || formatContractCode(contract.id)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 align-middle">
-                      <div className="flex flex-col items-center">
-                        <span className="text-sm font-medium text-gray-900 truncate w-full text-center">
-                          {contract.dealerName || contract.dealer?.name || 'N/A'}
-                        </span>
-                        {(contract.dealerEmail || contract.dealer?.email) && (
-                          <span className="text-xs text-gray-500 truncate w-full text-center">
-                            {contract.dealerEmail || contract.dealer?.email}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 align-middle text-center">
-                      <span className="text-sm font-mono text-gray-700">
-                        {contract.quotationCode || formatQuotationCode(contract.quotationId)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 align-middle text-center">
-                      <span className="text-sm font-semibold text-gray-900">
-                        {formatCurrency(contract.totalValue)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 align-middle">
-                      <div className="flex justify-center">
-                        <span className={`inline-block px-2.5 py-1 text-xs font-medium rounded whitespace-nowrap ${getStatusStyle(contract.status)}`}>
-                          {getStatusText(contract.status)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 align-middle text-center">
-                      <span className="text-sm text-gray-600">
-                        {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        }) : 'Invalid Date'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 align-middle">
-                      <div className="flex items-center justify-center gap-2">
-                        <button 
-                          onClick={() => handleViewContract(contract.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-                        >
-                          <Eye size={14} />
-                          View
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteClick(contract)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                        >
-                          <Trash2 size={14} />
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Empty State */}
-      {!loading && filteredContracts.length === 0 && (
-        <div className="bg-white border border-gray-200 rounded-md py-12">
-          <div className="text-center">
-            <FileText size={40} className="mx-auto text-gray-300 mb-3" />
-            <h3 className="text-sm font-medium text-gray-900 mb-1">No contracts found</h3>
-            <p className="text-xs text-gray-500">Try adjusting your search or filter</p>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && contractToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-100 rounded-full">
-                <Trash2 size={20} className="text-red-600" />
+        <Table
+          columns={columns}
+          dataSource={filteredContracts}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 1300 }}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: false,
+            onChange: (page, pageSize) => {
+              setPagination({
+                current: page,
+                pageSize,
+                total: pagination.total,
+              });
+            },
+            showTotal: (total) => (
+              <span style={{ fontWeight: 500 }}>
+                Tổng <span style={{ color: "#1890ff" }}>{total}</span> hợp
+                đồng
+              </span>
+            ),
+            style: { marginTop: "16px" },
+          }}
+          locale={{
+            emptyText: (
+              <div style={{ padding: "40px", textAlign: "center" }}>
+                <p style={{ fontSize: "16px", color: "#999" }}>
+                  Không có dữ liệu hợp đồng
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Delete Contract</h3>
-            </div>
-            
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete contract{' '}
-              <strong className="font-mono">{contractToDelete.code || formatContractCode(contractToDelete.id)}</strong>
-              {contractToDelete.dealerName && (
-                <> for <strong>{contractToDelete.dealerName}</strong></>
-              )}? This action cannot be undone.
-            </p>
+            ),
+          }}
+          size="middle"
+          rowClassName={(record, index) =>
+            index % 2 === 0 ? "table-row-light" : "table-row-dark"
+          }
+        />
+      </Card>
 
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setContractToDelete(null);
-                }}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                {isDeleting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={16} />
-                    Delete Contract
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <style jsx>{pageStyles}</style>
     </div>
   );
 };

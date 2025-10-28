@@ -6,6 +6,7 @@ import { FileTextOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../api/axiosInstance';
 import endpoints from '../../../api/endpoints';
 import { useAuth } from '../../../hooks/useAuth';
+import userProfileService from '../../../services/userProfileService';
 
 const { TextArea } = Input;
 
@@ -27,10 +28,53 @@ const CreateContractModal = ({ visible, onClose, order, quotation, onSuccess }) 
         return;
       }
 
-      // Get createdByUserId
-      const createdByUserId = user?.userProfileId || user?.id;
+      // Get createdByUserId (UserProfile ID, NOT account ID)
+      let createdByUserId = user?.userProfileId; // Try to get from cached user object
+      
+      // If not available, fetch from API using account ID
       if (!createdByUserId) {
-        message.error('Không tìm thấy thông tin người tạo');
+        console.log('⚠️ userProfileId not in user object, fetching from API...');
+        try {
+          const accountId = user?.id; // Account ID
+          if (!accountId) {
+            message.error('Không tìm thấy thông tin tài khoản');
+            setLoading(false);
+            return;
+          }
+
+          const profileResponse = await userProfileService.getByAccount(accountId);
+          
+          if (profileResponse && (profileResponse.success || profileResponse.data)) {
+            const profileData = profileResponse.data;
+            createdByUserId = profileData.id; // UserProfile ID
+            console.log('✅ Fetched userProfileId from API:', createdByUserId);
+            
+            // Cache it for next time
+            localStorage.setItem('userProfile', JSON.stringify(profileData));
+          } else {
+            message.error('Không thể lấy thông tin UserProfile');
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('❌ Error fetching user profile:', error);
+          message.error('Lỗi khi lấy thông tin UserProfile');
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (!createdByUserId) {
+        message.error('Không tìm thấy thông tin UserProfile ID');
+        setLoading(false);
+        return;
+      }
+
+      // Get dealerId from order (dealer company ID, not user ID)
+      const dealerId = order.dealerId;
+
+      if (!dealerId) {
+        message.error('Không tìm thấy thông tin dealer trong đơn hàng');
         setLoading(false);
         return;
       }
@@ -38,13 +82,21 @@ const CreateContractModal = ({ visible, onClose, order, quotation, onSuccess }) 
       const contractData = {
         code: values.code || `CONTRACT-${Date.now().toString().slice(-8)}`,
         orderId: order.id,
-        createdByUserId: createdByUserId,
+        dealerId: dealerId, // ID của dealer (company) - from order
+        createdByUserId: createdByUserId, // ID của EVM staff tạo contract
+        contractType: 'B2B', // Mặc định B2B (Business to Business)
         terms: values.terms || '',
         status: 'PENDING_SIGNATURE',
-        // customerId, signedAt, contractLink will be null/empty as per requirement
+        // customerId, signedByUserId, signedAt, contractLink are nullable - skip them
       };
 
       console.log('📝 Creating contract with data:', contractData);
+      console.log('   - orderId:', order.id);
+      console.log('   - dealerId (dealer company):', dealerId);
+      console.log('   - createdByUserId (UserProfile ID):', createdByUserId);
+      console.log('   - contractType:', 'B2B');
+      console.log('   - user.id (account ID):', user?.id);
+      console.log('   - user.userProfileId (cached):', user?.userProfileId);
 
       const response = await axiosInstance.post(endpoints.contracts.create, contractData);
 
