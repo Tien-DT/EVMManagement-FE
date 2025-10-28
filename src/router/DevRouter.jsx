@@ -10,7 +10,6 @@ import {
 
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
-import DealerLayout from "../layouts/DealerLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";

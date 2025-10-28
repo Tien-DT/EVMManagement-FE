@@ -23,6 +23,7 @@ import {
   ShoppingCart
 } from 'lucide-react';
 import useQuotations from '../hooks/useQuotations';
+import useQuotationDetails from '../hooks/useQuotationDetails';
 import { useNotification } from '../../../context/NotificationContext';
 
 const EvmStaffQuotationDetailPage = () => {
@@ -30,24 +31,44 @@ const EvmStaffQuotationDetailPage = () => {
   const { id } = useParams();
   const { showSuccess, showError } = useNotification();
   const { getQuotationById, deleteQuotation } = useQuotations();
+  const { fetchQuotationDetailsByQuotationId } = useQuotationDetails();
   
   const [quotation, setQuotation] = useState(null);
+  const [quotationDetails, setQuotationDetails] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadQuotation = async () => {
+    const loadQuotationData = async () => {
       setLoading(true);
       try {
-        const data = await getQuotationById(id);
-        setQuotation(data);
+        console.log('📋 [QUOTATION] Loading quotation:', id);
+        
+        // Fetch quotation
+        const quotationResponse = await getQuotationById(id);
+        console.log('📋 [QUOTATION] Response:', quotationResponse);
+        
+        // Handle different response structures
+        const quotationData = quotationResponse?.data || quotationResponse;
+        setQuotation(quotationData);
+        
+        // Fetch quotation details
+        const detailsResponse = await fetchQuotationDetailsByQuotationId(id);
+        console.log('📋 [QUOTATION DETAILS] Response:', detailsResponse);
+        
+        // Handle different response structures
+        const detailsData = detailsResponse?.data?.items || detailsResponse?.items || detailsResponse || [];
+        console.log('📋 [QUOTATION DETAILS] Processed:', detailsData);
+        setQuotationDetails(detailsData);
+        
       } catch (error) {
+        console.error('❌ [QUOTATION] Error:', error);
         showError('Không thể tải thông tin báo giá');
       } finally {
         setLoading(false);
       }
     };
-    loadQuotation();
-  }, [id, getQuotationById, showError]);
+    loadQuotationData();
+  }, [id, getQuotationById, fetchQuotationDetailsByQuotationId, showError]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -248,70 +269,103 @@ const EvmStaffQuotationDetailPage = () => {
           </div>
         </div>
 
-        {/* Vehicle Info */}
+        {/* Quotation Details Items */}
         <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-100 p-8 animate-scaleIn hover:shadow-2xl transition-all duration-300">
           <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Car size={24} className="text-white" />
+              <ShoppingCart size={24} className="text-white" />
             </div>
-            Thông tin xe
+            Danh sách xe
+            {quotationDetails.length > 0 && (
+              <span className="ml-auto text-sm font-medium text-gray-500">
+                ({quotationDetails.length} sản phẩm)
+              </span>
+            )}
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-5 bg-emerald-50 rounded-xl">
-              <Car size={20} className="text-emerald-600" />
-              <div>
-                <p className="text-xs font-medium text-gray-500">Mẫu xe</p>
-                <p className="text-sm font-bold text-gray-900">{quotation.vehicleModel}</p>
-              </div>
+          
+          {quotationDetails && quotationDetails.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b-2 border-emerald-200">
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">STT</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Xe</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase">Số lượng</th>
+                    <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 uppercase">Đơn giá</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase">Giảm giá</th>
+                    <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 uppercase">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {quotationDetails.map((detail, index) => {
+                    const subtotal = (detail.unitPrice || 0) * (detail.quantity || 0);
+                    const discount = subtotal * ((detail.discountPercent || 0) / 100);
+                    const total = subtotal - discount;
+                    
+                    return (
+                      <tr key={detail.id || index} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-4 text-sm text-gray-900 font-medium">{index + 1}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
+                              <Car size={20} className="text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{detail.vehicleVariantName || 'N/A'}</p>
+                              {detail.note && (
+                                <p className="text-xs text-gray-500">{detail.note}</p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className="inline-flex items-center justify-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-bold">
+                            {detail.quantity || 0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-right text-sm font-medium text-gray-900">
+                          {formatCurrency(detail.unitPrice || 0)}
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className="inline-flex items-center justify-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">
+                            {detail.discountPercent || 0}%
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-right text-sm font-bold text-emerald-600">
+                          {formatCurrency(total)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center gap-3 p-5 bg-teal-50 rounded-xl">
-              <ShoppingCart size={20} className="text-teal-600" />
-              <div>
-                <p className="text-xs font-medium text-gray-500">Phiên bản</p>
-                <p className="text-sm font-bold text-gray-900">{quotation.vehicleVariant}</p>
-              </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <Package size={48} className="mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">Không có chi tiết báo giá</p>
+              <p className="text-sm">Chưa có sản phẩm nào trong báo giá này</p>
             </div>
-            <div className="flex items-center gap-3 p-5 bg-blue-50 rounded-xl">
-              <Package size={20} className="text-blue-600" />
-              <div>
-                <p className="text-xs font-medium text-gray-500">Số lượng</p>
-                <p className="text-sm font-bold text-gray-900">{quotation.quantity}</p>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Pricing */}
+        {/* Pricing Summary */}
         <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl shadow-xl border-2 border-emerald-200 p-8 animate-scaleIn">
           <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
               <DollarSign size={24} className="text-white" />
             </div>
-            Chi tiết giá
+            Tổng quan thanh toán
           </h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center p-4 bg-white rounded-xl">
-              <span className="text-gray-700 font-medium">Đơn giá:</span>
-              <span className="font-bold text-gray-900">{formatCurrency(quotation.unitPrice || 0)}</span>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-white rounded-xl">
-              <span className="text-gray-700 font-medium">Số lượng:</span>
-              <span className="font-bold text-gray-900">{quotation.quantity}</span>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-white rounded-xl">
-              <span className="text-gray-700 font-medium">Tổng tiền:</span>
-              <span className="font-bold text-gray-900">{formatCurrency(quotation.totalPrice || 0)}</span>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-red-50 rounded-xl border-2 border-red-200">
-              <span className="text-red-700 font-medium">Giảm giá ({quotation.discount || 0}%):</span>
-              <span className="font-bold text-red-600">
-                -{formatCurrency((quotation.totalPrice || 0) * (quotation.discount || 0) / 100)}
-              </span>
+              <span className="text-gray-700 font-medium">Tổng giá trị:</span>
+              <span className="font-bold text-gray-900">{formatCurrency(quotation.totalValue || 0)}</span>
             </div>
             <div className="flex justify-between items-center p-6 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-lg">
               <span className="text-xl font-bold text-white">Thành tiền:</span>
               <span className="text-2xl font-black text-white">
-                {formatCurrency(quotation.finalPrice || 0)}
+                {formatCurrency(quotation.totalValue || 0)}
               </span>
             </div>
             <div className="flex justify-between items-center p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
@@ -330,32 +384,21 @@ const EvmStaffQuotationDetailPage = () => {
         </div>
 
         {/* Additional Info */}
-        {(quotation.notes || quotation.terms) && (
+        {quotation.note && (
           <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-100 p-8 animate-scaleIn">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
                 <FileText size={24} className="text-white" />
               </div>
-              Thông tin bổ sung
+              Ghi chú
             </h3>
-            {quotation.notes && (
-              <div className="mb-5 p-5 bg-yellow-50 rounded-xl border-2 border-yellow-200">
-                <p className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <AlertCircle size={16} className="text-yellow-600" />
-                  Ghi chú:
-                </p>
-                <p className="text-gray-900 whitespace-pre-wrap">{quotation.notes}</p>
-              </div>
-            )}
-            {quotation.terms && (
-              <div className="p-5 bg-purple-50 rounded-xl border-2 border-purple-200">
-                <p className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <FileText size={16} className="text-purple-600" />
-                  Điều khoản:
-                </p>
-                <p className="text-gray-900 whitespace-pre-wrap">{quotation.terms}</p>
-              </div>
-            )}
+            <div className="p-5 bg-yellow-50 rounded-xl border-2 border-yellow-200">
+              <p className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <AlertCircle size={16} className="text-yellow-600" />
+                Thông tin bổ sung:
+              </p>
+              <p className="text-gray-900 whitespace-pre-wrap">{quotation.note}</p>
+            </div>
           </div>
         )}
       </div>
