@@ -11,11 +11,16 @@ import {
   Calendar,
   FileText,
   Trash2,
-  Edit
+  Edit,
+  FileSignature
 } from 'lucide-react';
 import HandoverRecordForm from '../components/HandoverRecordForm';
 import useHandoverRecords from '../hooks/useHandoverRecords';
 import { useNotification } from '../../../context/NotificationContext';
+import DigitalSignatureModal from '../components/DigitalSignatureModal';
+import useDigitalSignature from '../hooks/useDigitalSignature';
+import orderService from '../services/orderService';
+import vehicleService from '../../vehicle/services/vehicleService';
 
 const HandoverRecordDetailPage = () => {
   const { id } = useParams();
@@ -26,6 +31,12 @@ const HandoverRecordDetailPage = () => {
   const [record, setRecord] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(true);
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [isSigned, setIsSigned] = useState(false);
+  const [orderInfo, setOrderInfo] = useState(null);
+  const [vehicleInfo, setVehicleInfo] = useState(null);
+  
+  const { checkIfSigned } = useDigitalSignature();
 
   useEffect(() => {
     const fetchRecord = async () => {
@@ -34,6 +45,33 @@ const HandoverRecordDetailPage = () => {
         const data = await getRecordById(id);
         console.log('Fetched record data:', data);
         setRecord(data);
+        
+        // Kiểm tra xem handover record đã được ký chưa
+        const signed = await checkIfSigned('HandoverRecord', id);
+        setIsSigned(signed);
+
+        // Fetch order and vehicle info
+        if (data.orderId) {
+          try {
+            const orderRes = await orderService.getOrderById(data.orderId);
+            const orderData = orderRes.data || orderRes;
+            setOrderInfo(orderData);
+            console.log('✅ Order info loaded:', orderData);
+          } catch (error) {
+            console.error('❌ Error fetching order info:', error);
+          }
+        }
+
+        if (data.vehicleId) {
+          try {
+            const vehicleRes = await vehicleService.getById(data.vehicleId);
+            const vehicleData = vehicleRes.data || vehicleRes;
+            setVehicleInfo(vehicleData);
+            console.log('✅ Vehicle info loaded:', vehicleData);
+          } catch (error) {
+            console.error('❌ Error fetching vehicle info:', error);
+          }
+        }
       } catch (error) {
         console.error('Error fetching record:', error);
         showError('Error occurred while loading handover information');
@@ -44,7 +82,13 @@ const HandoverRecordDetailPage = () => {
     };
 
     fetchRecord();
-  }, [id]);
+  }, [id, checkIfSigned]);
+
+  const handleSignatureSuccess = async () => {
+    showSuccess('Handover record signed successfully!');
+    setIsSigned(true);
+    setShowSignatureModal(false);
+  };
 
   const handleUpdate = async (data) => {
     try {
@@ -137,6 +181,21 @@ const HandoverRecordDetailPage = () => {
             </div>
             {!isEditMode && (
               <div className="flex gap-3">
+                {!isSigned && (
+                  <button
+                    onClick={() => setShowSignatureModal(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+                  >
+                    <FileSignature size={18} />
+                    Sign Document
+                  </button>
+                )}
+                {isSigned && (
+                  <span className="px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-xl font-semibold border border-green-200 flex items-center gap-2">
+                    <CheckCircle size={18} />
+                    Signed
+                  </span>
+                )}
                 <button
                   onClick={() => setIsEditMode(true)}
                   className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
@@ -206,9 +265,12 @@ const HandoverRecordDetailPage = () => {
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center shadow-md">
                       <Package size={18} className="text-white" />
                     </div>
-                    <span className="text-sm font-semibold text-blue-600 uppercase">Order ID</span>
+                    <span className="text-sm font-semibold text-blue-600 uppercase">Order</span>
                   </div>
-                  <p className="text-lg font-bold text-gray-900 ml-13">{record.orderId}</p>
+                  <p className="text-lg font-bold text-gray-900">{orderInfo?.code || 'N/A'}</p>
+                  {orderInfo?.vehicleModel && (
+                    <p className="text-sm text-gray-600 mt-1">{orderInfo.vehicleModel}</p>
+                  )}
                 </div>
 
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
@@ -216,9 +278,12 @@ const HandoverRecordDetailPage = () => {
                     <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center shadow-md">
                       <Car size={18} className="text-white" />
                     </div>
-                    <span className="text-sm font-semibold text-purple-600 uppercase">Vehicle ID</span>
+                    <span className="text-sm font-semibold text-purple-600 uppercase">Vehicle</span>
                   </div>
-                  <p className="text-lg font-bold text-gray-900 ml-13">{record.vehicleId}</p>
+                  <p className="text-lg font-bold text-gray-900">{vehicleInfo?.name || vehicleInfo?.modelName || 'N/A'}</p>
+                  {vehicleInfo?.modelName && vehicleInfo?.name !== vehicleInfo?.modelName && (
+                    <p className="text-sm text-gray-600 mt-1">{vehicleInfo.modelName}</p>
+                  )}
                 </div>
 
                 <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-200 md:col-span-2">
@@ -271,6 +336,19 @@ const HandoverRecordDetailPage = () => {
           </>
         )}
       </div>
+
+      {/* Digital Signature Modal */}
+      {record && showSignatureModal && (
+        <DigitalSignatureModal
+          visible={showSignatureModal}
+          onClose={() => setShowSignatureModal(false)}
+          onSuccess={handleSignatureSuccess}
+          documentType="HandoverRecord"
+          documentId={id}
+          signerEmail={sessionStorage.getItem('userEmail') || 'staff@evm.com'}
+          documentName={`Handover Record ${record.id?.slice(-8).toUpperCase()}`}
+        />
+      )}
     </div>
   );
 };

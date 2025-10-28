@@ -38,15 +38,26 @@ const handoverRecordService = {
   // Create new handover record
   createHandoverRecord: async (data) => {
     try {
-      console.log('Service: Creating handover record with data:', data);
+      console.log('📤 Service: Creating handover record with data:', data);
+      console.log('📤 Service: Data formatted:', JSON.stringify(data, null, 2));
+      console.log('📤 Service: Field types:', {
+        orderId: typeof data.orderId,
+        vehicleId: typeof data.vehicleId,
+        transportDetailId: typeof data.transportDetailId,
+        handoverDate: typeof data.handoverDate,
+        notes: typeof data.notes
+      });
+      
       // axiosInstance already returns response.data (ApiResponse wrapper)
       const apiResponse = await axiosInstance.post(endpoints.handoverRecords.create, data);
-      console.log('Service: API Response:', apiResponse);
+      console.log('✅ Service: API Response:', apiResponse);
       
       // Extract data from ApiResponse<HandoverRecordResponseDto>
       return apiResponse.data || apiResponse;
     } catch (error) {
-      console.error('Service: Error creating handover record:', error);
+      console.error('❌ Service: Error creating handover record:', error);
+      console.error('❌ Service: Error response:', error.response);
+      console.error('❌ Service: Error data:', error.response?.data);
       throw error;
     }
   },

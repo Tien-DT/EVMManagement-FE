@@ -1,145 +1,154 @@
-// src/layouts/Sidebar/EVMStaffSidebar.jsx
-import React from "react";
-import { NavLink } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import {
-  LayoutDashboard,
-  Car,
-  ShoppingCart,
-  Users,
-  Settings,
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Menu,
+  X,
   FileText,
+  ShoppingCart,
+  Car,
   Truck,
-  Receipt,
-} from "lucide-react";
+  Settings
+} from 'lucide-react';
 
-const EVMStaffSidebar = ({ collapsed, setCollapsed }) => {
-  const { user } = useAuth();
-  
-  const menuItems = [
+const EvmStaffSidebar = () => {
+  const location = useLocation();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const menuGroups = [
     {
-      name: "Dashboard",
-      path: "/evm-staff/dashboard",
-      icon: <LayoutDashboard size={20} />,
+      title: 'Main',
+      items: [
+        {
+          path: '/evm-staff/dashboard',
+          icon: LayoutDashboard,
+          label: 'Dashboard'
+        }
+      ]
     },
     {
-      name: "Quotations",
-      path: "/evm-staff/quotations",
-      icon: <Receipt size={20} />,
+      title: 'Management',
+      items: [
+        {
+          path: '/evm-staff/quotations',
+          icon: FileText,
+          label: 'Quotations'
+        },
+        {
+          path: '/evm-staff/orders',
+          icon: ShoppingCart,
+          label: 'Orders'
+        },
+        {
+          path: '/evm-staff/vehicles',
+          icon: Car,
+          label: 'Vehicles'
+        },
+        {
+          path: '/evm-staff/handover-records',
+          icon: Truck,
+          label: 'Handover Records'
+        }
+      ]
     },
     {
-      name: "Order Requests",
-      path: "/evm-staff/order-requests",
-      icon: <ShoppingCart size={20} />,
-    },
-    {
-      name: "Contracts",
-      path: "/evm-staff/contracts",
-      icon: <FileText size={20} />,
-    },
-    {
-      name: "Vehicles",
-      path: "/evm-staff/vehicles",
-      icon: <Car size={20} />,
-    },
-    {
-      name: "Orders",
-      path: "/evm-staff/orders",
-      icon: <ShoppingCart size={20} />,
-    },
-    {
-      name: "Transports",
-      path: "/evm-staff/transports",
-      icon: <Truck size={20} />,
-    },
-    {
-      name: "Handover Records",
-      path: "/evm-staff/handover-records",
-      icon: <Receipt size={20} />,
-    },
+      title: 'Settings',
+      items: [
+        {
+          path: '/evm-staff/profile',
+          icon: Settings,
+          label: 'My Profile'
+        }
+      ]
+    }
   ];
 
-  return (
-    <div
-      className={`bg-gray-800 text-white h-full transition-all duration-300 ${
-        collapsed ? "w-20" : "w-64"
-      }`}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        {!collapsed && (
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">EVM</span>
-            </div>
-            <h2 className="ml-3 text-lg font-semibold">EVM Staff</h2>
-          </div>
-        )}
-        {collapsed && (
-          <div className="w-full flex justify-center">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">E</span>
-            </div>
-          </div>
-        )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-400 hover:text-white focus:outline-none"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            {collapsed ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 5l7 7-7 7M5 5l7 7-7 7"
-              />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-              />
-            )}
-          </svg>
-        </button>
-      </div>
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
-      <div className="py-4">
-        <div className="px-4 py-2">
-          {!collapsed && (
-            <div className="text-xs uppercase text-gray-400 tracking-wider">
-              MAIN MENU
+  return (
+    <>
+      {/* Mobile Toggle Button */}
+      <button
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow"
+      >
+        {isMobileOpen ? <X size={20} className="text-gray-700" /> : <Menu size={20} className="text-gray-700" />}
+      </button>
+
+      {/* Overlay for Mobile */}
+      {isMobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-screen bg-white border-r border-gray-200
+          transition-transform duration-300 ease-in-out z-40
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:fixed
+          w-64 shadow-sm overflow-y-auto
+        `}
+      >
+        {/* Header / Logo */}
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-lg">EV</span>
             </div>
-          )}
-          <nav className="mt-2">
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-3 transition-colors ${
-                    isActive
-                      ? "bg-emerald-500 text-white"
-                      : "text-gray-300 hover:bg-gray-700"
-                  } ${collapsed ? "justify-center" : ""}`
-                }
-              >
-                <span className="inline-flex">{item.icon}</span>
-                {!collapsed && <span className="ml-3">{item.name}</span>}
-              </NavLink>
-            ))}
-          </nav>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">EVM System</h2>
+              <p className="text-xs text-gray-500">EVM Staff Portal</p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+
+        {/* Navigation Menu */}
+        <nav className="p-4 space-y-6">
+          {menuGroups.map((group) => (
+            <div key={group.title}>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
+                {group.title}
+              </p>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.path);
+                  
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileOpen(false)}
+                      className={`
+                        flex items-center space-x-3 px-3 py-2.5 rounded-lg
+                        transition-all duration-200 group
+                        ${active 
+                          ? 'bg-emerald-50 text-emerald-700' 
+                          : 'text-gray-700 hover:bg-gray-50'
+                        }
+                      `}
+                    >
+                      <Icon 
+                        size={20} 
+                        className={active ? 'text-emerald-600' : 'text-gray-400 group-hover:text-gray-600'}
+                      />
+                      <span className={`text-sm font-medium ${active ? 'text-emerald-700' : 'text-gray-700'}`}>
+                        {item.label}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 };
 
-export default EVMStaffSidebar;
+export default EvmStaffSidebar;

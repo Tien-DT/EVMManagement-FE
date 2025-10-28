@@ -14,7 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EVMStaffLayout"; 
+import EvmStaffLayout from "../layouts/EvmStaffLayout"; 
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -295,7 +295,7 @@ const AppRouter = () => (
       {/* EVM Staff Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["evm-staff"]} />}>
-          <Route element={<EVMStaffLayout />}>
+          <Route element={<EvmStaffLayout />}>
             <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
             <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
             

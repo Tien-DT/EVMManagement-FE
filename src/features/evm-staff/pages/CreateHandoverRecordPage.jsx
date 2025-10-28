@@ -1,37 +1,87 @@
 // src/features/evm-staff/pages/CreateHandoverRecordPage.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Truck, AlertCircle, CheckCircle } from 'lucide-react';
 import HandoverRecordForm from '../components/HandoverRecordForm';
 import useHandoverRecords from '../hooks/useHandoverRecords';
 import { useNotification } from '../../../context/NotificationContext';
+import orderService from '../services/orderService';
+import vehicleService from '../../../features/vehicle/services/vehicleService';
 
 const CreateHandoverRecordPage = () => {
   const navigate = useNavigate();
   const { showSuccess, showError } = useNotification();
   const { createRecord, loading } = useHandoverRecords();
+  
+  const [orders, setOrders] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch orders
+        const ordersRes = await orderService.getAllOrders({ pageNumber: 1, pageSize: 1000 });
+        const ordersData = ordersRes.data?.items || ordersRes.items || [];
+        setOrders(ordersData);
+        
+        // Fetch vehicles from all dealers (EVM vehicles)
+        const vehiclesRes = await vehicleService.list({ pageNumber: 1, pageSize: 1000 });
+        const vehiclesData = vehiclesRes.data?.items || vehiclesRes.items || [];
+        setVehicles(vehiclesData);
+        
+        console.log('✅ Orders loaded:', ordersData.length);
+        console.log('✅ Vehicles loaded:', vehiclesData.length);
+      } catch (error) {
+        console.error('❌ Error fetching data:', error);
+        showError('Error loading orders and vehicles');
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (data) => {
     try {
-      console.log('Creating handover record with data:', data);
+      console.log('📤 Creating handover record with data:', data);
       
-      // Backend expects: OrderId, VehicleId, TransportDetailId?, HandoverDate?, Notes?
+      // Backend expects: orderId, vehicleId, transportDetailId?, handoverDate?, notes?
+      // Use camelCase to match backend API
       const payload = {
         orderId: data.orderId,
-        vehicleId: data.vehicleId,
-        transportDetailId: data.transportDetailId || null,
-        handoverDate: data.handoverDate || null,
-        notes: data.notes || null
+        vehicleId: data.vehicleId
       };
       
-      console.log('Payload to send:', payload);
+      // Optional fields - only include if they have values
+      if (data.transportDetailId && data.transportDetailId.trim()) {
+        payload.transportDetailId = data.transportDetailId;
+      }
+      if (data.handoverDate && data.handoverDate.trim()) {
+        payload.handoverDate = data.handoverDate;
+      }
+      if (data.notes && data.notes.trim()) {
+        payload.notes = data.notes;
+      }
+      
+      console.log('📤 Payload to send:', JSON.stringify(payload, null, 2));
+      console.log('📤 Payload details:', {
+        orderId: payload.orderId,
+        vehicleId: payload.vehicleId,
+        transportDetailId: payload.transportDetailId,
+        handoverDate: payload.handoverDate,
+        notes: payload.notes
+      });
       
       await createRecord(payload);
       showSuccess('Handover record created successfully!');
       navigate('/evm-staff/handover-records');
     } catch (error) {
-      console.error('Error creating handover record:', error);
-      const errorMsg = error.response?.data?.message || error.message || 'Error occurred while creating handover record';
+      console.error('❌ Error creating handover record:', error);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Error response data:', error.response?.data);
+      const errorMsg = error.response?.data?.message || error.response?.data?.title || error.response?.data?.errors?.[0] || error.message || 'Error occurred while creating handover record';
       showError(errorMsg);
     }
   };
@@ -68,14 +118,25 @@ const CreateHandoverRecordPage = () => {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 animate-scaleIn">
-          <HandoverRecordForm
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={loading}
-            isEdit={false}
-          />
-        </div>
+        {loadingData ? (
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 animate-scaleIn">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
+              <span className="ml-4 text-gray-600">Loading data...</span>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 animate-scaleIn">
+            <HandoverRecordForm
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={loading}
+              isEdit={false}
+              orders={orders}
+              vehicles={vehicles}
+            />
+          </div>
+        )}
 
         {/* Info Card */}
         <div className="mt-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200 shadow-lg animate-slideIn">

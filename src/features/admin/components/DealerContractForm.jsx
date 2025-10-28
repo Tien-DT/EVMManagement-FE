@@ -8,24 +8,24 @@ import {
   X,
   AlertCircle,
   CheckCircle,
-  Link as LinkIcon
+  Upload
 } from 'lucide-react';
+import FileUpload from '../../../components/FileUpload';
 
 const DealerContractForm = ({ 
   onSubmit, 
   onCancel, 
   initialData = null, 
   loading = false,
-  orders = [],
-  customers = []
+  dealers = []
 }) => {
   const [formData, setFormData] = useState({
-    code: '',
-    orderId: '',
-    customerId: '',
+    contractCode: '',
+    dealerId: '',
     terms: '',
     status: 'DRAFT',
-    signedAt: '',
+    effectiveDate: '',
+    expirationDate: '',
     contractLink: ''
   });
 
@@ -35,14 +35,16 @@ const DealerContractForm = ({
   useEffect(() => {
     if (initialData) {
       setFormData({
-        code: initialData.code || '',
-        orderId: initialData.orderId || '',
-        customerId: initialData.customerId || '',
+        contractCode: initialData.contractCode || initialData.code || '',
+        dealerId: initialData.dealerId || '',
         terms: initialData.terms || '',
         status: initialData.status || 'DRAFT',
-        signedAt: initialData.signedAt ? 
-          new Date(initialData.signedAt).toISOString().split('T')[0] + 'T' + 
-          new Date(initialData.signedAt).toISOString().split('T')[1].substring(0, 5) : '',
+        effectiveDate: initialData.effectiveDate ? 
+          new Date(initialData.effectiveDate).toISOString().split('T')[0] + 'T' + 
+          new Date(initialData.effectiveDate).toISOString().split('T')[1].substring(0, 5) : '',
+        expirationDate: initialData.expirationDate ? 
+          new Date(initialData.expirationDate).toISOString().split('T')[0] + 'T' + 
+          new Date(initialData.expirationDate).toISOString().split('T')[1].substring(0, 5) : '',
         contractLink: initialData.contractLink || ''
       });
     }
@@ -51,16 +53,12 @@ const DealerContractForm = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.code.trim()) {
-      newErrors.code = 'Vui lòng nhập mã hợp đồng';
+    if (!formData.contractCode.trim()) {
+      newErrors.contractCode = 'Vui lòng nhập mã hợp đồng';
     }
 
-    if (!formData.orderId) {
-      newErrors.orderId = 'Vui lòng chọn đơn hàng';
-    }
-
-    if (!formData.customerId) {
-      newErrors.customerId = 'Vui lòng chọn khách hàng';
+    if (!formData.dealerId) {
+      newErrors.dealerId = 'Vui lòng chọn Dealer';
     }
 
     if (!formData.terms.trim()) {
@@ -81,12 +79,12 @@ const DealerContractForm = ({
     setIsSubmitting(true);
     try {
       const submitData = {
-        code: formData.code,
-        orderId: formData.orderId,
-        customerId: formData.customerId,
+        contractCode: formData.contractCode,
+        dealerId: formData.dealerId,
         terms: formData.terms,
         status: formData.status,
-        ...(formData.signedAt && { signedAt: new Date(formData.signedAt).toISOString() }),
+        ...(formData.effectiveDate && { effectiveDate: new Date(formData.effectiveDate).toISOString() }),
+        ...(formData.expirationDate && { expirationDate: new Date(formData.expirationDate).toISOString() }),
         ...(formData.contractLink && { contractLink: formData.contractLink })
       };
       
@@ -119,7 +117,7 @@ const DealerContractForm = ({
     const randomCode = Math.random().toString(36).substring(2, 5).toUpperCase();
     setFormData(prev => ({
       ...prev,
-      code: `CTR-${timestamp}-${randomCode}`
+      contractCode: `CTR-${timestamp}-${randomCode}`
     }));
   };
 
@@ -154,12 +152,12 @@ const DealerContractForm = ({
           <div className="flex gap-3">
             <input
               type="text"
-              name="code"
-              value={formData.code}
+              name="contractCode"
+              value={formData.contractCode}
               onChange={handleInputChange}
               placeholder="Nhập mã hợp đồng"
               className={`flex-1 px-4 py-2.5 border rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm ${
-                errors.code ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                errors.contractCode ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
               disabled={loading}
             />
@@ -172,84 +170,46 @@ const DealerContractForm = ({
               Tạo mã
             </button>
           </div>
-          {errors.code && (
+          {errors.contractCode && (
             <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
               <AlertCircle size={14} />
-              {errors.code}
+              {errors.contractCode}
             </p>
           )}
         </div>
 
-        {/* Order and Customer Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Order Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Đơn hàng <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="orderId"
-              value={formData.orderId}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm ${
-                errors.orderId ? 'border-red-500 bg-red-50' : 'border-gray-300'
-              }`}
-              disabled={loading}
-            >
-              <option value="">Chọn đơn hàng ({orders.length} đơn)</option>
-              {orders.length === 0 ? (
-                <option disabled>Không có đơn hàng nào</option>
-              ) : (
-                orders.map((order) => (
-                  <option key={order.id} value={order.id}>
-                    {order.orderCode || order.code || `Đơn hàng ${order.id?.substring(0, 8)}...`}
-                    {order.customerId && ` - KH: ${order.customerId.substring(0, 8)}...`}
-                  </option>
-                ))
-              )}
-            </select>
-            {errors.orderId && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                <AlertCircle size={14} />
-                {errors.orderId}
-              </p>
+        {/* Dealer Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Dealer <span className="text-red-500">*</span>
+          </label>
+          <select
+            name="dealerId"
+            value={formData.dealerId}
+            onChange={handleInputChange}
+            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm ${
+              errors.dealerId ? 'border-red-500 bg-red-50' : 'border-gray-300'
+            }`}
+            disabled={loading}
+          >
+            <option value="">Chọn Dealer ({dealers.length} dealers)</option>
+            {dealers.length === 0 ? (
+              <option disabled>Không có dealer nào</option>
+            ) : (
+              dealers.map((dealer) => (
+                <option key={dealer.id} value={dealer.id}>
+                  {dealer.dealerName || dealer.name || 'Dealer'}
+                  {dealer.address && ` - ${dealer.address}`}
+                </option>
+              ))
             )}
-          </div>
-
-          {/* Customer Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Khách hàng <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="customerId"
-              value={formData.customerId}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm ${
-                errors.customerId ? 'border-red-500 bg-red-50' : 'border-gray-300'
-              }`}
-              disabled={loading}
-            >
-              <option value="">Chọn khách hàng ({customers.length} khách hàng)</option>
-              {customers.length === 0 ? (
-                <option disabled>Không có khách hàng nào</option>
-              ) : (
-                customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.fullName || customer.name || customer.customerName || `Khách hàng ${customer.id?.substring(0, 8)}...`}
-                    {customer.phoneNumber && ` - ${customer.phoneNumber}`}
-                    {customer.phone && ` - ${customer.phone}`}
-                  </option>
-                ))
-              )}
-            </select>
-            {errors.customerId && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                <AlertCircle size={14} />
-                {errors.customerId}
-              </p>
-            )}
-          </div>
+          </select>
+          {errors.dealerId && (
+            <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle size={14} />
+              {errors.dealerId}
+            </p>
+          )}
         </div>
 
         {/* Terms */}
@@ -276,16 +236,16 @@ const DealerContractForm = ({
           )}
         </div>
 
-        {/* Signed At & Contract Link */}
+        {/* Effective Date & Expiration Date */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ngày ký
+              Ngày hiệu lực
             </label>
             <input
               type="datetime-local"
-              name="signedAt"
-              value={formData.signedAt}
+              name="effectiveDate"
+              value={formData.effectiveDate}
               onChange={handleInputChange}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
               disabled={loading}
@@ -294,18 +254,46 @@ const DealerContractForm = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Link hợp đồng
+              Ngày hết hạn
             </label>
             <input
-              type="url"
-              name="contractLink"
-              value={formData.contractLink}
+              type="datetime-local"
+              name="expirationDate"
+              value={formData.expirationDate}
               onChange={handleInputChange}
-              placeholder="https://..."
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
               disabled={loading}
             />
           </div>
+        </div>
+
+        {/* Contract Link */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <Upload size={16} />
+            File hợp đồng
+          </label>
+          <FileUpload
+            onUploadComplete={(url) => {
+              setFormData(prev => ({
+                ...prev,
+                contractLink: url
+              }));
+            }}
+          />
+          {formData.contractLink && (
+            <div className="mt-2">
+              <a 
+                href={formData.contractLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+              >
+                <FileText size={14} />
+                Xem file đã upload
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Status */}
@@ -362,3 +350,4 @@ const DealerContractForm = ({
 };
 
 export default DealerContractForm;
+

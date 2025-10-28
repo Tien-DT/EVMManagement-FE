@@ -10,7 +10,8 @@ import {
   Tag,
   UserCog,
   UserCheck,
-  Settings
+  Settings,
+  FileText
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -35,6 +36,11 @@ const AdminSidebar = () => {
           path: '/admin/dealers',
           icon: Building2,
           label: 'Dealers'
+        },
+        {
+          path: '/admin/dealer-contracts',
+          icon: FileText,
+          label: 'Dealer Contracts'
         },
         {
           path: '/admin/evm-staff',

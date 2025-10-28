@@ -1,14 +1,13 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../features/auth/services/authService";
-import EVMStaffSidebar from "./sidebar/EVMStaffSidebar";
+import EvmStaffSidebar from "./sidebar/EvmStaffSidebar";
 
-const EVMStaffLayout = () => {
+const EvmStaffLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async() => {
     try {
@@ -58,37 +57,20 @@ const EVMStaffLayout = () => {
   );
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <EVMStaffSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <EvmStaffSidebar />
 
       {/* Main Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="lg:pl-64 flex flex-col flex-1 overflow-hidden">
         {/* Header */}
-        <header className="bg-white shadow-sm z-10">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center">
-              <button
-                onClick={() => setCollapsed(!collapsed)}
-                className="p-2 rounded-md text-gray-500 hover:bg-gray-100 focus:outline-none"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-              <h1 className="ml-4 text-xl font-semibold text-gray-800">
+        <header className="bg-white border-b border-gray-200 shadow-sm z-10">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-800">
                 EVM Staff Portal
               </h1>
+              <p className="text-sm text-gray-500">Welcome back!</p>
             </div>
 
             {/* User Menu */}
@@ -125,12 +107,14 @@ const EVMStaffLayout = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4">
-          <Outlet />
+        <main className="flex-1 overflow-auto bg-gray-50">
+          <div className="p-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
   );
 };
 
-export default EVMStaffLayout;
+export default EvmStaffLayout;

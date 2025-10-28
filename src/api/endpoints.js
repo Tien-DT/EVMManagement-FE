@@ -153,7 +153,19 @@ const endpoints = {
     update: (id) => `/v1/HandoverRecords/${id}`,
     delete: (id) => `/v1/HandoverRecords/${id}`,
   },
-  
+
+  // Digital Signatures endpoints
+  digitalSignatures: {
+    requestOtp: "/v1/DigitalSignatures/request-otp",
+    verifyOtp: "/v1/DigitalSignatures/verify-otp",
+    complete: "/v1/DigitalSignatures/complete",
+    getById: (id) => `/v1/DigitalSignatures/${id}`,
+    getByContract: (contractId) => `/v1/DigitalSignatures/contracts/${contractId}`,
+    getByHandoverRecord: (recordId) => `/v1/DigitalSignatures/handover-records/${recordId}`,
+    getByDealerContract: (dealerContractId) => `/v1/DigitalSignatures/dealer-contracts/${dealerContractId}`,
+  },
+
+  // Vehicle Models endpoints
   vehicleModels: {
     getAll: "/v1/VehicleModels",
     getById: (id) => `/v1/VehicleModels/${id}`,
@@ -164,6 +176,7 @@ const endpoints = {
     delete: (id) => `/v1/VehicleModels/${id}`,
   },
   
+  // Vehicle Variants endpoints
   vehicleVariants: {
     getAll: "/v1/VehicleVariants",
     getById: (id) => `/v1/VehicleVariants/${id}`,
@@ -175,6 +188,7 @@ const endpoints = {
     delete: (id) => `/v1/VehicleVariants/${id}`,
   },
 
+  // Vehicles endpoints
   vehicles: {
     getAll: "/v1/Vehicles",
     getById: (id) => `/v1/Vehicles/${id}`,
