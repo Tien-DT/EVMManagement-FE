@@ -8,7 +8,8 @@ import {
   ShoppingCart,
   Car,
   Truck,
-  Settings
+  Settings,
+  Package
 } from 'lucide-react';
 
 const EvmStaffSidebar = () => {
@@ -53,6 +54,11 @@ const EvmStaffSidebar = () => {
           path: '/evm-staff/reports',
           icon: FileText,
           label: 'Reports from Dealers'
+        },
+        {
+          path: '/evm-staff/warehouses',
+          icon: Package,
+          label: 'Warehouses'
         }
       ]
     },

@@ -26,6 +26,10 @@ import EvmStaffDetailPage from "../features/admin/pages/EvmStaffDetailPage";
 import DealerContractsListPage from "../features/admin/pages/contracts/DealerContractsListPage";
 import CreateDealerContractPage from "../features/admin/pages/contracts/CreateDealerContractPage";
 import AdminDealerContractDetailPage from "../features/admin/pages/contracts/DealerContractDetailPage";
+import AdminWarehousesPage from "../features/admin/pages/WarehousesPage";
+import AdminCreateWarehousePage from "../features/admin/pages/CreateWarehousePage";
+import AdminWarehouseDetailPage from "../features/admin/pages/WarehouseDetailPage";
+import AdminEditWarehousePage from "../features/admin/pages/EditWarehousePage";
 
 // Dealer Pages
 import DealerListPage from "../features/dealer/pages/DealerListPage";
@@ -95,6 +99,10 @@ import CreateHandoverRecordPage from "../features/evm-staff/pages/CreateHandover
 import HandoverRecordDetailPage from "../features/evm-staff/pages/HandoverRecordDetailPage";
 import EvmStaffReportsPage from "../features/evm-staff/pages/ReportsPage";
 import EvmStaffReportDetailPage from "../features/evm-staff/pages/ReportDetailPage";
+import EvmStaffWarehousesPage from "../features/evm-staff/pages/WarehousesPage";
+import EvmStaffCreateWarehousePage from "../features/evm-staff/pages/CreateWarehousePage";
+import EvmStaffWarehouseDetailPage from "../features/evm-staff/pages/WarehouseDetailPage";
+import EvmStaffEditWarehousePage from "../features/evm-staff/pages/EditWarehousePage";
 
 const AppRouter = () => (
   <Router>
@@ -197,6 +205,20 @@ const AppRouter = () => (
             <Route
               path="/admin/dealer-contracts/:id"
               element={<AdminDealerContractDetailPage />}
+            />
+            {/* Warehouse Routes */}
+            <Route path="/admin/warehouses" element={<AdminWarehousesPage />} />
+            <Route
+              path="/admin/warehouses/create"
+              element={<AdminCreateWarehousePage />}
+            />
+            <Route
+              path="/admin/warehouses/:id"
+              element={<AdminWarehouseDetailPage />}
+            />
+            <Route
+              path="/admin/warehouses/:id/edit"
+              element={<AdminEditWarehousePage />}
             />
           </Route>
         </Route>
@@ -346,6 +368,21 @@ const AppRouter = () => (
             {/* Reports Routes */}
             <Route path="/evm-staff/reports" element={<EvmStaffReportsPage />} />
             <Route path="/evm-staff/reports/:id" element={<EvmStaffReportDetailPage />} />
+            
+            {/* Warehouse Routes */}
+            <Route path="/evm-staff/warehouses" element={<EvmStaffWarehousesPage />} />
+            <Route
+              path="/evm-staff/warehouses/create"
+              element={<EvmStaffCreateWarehousePage />}
+            />
+            <Route
+              path="/evm-staff/warehouses/:id"
+              element={<EvmStaffWarehouseDetailPage />}
+            />
+            <Route
+              path="/evm-staff/warehouses/:id/edit"
+              element={<EvmStaffEditWarehousePage />}
+            />
             
             <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>

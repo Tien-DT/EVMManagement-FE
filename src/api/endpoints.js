@@ -32,6 +32,9 @@ const endpoints = {
     vehicleModels: "/v1/VehicleModels",
     vehicleVariants: "/v1/VehicleVariants",
     promotions: "/v1/Promotions",
+    warehouses: "/v1/Warehouses",
+    warehousesById: (id) => `/v1/Warehouses/${id}`,
+    warehousesByDealer: (dealerId) => `/v1/Warehouses/dealer/${dealerId}`,
   },
   
   dealer: {
@@ -94,6 +97,23 @@ const endpoints = {
     create: "/v1/Orders",
     update: (id) => `/v1/Orders/${id}`,
     delete: (id) => `/v1/Orders/${id}`,
+    // Extended Order APIs
+    filter: "/v1/Orders/filter",
+    getWithDetails: (id) => `/v1/Orders/${id}/with-details`,
+    createWithDetails: "/v1/Orders/with-details",
+    // Deposit preorder (Dealer Manager)
+    createDepositPreorder: (orderId) => `/v1/Orders/${orderId}/deposits/preorder`,
+    // Approval workflow (EVM Staff & Dealer Manager)
+    requestApproval: (orderId) => `/v1/Orders/${orderId}/request-approval`,
+    approveByManager: (orderId) => `/v1/Orders/${orderId}/approve-by-manager`,
+    // Notification (EVM Staff)
+    notifyCustomer: (orderId) => `/v1/Orders/${orderId}/notify-customer`,
+    // Customer confirmation (Order Inspection - Dealer Manager)
+    customerConfirmation: (orderId) => `/v1/Orders/${orderId}/customer-confirmation`,
+    // Payment confirmation (Dealer Manager)
+    confirmPayment: (orderId) => `/v1/Orders/${orderId}/confirm-payment`,
+    // Handover (EVM Staff - Deliver order)
+    handover: (orderId) => `/v1/Orders/${orderId}/handover`,
   },
   
   // Handover Records endpoints
