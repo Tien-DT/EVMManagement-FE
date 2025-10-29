@@ -60,7 +60,7 @@ const VNPayReturnPage = () => {
     };
 
     processPaymentReturn();
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   const handleBackToOrders = () => {
     navigate('/dealer/orders');
