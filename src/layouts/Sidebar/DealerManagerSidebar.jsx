@@ -5,6 +5,7 @@ import {
   Warehouse,
   UserPlus,
   FileText,
+  FileCheck,
   CreditCard,
   ChevronRight,
   Menu,
@@ -32,6 +33,11 @@ const DealerManagerSidebar = () => {
       label: "Register Staff",
     },
     {
+      path: "/dealer-manager/contracts",
+      icon: FileCheck,
+      label: "Contracts",
+    },
+    {
       path: "/dealer-manager/reports",
       icon: FileText,
       label: "Reports to EVM",
@@ -43,7 +49,13 @@ const DealerManagerSidebar = () => {
     },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => {
+    // Handle contracts detail pages
+    if (path === "/dealer-manager/contracts") {
+      return location.pathname === path || location.pathname.startsWith(path + "/");
+    }
+    return location.pathname === path;
+  };
 
   return (
     <>

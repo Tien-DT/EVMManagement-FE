@@ -49,11 +49,20 @@ const DealerContractsPage = () => {
       const response = await axiosInstance.get(
         endpoints.dealerContracts.getByDealer(dealerId)
       );
-      const contractsList = response.data?.items || response.data || response || [];
+      // Ensure we always get an array
+      let contractsList = [];
+      if (response.data?.items && Array.isArray(response.data.items)) {
+        contractsList = response.data.items;
+      } else if (Array.isArray(response.data)) {
+        contractsList = response.data;
+      } else if (Array.isArray(response)) {
+        contractsList = response;
+      }
       setContracts(contractsList);
     } catch (error) {
       console.error("Error fetching dealer contracts:", error);
       message.error("Không thể tải danh sách hợp đồng");
+      setContracts([]); // Ensure empty array on error
     } finally {
       setLoading(false);
     }
