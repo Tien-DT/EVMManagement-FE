@@ -165,6 +165,27 @@ const endpoints = {
     getByDealerContract: (dealerContractId) => `/v1/DigitalSignatures/dealer-contracts/${dealerContractId}`,
   },
 
+  // Deposits endpoints
+  deposits: {
+    getAll: "/v1/Deposits",
+    getById: (id) => `/v1/Deposits/${id}`,
+    create: "/v1/Deposits",
+    update: (id) => `/v1/Deposits/${id}`,
+    delete: (id) => `/v1/Deposits/${id}`,
+    getByOrder: (orderId) => `/v1/Deposits?orderId=${orderId}`,
+  },
+
+  // Reports endpoints
+  reports: {
+    getAll: "/v1/Reports",
+    getById: (id) => `/v1/Reports/${id}`,
+    create: "/v1/Reports",
+    update: (id) => `/v1/Reports/${id}`,
+    delete: (id) => `/v1/Reports/${id}`,
+    getByDealer: (dealerId) => `/v1/Reports?dealerId=${dealerId}`,
+    getByOrder: (orderId) => `/v1/Reports?orderId=${orderId}`,
+  },
+
   // Vehicle Models endpoints
   vehicleModels: {
     getAll: "/v1/VehicleModels",
@@ -198,11 +219,13 @@ const endpoints = {
     delete: (id) => `/v1/Vehicles/${id}`,
   },
 
-  // Payment endpoints
+  // Payments endpoints (VNPAY Integration)
   payments: {
-    vnpayCreate: "/v1/Payments/vnpay/create",
-    vnpayReturn: "/v1/Payments/vnpay/return",
-    vnpayCallback: "/v1/Payments/vnpay/callback",
+    vnpay: {
+      create: "/v1/Payments/vnpay/create",
+      callback: "/v1/Payments/vnpay/callback",
+      return: "/v1/Payments/vnpay/return",
+    },
   },
 
   // Transport endpoints

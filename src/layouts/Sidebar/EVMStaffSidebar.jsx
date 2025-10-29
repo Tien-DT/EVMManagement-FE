@@ -48,6 +48,11 @@ const EvmStaffSidebar = () => {
           path: '/evm-staff/handover-records',
           icon: Truck,
           label: 'Handover Records'
+        },
+        {
+          path: '/evm-staff/reports',
+          icon: FileText,
+          label: 'Reports from Dealers'
         }
       ]
     },
