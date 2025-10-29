@@ -40,6 +40,9 @@ const endpoints = {
     vehicleModels: "/v1/VehicleModels",
     vehicleVariants: "/v1/VehicleVariants",
     promotions: "/v1/Promotions",
+    warehouses: "/v1/Warehouses",
+    warehousesById: (id) => `/v1/Warehouses/${id}`,
+    warehousesByDealer: (dealerId) => `/v1/Warehouses/dealer/${dealerId}`,
   },
 
   dealer: {
@@ -100,13 +103,26 @@ const endpoints = {
     filter: "/v1/Orders/filter",
     getById: (id) => `/v1/Orders/${id}`,
     getByIdWithDetails: (id) => `/v1/Orders/${id}/with-details`,
+    getWithDetails: (id) => `/v1/Orders/${id}/with-details`, // Alias for getByIdWithDetails
     getByDealer: (dealerId) => `/v1/Orders/dealer/${dealerId}`,
     create: "/v1/Orders",
     createWithDetails: "/v1/Orders/with-details",
     update: (id) => `/v1/Orders/${id}`,
     delete: (id) => `/v1/Orders/${id}`,
+    // Deposit preorder (Dealer Manager)
+    createDepositPreorder: (orderId) => `/v1/Orders/${orderId}/deposits/preorder`,
     createPreOrderDeposit: (orderId) => `/v1/Orders/${orderId}/deposits/preorder`,
+    // Approval workflow (EVM Staff & Dealer Manager)
+    requestApproval: (orderId) => `/v1/Orders/${orderId}/request-approval`,
+    approveByManager: (orderId) => `/v1/Orders/${orderId}/approve-by-manager`,
+    // Notification (EVM Staff)
+    notifyCustomer: (orderId) => `/v1/Orders/${orderId}/notify-customer`,
+    // Customer confirmation (Order Inspection - Dealer Manager)
+    customerConfirmation: (orderId) => `/v1/Orders/${orderId}/customer-confirmation`,
+    // Payment confirmation (Dealer Manager)
     confirmPayment: (orderId) => `/v1/Orders/${orderId}/confirm-payment`,
+    // Handover (EVM Staff - Deliver order)
+    handover: (orderId) => `/v1/Orders/${orderId}/handover`,
   },
   
   // Order Details endpoints (kept for future use)
@@ -136,6 +152,7 @@ const endpoints = {
     updateStatus: (id) => `/v1/TestDriveVehicles/${id}/status`,
     delete: (id) => `/v1/TestDriveVehicles/${id}`,
   },
+  
   // Vehicle endpoints for dealer staff
   vehicles: {
     getModels: "/v1/VehicleModels",

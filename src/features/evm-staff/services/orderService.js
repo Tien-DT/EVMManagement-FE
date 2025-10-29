@@ -180,7 +180,107 @@ const orderService = {
     if (!uuid) return 'N/A';
     const shortId = uuid.slice(-8).toUpperCase();
     return `ORD-${shortId}`;
-  }
+  },
+
+  /**
+   * GET /api/v1/Orders/{id}/with-details
+   * Get order with detailed information including orderDetails
+   * @param {string} id - Order UUID
+   */
+  getOrderWithDetails: async (id) => {
+    try {
+      console.log('Service: Fetching order with details:', id);
+      const response = await axiosInstance.get(endpoints.orders.getWithDetails(id));
+      console.log('Service: Order with details response:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error fetching order with details:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/Orders/with-details
+   * Create order with detailed information including orderDetails
+   * @param {Object} orderData - Order data with orderDetails array
+   */
+  createOrderWithDetails: async (orderData) => {
+    try {
+      console.log('Service: Creating order with details:', orderData);
+      const response = await axiosInstance.post(endpoints.orders.createWithDetails, orderData);
+      console.log('Service: Order with details created:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error creating order with details:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/Orders/{orderId}/approve-by-manager
+   * Approve order by manager (EVM Staff)
+   * @param {string} orderId - Order UUID
+   * @param {string} approvedByUserId - Manager user ID
+   */
+  approveByManager: async (orderId, approvedByUserId) => {
+    try {
+      console.log('Service: Approving order by manager:', orderId, approvedByUserId);
+      const response = await axiosInstance.post(
+        endpoints.orders.approveByManager(orderId),
+        null,
+        {
+          params: { approvedByUserId }
+        }
+      );
+      console.log('Service: Order approved:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error approving order:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/Orders/{orderId}/notify-customer
+   * Notify customer about order (EVM Staff)
+   * @param {string} orderId - Order UUID
+   * @param {Object} notificationData - Notification details
+   */
+  notifyCustomer: async (orderId, notificationData = {}) => {
+    try {
+      console.log('Service: Notifying customer for order:', orderId);
+      const response = await axiosInstance.post(
+        endpoints.orders.notifyCustomer(orderId),
+        notificationData
+      );
+      console.log('Service: Customer notified:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error notifying customer:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/Orders/{orderId}/handover
+   * Handover order to dealer (EVM Staff - Deliver order)
+   * @param {string} orderId - Order UUID
+   * @param {Object} handoverData - { handoverDate, notes }
+   */
+  handoverOrder: async (orderId, handoverData) => {
+    try {
+      console.log('Service: Handover order:', orderId, handoverData);
+      const response = await axiosInstance.post(
+        endpoints.orders.handover(orderId),
+        handoverData
+      );
+      console.log('Service: Order handover completed:', response);
+      return response;
+    } catch (error) {
+      console.error('Service: Error handover order:', error);
+      throw error;
+    }
+  },
 };
 
 export default orderService;

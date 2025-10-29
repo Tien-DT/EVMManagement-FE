@@ -135,6 +135,11 @@ export const orderService = {
       throw error;
     }
   },
+
+  /**
+   * Create pre-order: Create order with details + deposit
+   * Higher-level method that creates both order and deposit
+   */
   createPreOrder: async (preOrderData) => {
     try {
       // Step 1: Create order with details
@@ -160,7 +165,7 @@ export const orderService = {
       };
 
       const orderResponse = await axiosInstance.post(
-        "/v1/Orders/with-details",
+        endpoints.orders.createWithDetails,
         orderPayload
       );
 
@@ -181,7 +186,7 @@ export const orderService = {
       };
 
       const depositResponse = await axiosInstance.post(
-        `/v1/Orders/${orderId}/deposits/preorder`,
+        endpoints.orders.createDepositPreorder(orderId),
         depositPayload
       );
 
@@ -200,16 +205,86 @@ export const orderService = {
     }
   },
 
+  /**
+   * Alias for createPreOrder - creates remaining payment after order is created
+   */
   createRemainingPayment: async (orderId, paymentData) => {
     try {
       const response = await axiosInstance.post(
-        `/v1/Orders/${orderId}/confirm-payment`,
+        endpoints.orders.confirmPayment(orderId),
         paymentData
       );
       console.log("Remaining payment created:", response);
       return response;
     } catch (error) {
       console.error("Create remaining payment error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/Orders/{orderId}/deposits/preorder
+   * Create deposit preorder (Dealer Manager)
+   * @param {string} orderId - Order UUID
+   * @param {Object} depositData - { method, billImageUrl, note }
+   */
+  createDepositPreorder: async (orderId, depositData) => {
+    try {
+      console.log("Creating deposit preorder for order:", orderId);
+      const response = await axiosInstance.post(
+        endpoints.orders.createDepositPreorder(orderId),
+        {
+          orderId,
+          ...depositData,
+        }
+      );
+      console.log("Create deposit preorder response:", response);
+      return response;
+    } catch (error) {
+      console.error("Create deposit preorder error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/Orders/{orderId}/confirm-payment
+   * Confirm payment for order (Dealer Manager - after payment verification)
+   * @param {string} orderId - Order UUID
+   * @param {Object} paymentData - { method, transactionReference, note }
+   */
+  confirmPayment: async (orderId, paymentData) => {
+    try {
+      console.log("Confirming payment for order:", orderId);
+      const response = await axiosInstance.post(
+        endpoints.orders.confirmPayment(orderId),
+        paymentData
+      );
+      console.log("Confirm payment response:", response);
+      return response;
+    } catch (error) {
+      console.error("Confirm payment error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * PATCH /api/v1/Orders/{orderId}/customer-confirmation
+   * Customer confirmation after order inspection (Dealer Manager)
+   * Use this when order inspection is complete
+   * @param {string} orderId - Order UUID
+   * @param {Object} confirmationData - { isCorrect, notes, inspectionDate }
+   */
+  customerConfirmation: async (orderId, confirmationData) => {
+    try {
+      console.log("Updating customer confirmation for order:", orderId);
+      const response = await axiosInstance.patch(
+        endpoints.orders.customerConfirmation(orderId),
+        confirmationData
+      );
+      console.log("Customer confirmation response:", response);
+      return response;
+    } catch (error) {
+      console.error("Customer confirmation error:", error);
       throw error;
     }
   },
