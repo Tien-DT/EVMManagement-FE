@@ -745,7 +745,7 @@ const DealerManagerOrdersPage = () => {
           {/* B2B Orders with Quotation - Accept Quotation Button */}
           {(record.orderType === 1 || record.orderType === "B2B") &&
            record.quotationId &&
-           record.status === "AWAITING_DEPOSIT" && (
+           record.status === "QUOTATION_RECEIVED" && (
             <Tooltip title="Chấp nhận báo giá từ EVM Staff">
               <Button
                 type="primary"

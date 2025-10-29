@@ -33,24 +33,72 @@ const AcceptQuotationModal = ({ visible, onClose, order, onSuccess }) => {
   const handleAccept = async () => {
     setLoading(true);
     try {
-      // Step 1: Update Quotation status to ACCEPTED
-      await axiosInstance.put(endpoints.quotations.update(order.quotationId), {
-        status: 'ACCEPTED' // QuotationStatus.ACCEPTED
-      });
+      console.log('Accepting quotation - Order:', order);
+      console.log('Accepting quotation - Quotation:', quotation);
 
-      // Step 2: Update Order with total amounts from quotation
-      await axiosInstance.put(endpoints.orders.update(order.id), {
-        ...order,
-        totalAmount: quotation.subtotal || 0,
-        finalAmount: quotation.total || 0,
-        discountAmount: 0,
-      });
+      // Step 1: Update Quotation status to ACCEPTED with all non-null fields
+      if (quotation) {
+        const quotationUpdateData = {
+          code: quotation.code,
+          status: 'ACCEPTED', // Update status to ACCEPTED
+        };
+        
+        // Add optional fields if they exist
+        if (quotation.customerId) quotationUpdateData.customerId = quotation.customerId;
+        if (quotation.note) quotationUpdateData.note = quotation.note;
+        if (quotation.validUntil) quotationUpdateData.validUntil = quotation.validUntil;
+        if (quotation.quotationDetails && quotation.quotationDetails.length > 0) {
+          quotationUpdateData.quotationDetails = quotation.quotationDetails.map(detail => ({
+            id: detail.id,
+            vehicleVariantId: detail.vehicleVariantId,
+            quantity: detail.quantity,
+            unitPrice: detail.unitPrice,
+            discount: detail.discount || 0,
+            note: detail.note || '',
+          }));
+        }
+        
+        console.log('Quotation update data:', quotationUpdateData);
+        await axiosInstance.put(endpoints.quotations.update(order.quotationId), quotationUpdateData);
+      }
+
+      // Step 2: Update Order status to QUOTATION_ACCEPTED with all non-null fields
+      const orderUpdateData = {
+        code: order.code,
+        dealerId: order.dealerId,
+        status: 'QUOTATION_ACCEPTED', // Update status to QUOTATION_ACCEPTED
+        orderType: order.orderType,
+      };
+      
+      // Add optional fields if they exist
+      if (order.customerId) orderUpdateData.customerId = order.customerId;
+      if (order.quotationId) orderUpdateData.quotationId = order.quotationId;
+      if (order.handoverRecordId) orderUpdateData.handoverRecordId = order.handoverRecordId;
+      if (order.contractId) orderUpdateData.contractId = order.contractId;
+      if (order.depositId) orderUpdateData.depositId = order.depositId;
+      if (order.note) orderUpdateData.note = order.note;
+      
+      // Update amounts from quotation if available
+      if (quotation?.subtotal || quotation?.total) {
+        orderUpdateData.totalAmount = quotation.subtotal || order.totalAmount || 0;
+        orderUpdateData.finalAmount = quotation.total || order.finalAmount || 0;
+      } else {
+        if (order.totalAmount) orderUpdateData.totalAmount = order.totalAmount;
+        if (order.finalAmount) orderUpdateData.finalAmount = order.finalAmount;
+      }
+      
+      if (order.discount) orderUpdateData.discount = order.discount;
+      if (order.handoverDate) orderUpdateData.handoverDate = order.handoverDate;
+      
+      console.log('Order update data:', orderUpdateData);
+      await axiosInstance.put(endpoints.orders.update(order.id), orderUpdateData);
 
       message.success('Đã chấp nhận báo giá thành công!');
       onSuccess && onSuccess();
       onClose();
     } catch (error) {
       console.error('Error accepting quotation:', error);
+      console.error('Error details:', error.response?.data);
       message.error(error.response?.data?.message || 'Không thể chấp nhận báo giá');
     } finally {
       setLoading(false);

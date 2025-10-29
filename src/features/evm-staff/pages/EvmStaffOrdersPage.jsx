@@ -229,13 +229,35 @@ const EvmStaffOrdersPage = () => {
     window.location.reload();
   };
 
+  // Helper function to build order update data with all non-null fields
+  const buildOrderUpdateData = (order, newStatus) => {
+    const updateData = {
+      code: order.code,
+      dealerId: order.dealerId,
+      status: newStatus,
+      orderType: order.orderType,
+    };
+    
+    // Add optional fields if they exist
+    if (order.customerId) updateData.customerId = order.customerId;
+    if (order.quotationId) updateData.quotationId = order.quotationId;
+    if (order.handoverRecordId) updateData.handoverRecordId = order.handoverRecordId;
+    if (order.contractId) updateData.contractId = order.contractId;
+    if (order.depositId) updateData.depositId = order.depositId;
+    if (order.note) updateData.note = order.note;
+    if (order.totalAmount) updateData.totalAmount = order.totalAmount;
+    if (order.discount) updateData.discount = order.discount;
+    if (order.finalAmount) updateData.finalAmount = order.finalAmount;
+    if (order.handoverDate) updateData.handoverDate = order.handoverDate;
+    
+    return updateData;
+  };
+
   // Update order status to AWAITING_DEPOSIT after contract signed
   const handleUpdateStatusToAwaitingDeposit = async (order) => {
     try {
-      await axiosInstance.patch(
-        endpoints.orders.updateStatus(order.id),
-        { status: 'AWAITING_DEPOSIT' }
-      );
+      const updateData = buildOrderUpdateData(order, 'AWAITING_DEPOSIT');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
       showSuccess('Đã cập nhật trạng thái → Chờ đặt cọc');
       window.location.reload();
     } catch (error) {
@@ -247,10 +269,8 @@ const EvmStaffOrdersPage = () => {
   // Prepare vehicle: DEPOSIT_SUCCESS → IN_PROGRESS
   const handlePrepareVehicle = async (order) => {
     try {
-      await axiosInstance.patch(
-        endpoints.orders.updateStatus(order.id),
-        { status: 'IN_PROGRESS' }
-      );
+      const updateData = buildOrderUpdateData(order, 'IN_PROGRESS');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
       showSuccess('Đã chuyển sang trạng thái Đang chuẩn bị xe');
       window.location.reload();
     } catch (error) {
@@ -262,10 +282,8 @@ const EvmStaffOrdersPage = () => {
   // Confirm deposit received: AWAITING_DEPOSIT → DEPOSIT_SUCCESS
   const handleConfirmDepositReceived = async (order) => {
     try {
-      await axiosInstance.patch(
-        endpoints.orders.updateStatus(order.id),
-        { status: 'DEPOSIT_SUCCESS' }
-      );
+      const updateData = buildOrderUpdateData(order, 'DEPOSIT_SUCCESS');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
       showSuccess('Đã xác nhận nhận tiền đặt cọc');
       window.location.reload();
     } catch (error) {
