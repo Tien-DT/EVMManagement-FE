@@ -115,6 +115,36 @@ const endpoints = {
     getByHandoverRecord: (recordId) => `/v1/DigitalSignatures/handover-records/${recordId}`,
     getByDealerContract: (dealerContractId) => `/v1/DigitalSignatures/dealer-contracts/${dealerContractId}`,
   },
+
+  // Deposits endpoints
+  deposits: {
+    getAll: "/v1/Deposits",
+    getById: (id) => `/v1/Deposits/${id}`,
+    create: "/v1/Deposits",
+    update: (id) => `/v1/Deposits/${id}`,
+    delete: (id) => `/v1/Deposits/${id}`,
+    getByOrder: (orderId) => `/v1/Deposits?orderId=${orderId}`,
+  },
+
+  // Reports endpoints
+  reports: {
+    getAll: "/v1/Reports",
+    getById: (id) => `/v1/Reports/${id}`,
+    create: "/v1/Reports",
+    update: (id) => `/v1/Reports/${id}`,
+    delete: (id) => `/v1/Reports/${id}`,
+    getByDealer: (dealerId) => `/v1/Reports?dealerId=${dealerId}`,
+    getByOrder: (orderId) => `/v1/Reports?orderId=${orderId}`,
+  },
+
+  // Payments endpoints (VNPAY Integration)
+  payments: {
+    vnpay: {
+      create: "/v1/Payments/vnpay/create",
+      callback: "/v1/Payments/vnpay/callback",
+      return: "/v1/Payments/vnpay/return",
+    },
+  },
 };
 
 export default endpoints;

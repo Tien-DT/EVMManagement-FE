@@ -57,6 +57,12 @@ import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehous
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
 import DealerContractsPage from "../features/dealer-manager/pages/DealerContractsPage";
 import DealerContractDetailPage from "../features/dealer-manager/pages/DealerContractDetailPage";
+import ReportsPage from "../features/dealer-manager/pages/ReportsPage";
+import CreateReportPage from "../features/dealer-manager/pages/CreateReportPage";
+import ReportDetailPage from "../features/dealer-manager/pages/ReportDetailPage";
+import DepositsPage from "../features/dealer-manager/pages/DepositsPage";
+import CreateDepositPage from "../features/dealer-manager/pages/CreateDepositPage";
+import DepositDetailPage from "../features/dealer-manager/pages/DepositDetailPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
@@ -87,6 +93,8 @@ import EvmStaffOrderFormPage from "../features/evm-staff/pages/EvmStaffOrderForm
 import HandoverRecordsPage from "../features/evm-staff/pages/HandoverRecordsPage";
 import CreateHandoverRecordPage from "../features/evm-staff/pages/CreateHandoverRecordPage";
 import HandoverRecordDetailPage from "../features/evm-staff/pages/HandoverRecordDetailPage";
+import EvmStaffReportsPage from "../features/evm-staff/pages/ReportsPage";
+import EvmStaffReportDetailPage from "../features/evm-staff/pages/ReportDetailPage";
 
 const AppRouter = () => (
   <Router>
@@ -220,6 +228,34 @@ const AppRouter = () => (
               path="/dealer-manager/contracts/:id"
               element={<DealerContractDetailPage />}
             />
+            
+            {/* Dealer Manager Report Routes */}
+            <Route
+              path="/dealer-manager/reports"
+              element={<ReportsPage />}
+            />
+            <Route
+              path="/dealer-manager/reports/create"
+              element={<CreateReportPage />}
+            />
+            <Route
+              path="/dealer-manager/reports/:id"
+              element={<ReportDetailPage />}
+            />
+            
+            {/* Dealer Manager Deposit Routes */}
+            <Route
+              path="/dealer-manager/deposits"
+              element={<DepositsPage />}
+            />
+            <Route
+              path="/dealer-manager/deposits/create"
+              element={<CreateDepositPage />}
+            />
+            <Route
+              path="/dealer-manager/deposits/:id"
+              element={<DepositDetailPage />}
+            />
           </Route>
         </Route>
       </Route>
@@ -306,6 +342,10 @@ const AppRouter = () => (
             <Route path="/evm-staff/handover-records/create" element={<CreateHandoverRecordPage />} />
             <Route path="/evm-staff/handover-records/:id" element={<HandoverRecordDetailPage />} />
             <Route path="/evm-staff/handover-records/:id/edit" element={<HandoverRecordDetailPage />} />
+            
+            {/* Reports Routes */}
+            <Route path="/evm-staff/reports" element={<EvmStaffReportsPage />} />
+            <Route path="/evm-staff/reports/:id" element={<EvmStaffReportDetailPage />} />
             
             <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>

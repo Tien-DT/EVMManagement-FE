@@ -4,6 +4,8 @@ import {
   LayoutDashboard,
   Warehouse,
   UserPlus,
+  FileText,
+  CreditCard,
   ChevronRight,
   Menu,
   X,
@@ -28,6 +30,16 @@ const DealerManagerSidebar = () => {
       path: "/dealer/register-staff",
       icon: UserPlus,
       label: "Register Staff",
+    },
+    {
+      path: "/dealer-manager/reports",
+      icon: FileText,
+      label: "Reports to EVM",
+    },
+    {
+      path: "/dealer-manager/deposits",
+      icon: CreditCard,
+      label: "Deposits",
     },
   ];
 
