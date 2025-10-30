@@ -59,11 +59,13 @@ const EvmStaffOrdersPage = () => {
   const getStatusColor = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
+      case 'AWAITING_CONFIRM': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'CONFIRMED': return 'bg-green-50 text-green-700 border-green-200';
       case 'QUOTATION_RECEIVED': return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'QUOTATION_ACCEPTED': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'CREATED_CONTRACT': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case 'SIGNED_CONTRACT': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+      case 'DEALER_SIGNED_CONTRACT': return 'bg-teal-50 text-teal-700 border-teal-200';
       case 'AWAITING_DEPOSIT': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'DEPOSIT_SUCCESS': return 'bg-teal-50 text-teal-700 border-teal-200';
       case 'IN_PROGRESS': return 'bg-blue-50 text-blue-700 border-blue-200';
@@ -78,11 +80,13 @@ const EvmStaffOrdersPage = () => {
   const getStatusIcon = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
+      case 'AWAITING_CONFIRM': return <Clock size={16} />;
       case 'CONFIRMED': return <CheckCircle size={16} />;
       case 'QUOTATION_RECEIVED': return <FileText size={16} />;
       case 'QUOTATION_ACCEPTED': return <CheckCircle size={16} />;
       case 'CREATED_CONTRACT': return <FileText size={16} />;
       case 'SIGNED_CONTRACT': return <CheckCircle size={16} />;
+      case 'DEALER_SIGNED_CONTRACT': return <FileText size={16} />;
       case 'AWAITING_DEPOSIT': return <Clock size={16} />;
       case 'DEPOSIT_SUCCESS': return <DollarSign size={16} />;
       case 'IN_PROGRESS': return <Clock size={16} />;
@@ -97,11 +101,13 @@ const EvmStaffOrdersPage = () => {
   const getStatusText = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
+      case 'AWAITING_CONFIRM': return 'Chờ EVM xác nhận';
       case 'CONFIRMED': return 'Đã xác nhận';
       case 'QUOTATION_RECEIVED': return 'Đã gửi báo giá';
       case 'QUOTATION_ACCEPTED': return 'Báo giá được chấp nhận';
       case 'CREATED_CONTRACT': return 'Đã tạo hợp đồng';
       case 'SIGNED_CONTRACT': return 'Hợp đồng đã ký';
+      case 'DEALER_SIGNED_CONTRACT': return 'Dealer đã ký HĐ';
       case 'AWAITING_DEPOSIT': return 'Chờ đặt cọc';
       case 'DEPOSIT_SUCCESS': return 'Đã đặt cọc';
       case 'IN_PROGRESS': return 'Đang chuẩn bị xe';

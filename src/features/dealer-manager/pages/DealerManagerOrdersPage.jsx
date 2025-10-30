@@ -35,18 +35,26 @@ import OrderCartB2B from "../components/OrderCartB2B";
 import OrderDetailModal from "../components/OrderDetailModal";
 import AcceptQuotationModal from "../components/AcceptQuotationModal";
 import DepositModal from "../components/DepositModal";
+import FinalPaymentModal from "../components/FinalPaymentModal";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
 
 const STATUS_ORDER = {
-  CONFIRMED: 0,
-  QUOTATION_RECEIVED: 1,
-  AWAITING_DEPOSIT: 2,
-  IN_PROGRESS: 3,
-  READY_FOR_HANDOVER: 4,
-  COMPLETED: 5,
-  CANCELED: 6,
+  AWAITING_CONFIRM: 0,
+  CONFIRMED: 1,
+  QUOTATION_RECEIVED: 2,
+  QUOTATION_ACCEPTED: 3,
+  CREATED_CONTRACT: 4,
+  DEALER_SIGNED_CONTRACT: 5,
+  SIGNED_CONTRACT: 6,
+  AWAITING_DEPOSIT: 7,
+  DEPOSIT_SUCCESS: 8,
+  IN_PROGRESS: 9,
+  IN_TRANSIT: 10,
+  READY_FOR_HANDOVER: 11,
+  COMPLETED: 12,
+  CANCELED: 13,
 };
 
 const isTerminalOrderStatus = (status) =>
@@ -95,8 +103,17 @@ const DealerManagerOrdersPage = () => {
   const [selectedOrderForQuotation, setSelectedOrderForQuotation] = useState(null);
   const [depositModalVisible, setDepositModalVisible] = useState(false);
   const [selectedOrderForDeposit, setSelectedOrderForDeposit] = useState(null);
+  const [finalPaymentModalVisible, setFinalPaymentModalVisible] = useState(false);
+  const [selectedOrderForFinalPayment, setSelectedOrderForFinalPayment] = useState(null);
 
   const statusConfig = {
+    AWAITING_CONFIRM: {
+      color: "#faad14",
+      bgColor: "#fffbe6",
+      borderColor: "#ffe58f",
+      text: "Chờ EVM xác nhận",
+      icon: <ClockCircleOutlined />,
+    },
     CONFIRMED: {
       color: "#1890ff",
       bgColor: "#e6f7ff",
@@ -123,6 +140,13 @@ const DealerManagerOrdersPage = () => {
       bgColor: "#f9f0ff",
       borderColor: "#d3adf7",
       text: "Chờ EVM ký hợp đồng",
+      icon: <FileTextOutlined />,
+    },
+    DEALER_SIGNED_CONTRACT: {
+      color: "#13c2c2",
+      bgColor: "#e6fffb",
+      borderColor: "#87e8de",
+      text: "Dealer đã ký HĐ",
       icon: <FileTextOutlined />,
     },
     SIGNED_CONTRACT: {
@@ -477,6 +501,16 @@ const DealerManagerOrdersPage = () => {
     setSelectedOrderForDeposit(null);
   };
 
+  const handleFinalPayment = (order) => {
+    setSelectedOrderForFinalPayment(order);
+    setFinalPaymentModalVisible(true);
+  };
+
+  const handleCloseFinalPaymentModal = () => {
+    setFinalPaymentModalVisible(false);
+    setSelectedOrderForFinalPayment(null);
+  };
+
   const handleQuotationAccepted = () => {
     refreshOrders();
   };
@@ -792,6 +826,26 @@ const DealerManagerOrdersPage = () => {
             );
           })()}
 
+          {/* Final Payment Button - Show for READY_FOR_HANDOVER status */}
+          {(record.status === "READY_FOR_HANDOVER" || record.status?.toUpperCase() === "READY_FOR_HANDOVER") && (
+            <Tooltip title="Trả phần tiền còn lại (90%)">
+              <Button
+                type="primary"
+                size="small"
+                icon={<DollarCircleOutlined />}
+                onClick={() => handleFinalPayment(record)}
+                style={{
+                  padding: "4px 8px",
+                  fontSize: "12px",
+                  backgroundColor: "#52c41a",
+                  borderColor: "#52c41a"
+                }}
+              >
+                Trả tiền còn lại
+              </Button>
+            </Tooltip>
+          )}
+
           {(record.orderType === 2 || record.orderType === "B2C_P") && (
             <Tooltip title="Thêm xe vào giỏ B2B">
               <Button
@@ -1002,6 +1056,13 @@ const DealerManagerOrdersPage = () => {
         visible={depositModalVisible}
         order={selectedOrderForDeposit}
         onClose={handleCloseDepositModal}
+        onSuccess={refreshOrders}
+      />
+
+      <FinalPaymentModal
+        visible={finalPaymentModalVisible}
+        order={selectedOrderForFinalPayment}
+        onClose={handleCloseFinalPaymentModal}
         onSuccess={refreshOrders}
       />
     </div>
