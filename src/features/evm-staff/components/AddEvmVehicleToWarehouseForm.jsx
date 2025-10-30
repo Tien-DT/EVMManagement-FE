@@ -100,7 +100,9 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId }) => {
                       >
                         <Select showSearch placeholder="Chọn variant">
                           {variants.map(variant => (
-                            <Option value={variant.id} key={variant.id}>{variant.name}</Option>
+                            <Option value={variant.id} key={variant.id}>
+                              {variant.name}{variant.color ? ` - ${variant.color}` : ''}
+                            </Option>
                           ))}
                         </Select>
                       </Form.Item>
