@@ -4,7 +4,7 @@ import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import { useNotification } from "../../../context/NotificationContext";
 
-const CreateTransportModal = ({ visible, onClose, onSuccess }) => {
+const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess }) => {
   const { showSuccess, showError } = useNotification();
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
@@ -23,6 +23,14 @@ const CreateTransportModal = ({ visible, onClose, onSuccess }) => {
       fetchWarehouses();
     }
   }, [visible]);
+
+  // Pre-select order if preselectedOrderId is provided
+  useEffect(() => {
+    if (preselectedOrderId && orders.length > 0) {
+      console.log('Pre-selecting order:', preselectedOrderId);
+      setSelectedOrderIds([preselectedOrderId]);
+    }
+  }, [preselectedOrderId, orders]);
 
   const fetchEligibleOrders = async () => {
     try {
@@ -48,15 +56,22 @@ const CreateTransportModal = ({ visible, onClose, onSuccess }) => {
 
   const fetchWarehouses = async () => {
     try {
-      const response = await axiosInstance.get(endpoints.dealer.warehouses, {
+      const response = await axiosInstance.get(endpoints.warehouses.getAll, {
         params: { pageSize: 1000 },
       });
-      setWarehouses(response.data?.items || []);
+      const allWarehouses = response.data?.items || [];
+      console.log('All warehouses fetched:', allWarehouses);
+      setWarehouses(allWarehouses);
     } catch (error) {
       console.error("Error fetching warehouses:", error);
       showError("Không thể tải danh sách kho");
     }
   };
+
+  // Filter only EVM warehouses for pickup location
+  const evmWarehouses = warehouses.filter(warehouse => 
+    warehouse.type === 'EVM' || warehouse.type === 0
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,8 +110,44 @@ const CreateTransportModal = ({ visible, onClose, onSuccess }) => {
         scheduledPickupAt: formData.scheduledPickupAt || null,
       };
 
+      console.log('Creating transport with payload:', payload);
       await axiosInstance.post(endpoints.transports.create, payload);
-      showSuccess("Tạo vận chuyển thành công!");
+      
+      // Update all selected orders' status to IN_TRANSIT
+      console.log('Updating order statuses to IN_TRANSIT for orders:', selectedOrderIds);
+      const selectedOrders = orders.filter(order => selectedOrderIds.includes(order.id));
+      
+      for (const order of selectedOrders) {
+        try {
+          // Build order update data with all non-null fields
+          const orderUpdateData = {
+            code: order.code,
+            dealerId: order.dealerId,
+            status: 'IN_TRANSIT', // Update status to IN_TRANSIT
+            orderType: order.orderType,
+          };
+          
+          // Add optional fields if they exist
+          if (order.customerId) orderUpdateData.customerId = order.customerId;
+          if (order.quotationId) orderUpdateData.quotationId = order.quotationId;
+          if (order.handoverRecordId) orderUpdateData.handoverRecordId = order.handoverRecordId;
+          if (order.contractId) orderUpdateData.contractId = order.contractId;
+          if (order.depositId) orderUpdateData.depositId = order.depositId;
+          if (order.note) orderUpdateData.note = order.note;
+          if (order.totalAmount) orderUpdateData.totalAmount = order.totalAmount;
+          if (order.discount) orderUpdateData.discount = order.discount;
+          if (order.finalAmount) orderUpdateData.finalAmount = order.finalAmount;
+          if (order.handoverDate) orderUpdateData.handoverDate = order.handoverDate;
+          
+          console.log('Updating order', order.id, 'with data:', orderUpdateData);
+          await axiosInstance.put(endpoints.orders.update(order.id), orderUpdateData);
+        } catch (orderUpdateError) {
+          console.error('Error updating order status:', order.id, orderUpdateError);
+          // Continue updating other orders even if one fails
+        }
+      }
+      
+      showSuccess("Tạo vận chuyển thành công! Trạng thái đơn hàng đã được cập nhật.");
       onSuccess();
       handleClose();
     } catch (error) {
@@ -231,12 +282,19 @@ const CreateTransportModal = ({ visible, onClose, onSuccess }) => {
                 required
               >
                 <option value="">-- Chọn kho --</option>
-                {warehouses.map((warehouse) => (
-                  <option key={warehouse.id} value={warehouse.address}>
-                    {warehouse.name} - {warehouse.address}
-                  </option>
-                ))}
+                {evmWarehouses.length === 0 ? (
+                  <option value="" disabled>Không có kho EVM nào</option>
+                ) : (
+                  evmWarehouses.map((warehouse) => (
+                    <option key={warehouse.id} value={warehouse.address}>
+                      {warehouse.name} - {warehouse.address}
+                    </option>
+                  ))
+                )}
               </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Chỉ hiển thị các kho trung tâm EVM ({evmWarehouses.length} kho)
+              </p>
             </div>
 
             <div>

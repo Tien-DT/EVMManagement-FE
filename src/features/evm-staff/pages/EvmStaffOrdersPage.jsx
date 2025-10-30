@@ -587,12 +587,16 @@ const EvmStaffOrdersPage = () => {
                           </button>
                         )}
 
-                        {/* 8. IN_PROGRESS → Badge "Chờ dealer xác nhận" */}
+                        {/* 8. IN_PROGRESS → Nút "Tạo vận chuyển" */}
                         {order.status?.toUpperCase() === 'IN_PROGRESS' && (
-                          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
-                            <Clock size={14} />
-                            <span className="text-xs font-medium">Chờ dealer xác nhận</span>
-                          </span>
+                          <button
+                            onClick={() => navigate(`/evm-staff/transports?orderId=${order.id}`)}
+                            className="text-purple-600 hover:bg-purple-50 px-3 py-1.5 rounded-lg transition-colors border border-purple-200 flex items-center gap-1"
+                            title="Tạo vận chuyển cho đơn hàng này"
+                          >
+                            <Car size={14} />
+                            <span className="text-xs font-medium">Tạo vận chuyển</span>
+                          </button>
                         )}
 
                         {/* 9. IN_TRANSIT → Badge "Đang vận chuyển" */}

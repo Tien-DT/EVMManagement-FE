@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Truck, Package, MapPin, Calendar, CheckCircle, Clock, XCircle, Eye, Edit, Trash2, Plus } from "lucide-react";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
@@ -9,6 +9,7 @@ import UpdateTransportStatusModal from "../components/UpdateTransportStatusModal
 
 const EvmStaffTransportsPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showSuccess, showError } = useNotification();
   const [transports, setTransports] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,17 @@ const EvmStaffTransportsPage = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [selectedTransport, setSelectedTransport] = useState(null);
+  const [preselectedOrderId, setPreselectedOrderId] = useState(null);
+
+  // Check for orderId in URL params and auto-open create modal
+  useEffect(() => {
+    const orderId = searchParams.get('orderId');
+    if (orderId) {
+      console.log('Opening create transport modal with preselected order:', orderId);
+      setPreselectedOrderId(orderId);
+      setCreateModalVisible(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchTransports();
@@ -335,10 +347,19 @@ const EvmStaffTransportsPage = () => {
       {/* Create Transport Modal */}
       <CreateTransportModal
         visible={createModalVisible}
-        onClose={() => setCreateModalVisible(false)}
+        preselectedOrderId={preselectedOrderId}
+        onClose={() => {
+          setCreateModalVisible(false);
+          setPreselectedOrderId(null);
+          // Clear orderId from URL params
+          navigate('/evm-staff/transports', { replace: true });
+        }}
         onSuccess={() => {
           setCreateModalVisible(false);
+          setPreselectedOrderId(null);
           fetchTransports();
+          // Clear orderId from URL params
+          navigate('/evm-staff/transports', { replace: true });
         }}
       />
 

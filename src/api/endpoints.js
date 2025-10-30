@@ -199,6 +199,16 @@ const endpoints = {
     update: (id) => `/v1/Transports/${id}`,
     delete: (id) => `/v1/Transports/${id}`,
   },
+
+  // Warehouse endpoints
+  warehouses: {
+    getAll: "/v1/Warehouses",
+    getById: (id) => `/v1/Warehouses/${id}`,
+    getByDealer: (dealerId) => `/v1/Warehouses/dealer/${dealerId}`,
+    create: "/v1/Warehouses",
+    update: (id) => `/v1/Warehouses/${id}`,
+    delete: (id) => `/v1/Warehouses/${id}`,
+  },
 };
 
 export default endpoints;
