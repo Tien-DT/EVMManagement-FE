@@ -7,11 +7,14 @@ import {
   Building, 
   Edit, 
   Trash2,
-  Eye
+  Eye,
+  Car
 } from 'lucide-react';
 import CreateWarehouseModal from '../components/CreateWarehouseModal';
 import axiosInstance from '../../../api/axiosInstance';
 import endpoints from '../../../api/endpoints';
+import AddEvmVehicleToWarehouseForm from '../../evm-staff/components/AddEvmVehicleToWarehouseForm';
+import { Modal, Tooltip } from 'antd';
 
 const AdminWarehousesPage = () => {
   const [warehouses, setWarehouses] = useState([]);
@@ -19,6 +22,8 @@ const AdminWarehousesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+  const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState(null);
 
   useEffect(() => {
     fetchWarehouses();
@@ -103,7 +108,19 @@ const AdminWarehousesPage = () => {
           <Plus size={20} />
           <span>Tạo kho mới</span>
         </button>
+        {/* ĐÃ XÓA nút Thêm xe vào kho EVM lớn ở đây */}
       </div>
+      {/* Modal Add Evm Vehicle cho từng kho */}
+      <Modal
+        title="Thêm xe vào kho EVM"
+        open={showAddVehicleModal}
+        onCancel={() => setShowAddVehicleModal(false)}
+        footer={null}
+        width={900}
+        destroyOnClose
+      >
+        <AddEvmVehicleToWarehouseForm warehouseId={selectedWarehouseId} />
+      </Modal>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -230,6 +247,21 @@ const AdminWarehousesPage = () => {
                         >
                           <Edit size={18} />
                         </button>
+                        {/* Nút Add Vehicle cho kho EVM */}
+                        {warehouse.type === 'EVM' && (
+                          <Tooltip title="Thêm xe vào kho này">
+                            <button
+                              onClick={() => {
+                                setSelectedWarehouseId(warehouse.id);
+                                setShowAddVehicleModal(true);
+                              }}
+                              style={{ color: '#059669' }}
+                              title="Thêm xe vào kho này"
+                            >
+                              <Car size={19} style={{ marginRight: 3, verticalAlign: 'middle' }} />+
+                            </button>
+                          </Tooltip>
+                        )}
                         <button
                           onClick={() => handleDeleteWarehouse(warehouse.id)}
                           className="text-red-600 hover:text-red-900"
