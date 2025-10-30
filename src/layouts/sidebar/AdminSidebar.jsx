@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
   Menu,
   X,
   User,
@@ -12,8 +12,8 @@ import {
   UserCheck,
   Settings,
   FileText,
-  Package
-} from 'lucide-react';
+  Package,
+} from "lucide-react";
 
 const AdminSidebar = () => {
   const location = useLocation();
@@ -21,73 +21,74 @@ const AdminSidebar = () => {
 
   const menuGroups = [
     {
-      title: 'Main',
+      title: "Main",
       items: [
         {
-          path: '/admin/dashboard',
+          path: "/admin/dashboard",
           icon: LayoutDashboard,
-          label: 'Dashboard'
-        }
-      ]
+          label: "Dashboard",
+        },
+      ],
     },
     {
-      title: 'Management',
+      title: "Management",
       items: [
         {
-          path: '/admin/dealers',
+          path: "/admin/dealers",
           icon: Building2,
-          label: 'Dealers'
+          label: "Dealers",
         },
         {
-          path: '/admin/dealer-contracts',
+          path: "/admin/dealer-contracts",
           icon: FileText,
-          label: 'Dealer Contracts'
+          label: "Dealer Contracts",
         },
         {
-          path: '/admin/evm-staff',
+          path: "/admin/evm-staff",
           icon: UserCheck,
-          label: 'EVM Staff'
+          label: "EVM Staff",
         },
         {
-          path: '/admin/vehiclemodels',
+          path: "/admin/vehiclemodels",
           icon: Car,
-          label: 'Vehicles'
+          label: "Vehicles",
         },
         {
-          path: '/admin/promotions',
+          path: "/admin/promotions",
           icon: Tag,
-          label: 'Promotions'
+          label: "Promotions",
         },
         {
-          path: '/admin/warehouses',
+          path: "/admin/warehouses",
           icon: Package,
-          label: 'Warehouses'
-        }
-      ]
+          label: "Warehouses",
+        },
+      ],
     },
     {
-      title: 'Actions',
-      items: [
-        {
-          path: '/admin/register-dealer-manager',
-          icon: UserCog,
-          label: 'Register Manager'
-        }
-      ]
+      path: "/admin/warehouses",
+      icon: Package,
+      label: "Warehouses",
     },
     {
-      title: 'Settings',
+      path: "/admin/register-dealer-manager",
+      icon: UserCog,
+      label: "Register Dealer Manager",
+    },
+    {
+      title: "Settings",
       items: [
         {
-          path: '/admin/profile',
+          path: "/admin/profile",
           icon: User,
-          label: 'My Profile'
-        }
-      ]
-    }
+          label: "My Profile",
+        },
+      ],
+    },
   ];
 
-  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
+  const isActive = (path) =>
+    location.pathname === path || location.pathname.startsWith(path + "/");
 
   return (
     <>
@@ -96,7 +97,11 @@ const AdminSidebar = () => {
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow"
       >
-        {isMobileOpen ? <X size={20} className="text-gray-700" /> : <Menu size={20} className="text-gray-700" />}
+        {isMobileOpen ? (
+          <X size={20} className="text-gray-700" />
+        ) : (
+          <Menu size={20} className="text-gray-700" />
+        )}
       </button>
 
       {/* Overlay for Mobile */}
@@ -112,7 +117,7 @@ const AdminSidebar = () => {
         className={`
           fixed top-0 left-0 h-screen bg-white border-r border-gray-200
           transition-transform duration-300 ease-in-out z-40
-          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0 lg:fixed
           w-64 shadow-sm overflow-y-auto
         `}
@@ -141,7 +146,7 @@ const AdminSidebar = () => {
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.path);
-                  
+
                   return (
                     <Link
                       key={item.path}
@@ -150,17 +155,26 @@ const AdminSidebar = () => {
                       className={`
                         flex items-center space-x-3 px-3 py-2.5 rounded-lg
                         transition-all duration-200 group
-                        ${active 
-                          ? 'bg-blue-50 text-blue-700' 
-                          : 'text-gray-700 hover:bg-gray-50'
+                        ${
+                          active
+                            ? "bg-blue-50 text-blue-700"
+                            : "text-gray-700 hover:bg-gray-50"
                         }
                       `}
                     >
-                      <Icon 
-                        size={20} 
-                        className={active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}
+                      <Icon
+                        size={20}
+                        className={
+                          active
+                            ? "text-blue-600"
+                            : "text-gray-400 group-hover:text-gray-600"
+                        }
                       />
-                      <span className={`text-sm font-medium ${active ? 'text-blue-700' : 'text-gray-700'}`}>
+                      <span
+                        className={`text-sm font-medium ${
+                          active ? "text-blue-700" : "text-gray-700"
+                        }`}
+                      >
                         {item.label}
                       </span>
                     </Link>

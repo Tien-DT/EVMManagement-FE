@@ -6,6 +6,7 @@ import {
   UserPlus,
   Car,
   ShoppingBag,
+  FileText,
   Truck,
   FileText,
   FileCheck,
@@ -29,6 +30,11 @@ const DealerManagerSidebar = () => {
       path: "/dealer/orders",
       icon: ShoppingBag,
       label: "Đơn hàng",
+    },
+    {
+      path: "/dealer/quotations",
+      icon: FileText,
+      label: "Báo giá",
     },
     {
       path: "/dealer/transports",

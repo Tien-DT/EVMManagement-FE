@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../features/auth/services/authService";
-import DealerStaffSidebar from "./sidebar/DealerStaffSidebar";
+import DealerStaffSidebar from "./Sidebar/DealerStaffSidebar";
 import CartIcon from "../features/dealer-staff/components/CartIcon";
 
 const DealerStaffLayout = () => {
@@ -11,13 +11,12 @@ const DealerStaffLayout = () => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
-  const handleLogout = async() => {
+  const handleLogout = async () => {
     try {
       // Try to call logout API
       await authService.logout();
 
       navigate("/login");
-
     } catch (error) {
       console.error("Logout API error:", error);
       // Continue with logout even if API fails

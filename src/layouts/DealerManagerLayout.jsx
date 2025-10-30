@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
-import DealerManagerSidebar from "./sidebar/DealerManagerSidebar";
+import DealerManagerSidebar from "./Sidebar/DealerManagerSidebar";
 import { useAuth } from "../context/AuthContext";
 
 const DealerManagerLayout = () => {
@@ -83,7 +83,10 @@ const DealerManagerLayout = () => {
                     <p className="text-xs text-gray-500">Dealer Manager</p>
                   </div>
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {user?.fullName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || "D"}
+                    {user?.fullName?.charAt(0) ||
+                      user?.name?.charAt(0) ||
+                      user?.email?.charAt(0) ||
+                      "D"}
                   </div>
                 </div>
               </Dropdown>

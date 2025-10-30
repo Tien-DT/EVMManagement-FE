@@ -58,13 +58,25 @@ const OrderDetailModal = ({ visible, onClose, orderId }) => {
       if (order.orderDetails && order.orderDetails.length > 0) {
         const detailsWithVehicles = await Promise.all(
           order.orderDetails.map(async (detail) => {
+            console.log("📝 Processing order detail:", {
+              id: detail.id,
+              unitPrice: detail.unitPrice,
+              vehicleId: detail.vehicleId,
+              vehicleVariantId: detail.vehicleVariantId
+            });
+
             if (detail.vehicleId) {
               try {
                 const vehicleResponse = await axiosInstance.get(
                   endpoints.vehicles.getById(detail.vehicleId)
                 );
                 if (vehicleResponse.success && vehicleResponse.data) {
-                  return { ...detail, vehicle: vehicleResponse.data };
+                  const vehicleData = vehicleResponse.data;
+                  console.log("✅ Vehicle fetched:", {
+                    vin: vehicleData.vin,
+                    variantPrice: vehicleData.vehicleVariant?.price
+                  });
+                  return { ...detail, vehicle: vehicleData };
                 }
               } catch (err) {
                 console.error("⚠️ Error fetching vehicle:", err);
@@ -75,6 +87,10 @@ const OrderDetailModal = ({ visible, onClose, orderId }) => {
                   endpoints.vehicleVariants.getById(detail.vehicleVariantId)
                 );
                 if (variantResponse.success && variantResponse.data) {
+                  console.log("✅ Variant fetched:", {
+                    color: variantResponse.data.color,
+                    price: variantResponse.data.price
+                  });
                   const pseudoVehicle = {
                     id: null,
                     vin: "N/A (Preorder)",
@@ -91,6 +107,16 @@ const OrderDetailModal = ({ visible, onClose, orderId }) => {
         );
         order.orderDetails = detailsWithVehicles;
         console.log("🚗 Order with vehicles/variants:", order);
+        
+        // Log prices for debugging
+        order.orderDetails.forEach((detail, index) => {
+          const displayPrice = detail.unitPrice || detail.vehicle?.vehicleVariant?.price || 0;
+          console.log(`💰 Detail ${index + 1} price:`, {
+            unitPrice: detail.unitPrice,
+            variantPrice: detail.vehicle?.vehicleVariant?.price,
+            displayPrice: displayPrice
+          });
+        });
       }
       
       setOrderData(order);
@@ -189,10 +215,13 @@ const OrderDetailModal = ({ visible, onClose, orderId }) => {
     },
     {
       title: "Đơn giá",
-      dataIndex: "unitPrice",
       key: "unitPrice",
       align: "right",
-      render: (price) => formatPrice(price),
+      render: (_, record) => {
+        // Try to get price from unitPrice first, then from vehicle variant
+        const price = record.unitPrice || record.vehicle?.vehicleVariant?.price || 0;
+        return formatPrice(price);
+      },
     },
     {
       title: "Số lượng",
