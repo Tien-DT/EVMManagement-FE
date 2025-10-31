@@ -10,7 +10,8 @@ import {
   Building2,
   Car,
   Tag,
-  UserCog
+  UserCog,
+  Package
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -27,6 +28,11 @@ const AdminSidebar = () => {
       path: '/admin/dealers',
       icon: Building2,
       label: 'Dealers'
+    },
+    {
+      path: '/admin/warehouses',
+      icon: Package,
+      label: 'Warehouses'
     },
     {
       path: '/admin/register-dealer-manager',

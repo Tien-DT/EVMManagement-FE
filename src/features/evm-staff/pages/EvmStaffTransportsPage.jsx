@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Truck, Package, MapPin, Calendar, CheckCircle, Clock, XCircle, Eye, Edit, Trash2, Plus } from "lucide-react";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import { useNotification } from "../../../context/NotificationContext";
 import CreateTransportModal from "../components/CreateTransportModal";
 import UpdateTransportStatusModal from "../components/UpdateTransportStatusModal";
+import AddTransportDetailsModal from "../components/AddTransportDetailsModal";
 
 const EvmStaffTransportsPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showSuccess, showError } = useNotification();
   const [transports, setTransports] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,7 +21,19 @@ const EvmStaffTransportsPage = () => {
   });
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [addDetailsModalVisible, setAddDetailsModalVisible] = useState(false);
   const [selectedTransport, setSelectedTransport] = useState(null);
+  const [preselectedOrderId, setPreselectedOrderId] = useState(null);
+
+  // Check for orderId in URL params and auto-open create modal
+  useEffect(() => {
+    const orderId = searchParams.get('orderId');
+    if (orderId) {
+      console.log('Opening create transport modal with preselected order:', orderId);
+      setPreselectedOrderId(orderId);
+      setCreateModalVisible(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchTransports();
@@ -51,14 +65,23 @@ const EvmStaffTransportsPage = () => {
   };
 
   const getStatusBadge = (status) => {
+    // Normalize status to uppercase string for comparison
+    const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : status;
+    
     const statusMap = {
+      // Number format
       0: { text: "Chờ xử lý", color: "bg-orange-50 text-orange-700 border-orange-200" },
       1: { text: "Đang vận chuyển", color: "bg-blue-50 text-blue-700 border-blue-200" },
       2: { text: "Hoàn thành", color: "bg-green-50 text-green-700 border-green-200" },
       3: { text: "Đã hủy", color: "bg-red-50 text-red-700 border-red-200" },
+      // String format
+      'PENDING': { text: "Chờ xử lý", color: "bg-orange-50 text-orange-700 border-orange-200" },
+      'IN_TRANSIT': { text: "Đang vận chuyển", color: "bg-blue-50 text-blue-700 border-blue-200" },
+      'DELIVERED': { text: "Hoàn thành", color: "bg-green-50 text-green-700 border-green-200" },
+      'CANCELED': { text: "Đã hủy", color: "bg-red-50 text-red-700 border-red-200" },
     };
 
-    const statusInfo = statusMap[status] || { text: "Không xác định", color: "bg-gray-50 text-gray-700 border-gray-200" };
+    const statusInfo = statusMap[normalizedStatus] || { text: "Không xác định", color: "bg-gray-50 text-gray-700 border-gray-200" };
     return (
       <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${statusInfo.color}`}>
         {statusInfo.text}
@@ -67,12 +90,23 @@ const EvmStaffTransportsPage = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case 0: return <Clock size={16} className="text-orange-600" />;
-      case 1: return <Truck size={16} className="text-blue-600" />;
-      case 2: return <CheckCircle size={16} className="text-green-600" />;
-      case 3: return <XCircle size={16} className="text-red-600" />;
-      default: return <Clock size={16} className="text-gray-600" />;
+    const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : status;
+    
+    switch (normalizedStatus) {
+      case 0:
+      case 'PENDING':
+        return <Clock size={16} className="text-orange-600" />;
+      case 1:
+      case 'IN_TRANSIT':
+        return <Truck size={16} className="text-blue-600" />;
+      case 2:
+      case 'DELIVERED':
+        return <CheckCircle size={16} className="text-green-600" />;
+      case 3:
+      case 'CANCELED':
+        return <XCircle size={16} className="text-red-600" />;
+      default:
+        return <Clock size={16} className="text-gray-600" />;
     }
   };
 
@@ -85,6 +119,168 @@ const EvmStaffTransportsPage = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // Helper function to build order update data with all non-null fields
+  const buildOrderUpdateData = (order, newStatus) => {
+    const updateData = {
+      code: order.code,
+      dealerId: order.dealerId,
+      status: newStatus,
+      orderType: order.orderType,
+    };
+    
+    // Add optional fields if they exist
+    if (order.customerId) updateData.customerId = order.customerId;
+    if (order.quotationId) updateData.quotationId = order.quotationId;
+    if (order.handoverRecordId) updateData.handoverRecordId = order.handoverRecordId;
+    if (order.contractId) updateData.contractId = order.contractId;
+    if (order.depositId) updateData.depositId = order.depositId;
+    if (order.note) updateData.note = order.note;
+    if (order.totalAmount) updateData.totalAmount = order.totalAmount;
+    if (order.discount) updateData.discount = order.discount;
+    if (order.finalAmount) updateData.finalAmount = order.finalAmount;
+    if (order.handoverDate) updateData.handoverDate = order.handoverDate;
+    
+    return updateData;
+  };
+
+  // Mark transport as completed: Transport -> COMPLETED, Order -> COMPLETED
+  const handleMarkAsCompleted = async (transport) => {
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      `Xác nhận hoàn thành vận chuyển cho "${transport.dealerName || 'dealer'}"?\n\n` +
+      `Hành động này sẽ:\n` +
+      `- Cập nhật vận chuyển → Hoàn thành\n` +
+      `- Cập nhật đơn hàng → Hoàn thành`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      console.log("Marking transport as completed:", transport);
+      
+      // 1. Update transport status to COMPLETED
+      const transportUpdateData = {
+        providerName: transport.providerName || null,
+        pickupLocation: transport.pickupLocation,
+        dropoffLocation: transport.dropoffLocation,
+        status: "COMPLETED",
+        scheduledPickupAt: transport.scheduledPickupAt || null,
+        deliveredAt: transport.deliveredAt || null,
+        orderId: transport.orderId,
+      };
+      
+      console.log("Updating transport to COMPLETED:", transportUpdateData);
+      await axiosInstance.put(
+        endpoints.transports.update(transport.id),
+        transportUpdateData
+      );
+      
+      // 2. Update order status to COMPLETED
+      if (transport.orderId) {
+        try {
+          console.log("Updating order status to COMPLETED...");
+          
+          // Load current order data
+          const orderResponse = await axiosInstance.get(
+            endpoints.orders.getById(transport.orderId)
+          );
+          const currentOrder = orderResponse.data || orderResponse;
+          
+          if (currentOrder) {
+            const orderUpdateData = buildOrderUpdateData(currentOrder, "COMPLETED");
+            
+            console.log("Order update payload:", orderUpdateData);
+            await axiosInstance.put(
+              endpoints.orders.update(transport.orderId),
+              orderUpdateData
+            );
+            
+            showSuccess("Đã cập nhật: Vận chuyển → Hoàn thành, Đơn hàng → Hoàn thành");
+          }
+        } catch (orderError) {
+          console.error("Error updating order status:", orderError);
+          showSuccess("Đã cập nhật vận chuyển (nhưng không thể cập nhật trạng thái đơn hàng)");
+        }
+      } else {
+        showSuccess("Đã đánh dấu vận chuyển hoàn thành");
+      }
+      
+      fetchTransports(); // Refresh table
+    } catch (error) {
+      console.error("Error marking transport as completed:", error);
+      showError(error.response?.data?.message || "Không thể cập nhật trạng thái vận chuyển");
+    }
+  };
+
+  // Mark transport as delivered: Transport -> DELIVERED, Order -> READY_FOR_HANDOVER
+  const handleMarkAsDelivered = async (transport) => {
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      `Xác nhận đã giao hàng cho "${transport.dealerName || 'dealer'}"?\n\n` +
+      `Hành động này sẽ:\n` +
+      `- Cập nhật vận chuyển → Hoàn thành\n` +
+      `- Cập nhật đơn hàng → Sẵn sàng bàn giao`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      console.log("Marking transport as delivered:", transport);
+      
+      // 1. Update transport status to DELIVERED
+      const transportUpdateData = {
+        providerName: transport.providerName || null,
+        pickupLocation: transport.pickupLocation,
+        dropoffLocation: transport.dropoffLocation,
+        status: "DELIVERED",
+        scheduledPickupAt: transport.scheduledPickupAt || null,
+        deliveredAt: new Date().toISOString(), // Set delivered time
+        orderId: transport.orderId,
+      };
+      
+      console.log("Updating transport to DELIVERED:", transportUpdateData);
+      await axiosInstance.put(
+        endpoints.transports.update(transport.id),
+        transportUpdateData
+      );
+      
+      // 2. Update order status to READY_FOR_HANDOVER
+      if (transport.orderId) {
+        try {
+          console.log("Updating order status to READY_FOR_HANDOVER...");
+          
+          // Load current order data
+          const orderResponse = await axiosInstance.get(
+            endpoints.orders.getById(transport.orderId)
+          );
+          const currentOrder = orderResponse.data || orderResponse;
+          
+          if (currentOrder) {
+            const orderUpdateData = buildOrderUpdateData(currentOrder, "READY_FOR_HANDOVER");
+            
+            console.log("Order update payload:", orderUpdateData);
+            await axiosInstance.put(
+              endpoints.orders.update(transport.orderId),
+              orderUpdateData
+            );
+            
+            showSuccess("Đã cập nhật: Vận chuyển → Hoàn thành, Đơn hàng → Sẵn sàng bàn giao");
+          }
+        } catch (orderError) {
+          console.error("Error updating order status:", orderError);
+          showSuccess("Đã cập nhật vận chuyển (nhưng không thể cập nhật trạng thái đơn hàng)");
+        }
+      } else {
+        showSuccess("Đã đánh dấu vận chuyển hoàn thành");
+      }
+      
+      fetchTransports(); // Refresh table
+    } catch (error) {
+      console.error("Error marking transport as delivered:", error);
+      showError(error.response?.data?.message || "Không thể cập nhật trạng thái vận chuyển");
+    }
   };
 
   if (loading) {
@@ -122,7 +318,7 @@ const EvmStaffTransportsPage = () => {
             <div className="ml-3">
               <p className="text-sm text-gray-600">Chờ xử lý</p>
               <p className="text-xl font-bold text-gray-900">
-                {transports.filter((t) => t.status === 0).length}
+                {transports.filter((t) => t.status === 0 || t.status === 'PENDING' || t.status?.toUpperCase() === 'PENDING').length}
               </p>
             </div>
           </div>
@@ -136,7 +332,7 @@ const EvmStaffTransportsPage = () => {
             <div className="ml-3">
               <p className="text-sm text-gray-600">Đang vận chuyển</p>
               <p className="text-xl font-bold text-gray-900">
-                {transports.filter((t) => t.status === 1).length}
+                {transports.filter((t) => t.status === 1 || t.status === 'IN_TRANSIT' || t.status?.toUpperCase() === 'IN_TRANSIT').length}
               </p>
             </div>
           </div>
@@ -150,7 +346,7 @@ const EvmStaffTransportsPage = () => {
             <div className="ml-3">
               <p className="text-sm text-gray-600">Hoàn thành</p>
               <p className="text-xl font-bold text-gray-900">
-                {transports.filter((t) => t.status === 2).length}
+                {transports.filter((t) => t.status === 2 || t.status === 'DELIVERED' || t.status?.toUpperCase() === 'DELIVERED').length}
               </p>
             </div>
           </div>
@@ -265,6 +461,39 @@ const EvmStaffTransportsPage = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="flex items-center justify-center gap-2">
+                      {/* Show Add Details button only for PENDING status (status = 0 or "PENDING") */}
+                      {(transport.status === 0 || transport.status === 'PENDING' || transport.status?.toUpperCase() === 'PENDING') && (
+                        <button
+                          onClick={() => {
+                            setSelectedTransport(transport);
+                            setAddDetailsModalVisible(true);
+                          }}
+                          className="text-green-600 hover:bg-green-50 p-2 rounded-md transition-colors"
+                          title="Thêm xe vào vận chuyển"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      )}
+                      {/* Show Delivered button only for IN_TRANSIT status */}
+                      {(transport.status === 1 || transport.status === 'IN_TRANSIT' || transport.status?.toUpperCase() === 'IN_TRANSIT') && (
+                        <button
+                          onClick={() => handleMarkAsDelivered(transport)}
+                          className="text-emerald-600 hover:bg-emerald-50 p-2 rounded-md transition-colors"
+                          title="Đánh dấu đã giao hàng"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                      )}
+                      {/* Show Complete button only for DELIVERED status */}
+                      {(transport.status === 2 || transport.status === 'DELIVERED' || transport.status?.toUpperCase() === 'DELIVERED') && (
+                        <button
+                          onClick={() => handleMarkAsCompleted(transport)}
+                          className="text-green-600 hover:bg-green-50 p-2 rounded-md transition-colors"
+                          title="Hoàn thành vận chuyển"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           setSelectedTransport(transport);
@@ -335,10 +564,19 @@ const EvmStaffTransportsPage = () => {
       {/* Create Transport Modal */}
       <CreateTransportModal
         visible={createModalVisible}
-        onClose={() => setCreateModalVisible(false)}
+        preselectedOrderId={preselectedOrderId}
+        onClose={() => {
+          setCreateModalVisible(false);
+          setPreselectedOrderId(null);
+          // Clear orderId from URL params
+          navigate('/evm-staff/transports', { replace: true });
+        }}
         onSuccess={() => {
           setCreateModalVisible(false);
+          setPreselectedOrderId(null);
           fetchTransports();
+          // Clear orderId from URL params
+          navigate('/evm-staff/transports', { replace: true });
         }}
       />
 
@@ -352,6 +590,21 @@ const EvmStaffTransportsPage = () => {
         transport={selectedTransport}
         onSuccess={() => {
           setUpdateModalVisible(false);
+          setSelectedTransport(null);
+          fetchTransports();
+        }}
+      />
+
+      {/* Add Transport Details Modal */}
+      <AddTransportDetailsModal
+        visible={addDetailsModalVisible}
+        onClose={() => {
+          setAddDetailsModalVisible(false);
+          setSelectedTransport(null);
+        }}
+        transport={selectedTransport}
+        onSuccess={() => {
+          setAddDetailsModalVisible(false);
           setSelectedTransport(null);
           fetchTransports();
         }}

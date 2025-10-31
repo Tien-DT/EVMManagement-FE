@@ -3,6 +3,7 @@ const endpoints = {
   contracts: {
     getAll: "/v1/Contracts",
     getById: (id) => `/v1/Contracts/${id}`,
+    getByDealer: (dealerId) => `/v1/Contracts/by-dealer/${dealerId}`,
     create: "/v1/Contracts",
     update: (id) => `/v1/Contracts/${id}`,
     delete: (id) => `/v1/Contracts/${id}`,
@@ -198,6 +199,24 @@ const endpoints = {
     create: "/v1/Transports",
     update: (id) => `/v1/Transports/${id}`,
     delete: (id) => `/v1/Transports/${id}`,
+  },
+
+  // Transport Details endpoints
+  transportDetails: {
+    create: "/v1/TransportDetails",
+    getByTransport: (transportId) => `/v1/TransportDetails/transport/${transportId}`,
+    update: (id) => `/v1/TransportDetails/${id}`,
+    delete: (id) => `/v1/TransportDetails/${id}`,
+  },
+
+  // Warehouse endpoints
+  warehouses: {
+    getAll: "/v1/Warehouses",
+    getById: (id) => `/v1/Warehouses/${id}`,
+    getByDealer: (dealerId) => `/v1/Warehouses/dealer/${dealerId}`,
+    create: "/v1/Warehouses",
+    update: (id) => `/v1/Warehouses/${id}`,
+    delete: (id) => `/v1/Warehouses/${id}`,
   },
 };
 

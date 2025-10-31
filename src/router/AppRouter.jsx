@@ -20,6 +20,7 @@ import EVMStaffLayout from "../layouts/EVMStaffLayout";
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
 import RegisterDealerManagerPage from "../features/admin/pages/RegisterDealerManagerPage";
+import AdminWarehousesPage from "../features/admin/pages/AdminWarehousesPage";
 
 // Dealer Pages
 import DealerListPage from "../features/dealer/pages/DealerListPage";
@@ -47,8 +48,11 @@ import UserProfileTestPage from "../features/auth/pages/UserProfileTestPage";
 // Dealer Manager Pages
 import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerManagerDashboardPage";
 import DealerManagerOrdersPage from "../features/dealer-manager/pages/DealerManagerOrdersPage";
+import DealerManagerQuotationsPage from "../features/dealer-manager/pages/DealerManagerQuotationsPage";
+import DealerManagerQuotationDetailPage from "../features/dealer-manager/pages/DealerManagerQuotationDetailPage";
 import DealerManagerCreateContractPage from "../features/dealer-manager/pages/CreateContractPage";
 import DealerManagerContractsPage from "../features/dealer-manager/pages/DealerManagerContractsPage";
+import DealerManagerContractDetailPage from "../features/dealer-manager/pages/DealerManagerContractDetailPage";
 import DealerManagerDepositsPage from "../features/dealer-manager/pages/DealerManagerDepositsPage";
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
@@ -137,6 +141,7 @@ const AppRouter = () => (
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
             <Route path="/admin/register-dealer-manager" element={<RegisterDealerManagerPage />} />
+            <Route path="/admin/warehouses" element={<AdminWarehousesPage />} />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
             <Route path="/admin/dealers/:id" element={<DealerDetailPage />} />
@@ -197,11 +202,16 @@ const AppRouter = () => (
             {/* Orders Management */}
             <Route path="/dealer/orders" element={<DealerManagerOrdersPage />} />
 
+            {/* Quotations Management */}
+            <Route path="/dealer/quotations" element={<DealerManagerQuotationsPage />} />
+            <Route path="/dealer/quotations/:id" element={<DealerManagerQuotationDetailPage />} />
+
             {/* Transport Management */}
             <Route path="/dealer/transports" element={<TransportPage />} />
 
             {/* Contracts Management */}
             <Route path="/dealer/contracts" element={<DealerManagerContractsPage />} />
+            <Route path="/dealer/contracts/:id" element={<DealerManagerContractDetailPage />} />
             
             {/* Deposits Management */}
             <Route path="/dealer/deposits" element={<DealerManagerDepositsPage />} />

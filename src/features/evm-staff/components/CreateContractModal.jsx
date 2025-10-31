@@ -1,10 +1,12 @@
 // src/features/evm-staff/components/CreateContractModal.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal, Form, Input, message } from 'antd';
 import { FileTextOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../api/axiosInstance';
 import endpoints from '../../../api/endpoints';
 import { useAuth } from '../../../hooks/useAuth';
+import userProfileService from '../../../services/userProfileService';
 
 const { TextArea } = Input;
 
@@ -12,82 +14,170 @@ const CreateContractModal = ({ visible, onClose, order, quotation, onSuccess }) 
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
-      // Generate contract code
-      const contractCode = `CONTRACT-${Date.now().toString().slice(-8)}`;
-
-      // Check if quotation is accepted
-      if (quotation?.status !== 'ACCEPTED') {
-        message.error('Chỉ có thể tạo hợp đồng khi báo giá đã được chấp nhận');
+      // Validate required fields
+      if (!order?.id) {
+        message.error('Không tìm thấy thông tin đơn hàng');
+        setLoading(false);
         return;
       }
 
-      let customerId = order.customerId;
-
-      // For B2B orders without customer, create customer from dealer info
-      if (!customerId && order.dealerId) {
+      // Get createdByUserId (UserProfile ID, NOT account ID)
+      let createdByUserId = user?.userProfileId; // Try to get from cached user object
+      
+      // If not available, fetch from API using account ID
+      if (!createdByUserId) {
+        console.log('⚠️ userProfileId not in user object, fetching from API...');
         try {
-          console.log('B2B order without customer, creating customer from dealer info...');
+          const accountId = user?.id; // Account ID
+          if (!accountId) {
+            message.error('Không tìm thấy thông tin tài khoản');
+            setLoading(false);
+            return;
+          }
+
+          const profileResponse = await userProfileService.getByAccount(accountId);
           
-          // Fetch dealer info
-          const dealerResponse = await axiosInstance.get(`/v1/Dealers/${order.dealerId}`);
-          const dealer = dealerResponse.data;
-          
-          // Create customer from dealer
-          const customerData = {
-            fullName: dealer.name || 'Dealer Company',
-            phone: dealer.phone || '0000000000',
-            email: dealer.email,
-            address: dealer.address || '',
-          };
-          
-          const customerResponse = await axiosInstance.post(endpoints.customers.create, customerData);
-          customerId = customerResponse.data?.id || customerResponse.data;
-          
-          console.log('Customer created for B2B contract:', customerId);
-          
-          // Update order with customerId
-          await axiosInstance.put(endpoints.orders.update(order.id), {
-            ...order,
-            customerId: customerId,
-          });
-          
-        } catch (customerError) {
-          console.error('Error creating customer:', customerError);
-          message.error('Không thể tạo thông tin khách hàng cho hợp đồng');
+          if (profileResponse && (profileResponse.success || profileResponse.data)) {
+            const profileData = profileResponse.data;
+            createdByUserId = profileData.id; // UserProfile ID
+            console.log('✅ Fetched userProfileId from API:', createdByUserId);
+            
+            // Cache it for next time
+            localStorage.setItem('userProfile', JSON.stringify(profileData));
+          } else {
+            message.error('Không thể lấy thông tin UserProfile');
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('❌ Error fetching user profile:', error);
+          message.error('Lỗi khi lấy thông tin UserProfile');
           setLoading(false);
           return;
         }
       }
 
-      const contractData = {
-        code: contractCode,
-        orderId: order.id,
-        customerId: customerId,
-        createdByUserId: user?.userProfileId || user?.id,
-        terms: values.terms || '',
-        status: 'PENDING_SIGNATURE', // ContractStatus.PENDING_SIGNATURE
-        contractLink: values.contractLink || '',
-      };
+      if (!createdByUserId) {
+        message.error('Không tìm thấy thông tin UserProfile ID');
+        setLoading(false);
+        return;
+      }
 
-      console.log('Creating contract:', contractData);
+      // Get dealerId from order (dealer company ID, not user ID)
+      const dealerId = order.dealerId;
+
+      if (!dealerId) {
+        message.error('Không tìm thấy thông tin dealer trong đơn hàng');
+        setLoading(false);
+        return;
+      }
+
+      // Build contract data with all fields
+      const contractData = {
+        code: values.code || `CONTRACT-${Date.now().toString().slice(-8)}`,
+        orderId: order.id,
+        customerId: null, // Nullable - B2B contracts don't have customerId
+        dealerId: dealerId, // ID của dealer (company) - from order
+        createdByUserId: createdByUserId, // ID của EVM staff tạo contract
+        signedByUserId: null, // Nullable - will be set later when signed
+        contractType: 'B2B', // B2B = contract between EVM and Dealer, B2C = contract with customer
+        terms: values.terms || '', // Terms of contract
+        status: 'PENDING_SIGNATURE', // Initial status after creation
+        signedAt: null, // Nullable - will be set when PDF uploaded
+        contractLink: null, // Nullable - will be set when PDF uploaded
+      }
+
+      console.log('📝 Creating contract with data:', contractData);
+      console.log('   - code:', contractData.code);
+      console.log('   - orderId:', order.id);
+      console.log('   - customerId:', null, '(B2B - no customer)');
+      console.log('   - dealerId (dealer company):', dealerId);
+      console.log('   - createdByUserId (UserProfile ID):', createdByUserId);
+      console.log('   - signedByUserId:', null, '(will be set later)');
+      console.log('   - contractType:', 'B2B', '(B2B or B2C)');
+      console.log('   - terms:', values.terms || '');
+      console.log('   - status:', 'PENDING_SIGNATURE');
+      console.log('   - signedAt:', null, '(will be set on upload)');
+      console.log('   - contractLink:', null, '(will be set on upload)');
+      console.log('   - user.id (account ID):', user?.id);
+      console.log('   - user.userProfileId (cached):', user?.userProfileId);
 
       const response = await axiosInstance.post(endpoints.contracts.create, contractData);
 
       if (response.success || response.data) {
-        message.success('Tạo hợp đồng thành công! Dealer Manager sẽ nhận được thông báo để ký hợp đồng.');
+        const createdContract = response.data;
+        console.log('✅ Contract created successfully:', createdContract);
+        
+        // Update order status to CREATED_CONTRACT and link contractId
+        if (createdContract?.id && order?.id) {
+          try {
+            console.log('Updating order status to CREATED_CONTRACT...');
+            
+            // Build order update data with all non-null fields
+            const orderUpdateData = {
+              code: order.code,
+              dealerId: order.dealerId,
+              status: 'CREATED_CONTRACT', // Update status
+              orderType: order.orderType,
+              contractId: createdContract.id, // Link contract
+            };
+            
+            // Add optional fields if they exist
+            if (order.customerId) orderUpdateData.customerId = order.customerId;
+            if (order.quotationId) orderUpdateData.quotationId = order.quotationId;
+            if (order.handoverRecordId) orderUpdateData.handoverRecordId = order.handoverRecordId;
+            if (order.depositId) orderUpdateData.depositId = order.depositId;
+            if (order.note) orderUpdateData.note = order.note;
+            if (order.totalAmount) orderUpdateData.totalAmount = order.totalAmount;
+            if (order.discount) orderUpdateData.discount = order.discount;
+            if (order.finalAmount) orderUpdateData.finalAmount = order.finalAmount;
+            if (order.handoverDate) orderUpdateData.handoverDate = order.handoverDate;
+            
+            console.log('Order update payload:', orderUpdateData);
+            
+            await axiosInstance.put(endpoints.orders.update(order.id), orderUpdateData);
+            console.log('✅ Order status updated to CREATED_CONTRACT');
+          } catch (updateError) {
+            console.error('❌ Error updating order status:', updateError);
+            message.warning('Hợp đồng đã tạo nhưng không thể cập nhật trạng thái đơn hàng');
+          }
+        }
+        
+        message.success('Tạo hợp đồng thành công!');
         form.resetFields();
-        onSuccess && onSuccess();
+        
+        // Call onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess();
+        }
+        
         onClose();
+        
+        // Navigate to contracts page after successful creation
+        setTimeout(() => {
+          navigate('/evm-staff/contracts');
+        }, 500);
+      } else {
+        throw new Error(response.message || 'Không thể tạo hợp đồng');
       }
     } catch (error) {
-      console.error('Error creating contract:', error);
-      message.error(error.response?.data?.message || 'Không thể tạo hợp đồng');
+      console.error('❌ Error creating contract:', error);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Error response data:', error.response?.data);
+      console.error('❌ Error response status:', error.response?.status);
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.errors?.[0]?.message ||
+                          error.message || 
+                          'Không thể tạo hợp đồng';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -141,13 +231,22 @@ const CreateContractModal = ({ visible, onClose, order, quotation, onSuccess }) 
 
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
           <p className="text-sm text-yellow-800">
-            <strong>Lưu ý:</strong> Sau khi tạo hợp đồng, Dealer Manager sẽ nhận được thông báo 
-            và cần ký hợp đồng thông qua xác thực OTP qua email.
+            <strong>Lưu ý:</strong> Hợp đồng sẽ được tạo với trạng thái "PENDING_SIGNATURE" (Chờ ký). 
+            Sau khi vào chi tiết hợp đồng và upload PDF hợp đồng đã ký, trạng thái sẽ tự động chuyển sang "ACTIVE" (Đang hoạt động),
+            đồng thời cập nhật thời gian ký và đơn hàng chuyển sang trạng thái "SIGNED_CONTRACT".
           </p>
         </div>
       </div>
 
       <Form form={form} layout="vertical">
+        <Form.Item
+          label="Tên hợp đồng (Mã hợp đồng)"
+          name="code"
+          rules={[{ required: true, message: 'Vui lòng nhập tên hợp đồng' }]}
+        >
+          <Input placeholder="Nhập tên/mã hợp đồng..." />
+        </Form.Item>
+
         <Form.Item
           label="Điều khoản hợp đồng"
           name="terms"
@@ -156,15 +255,6 @@ const CreateContractModal = ({ visible, onClose, order, quotation, onSuccess }) 
           <TextArea
             rows={6}
             placeholder="Nhập các điều khoản và điều kiện của hợp đồng..."
-          />
-        </Form.Item>
-
-        <Form.Item
-          label="Link hợp đồng (nếu có)"
-          name="contractLink"
-        >
-          <Input
-            placeholder="https://..."
           />
         </Form.Item>
       </Form>

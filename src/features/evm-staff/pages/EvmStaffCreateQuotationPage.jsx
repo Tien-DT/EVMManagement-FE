@@ -40,7 +40,7 @@ const EvmStaffCreateQuotationPage = () => {
     customerId: null, // null by default for B2B orders
     createdByUserId: user?.id || '',
     note: '',
-    status: 'DRAFT',
+    status: 'SENT', // Default status is SENT for B2B quotations
     validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split('T')[0], // 30 ngày sau
@@ -242,24 +242,59 @@ const EvmStaffCreateQuotationPage = () => {
         result = await createQuotation(cleanedData);
       }
       
+      console.log('Quotation creation result:', result);
+      
       if (result.success) {
         showSuccess(isEditMode ? 'Cập nhật báo giá thành công!' : 'Tạo báo giá thành công!');
         
-        // If creating quotation for B2B order, update order status to AWAITING_DEPOSIT (1)
-        if (orderId && result.data?.id) {
+        // If creating quotation for B2B order, update order status to QUOTATION_RECEIVED
+        console.log('Checking B2B order update - orderId:', orderId, 'result.data:', result.data);
+        
+        if (orderId && result.data?.id && b2bOrder) {
           try {
             console.log('Updating B2B order status after quotation creation...');
-            await orderService.updateOrder(orderId, {
-              ...b2bOrder,
-              status: 1, // AWAITING_DEPOSIT - waiting for dealer to accept quotation
-              quotationId: result.data.id, // Link quotation to order
-            });
-            console.log('B2B order status updated successfully');
-            showSuccess('Đơn hàng B2B đã chuyển sang trạng thái "Chờ Dealer chấp nhận"');
+            console.log('Order ID:', orderId);
+            console.log('Quotation ID:', result.data.id);
+            console.log('Current B2B Order:', b2bOrder);
+            
+            // Build update request with all non-null fields
+            const orderUpdateData = {
+              code: b2bOrder.code,
+              dealerId: b2bOrder.dealerId,
+              status: 'QUOTATION_RECEIVED', // Update status
+              quotationId: result.data.id, // Link quotation
+              orderType: b2bOrder.orderType,
+            };
+            
+            // Add optional fields if they exist
+            if (b2bOrder.customerId) orderUpdateData.customerId = b2bOrder.customerId;
+            if (b2bOrder.handoverRecordId) orderUpdateData.handoverRecordId = b2bOrder.handoverRecordId;
+            if (b2bOrder.contractId) orderUpdateData.contractId = b2bOrder.contractId;
+            if (b2bOrder.depositId) orderUpdateData.depositId = b2bOrder.depositId;
+            if (b2bOrder.note) orderUpdateData.note = b2bOrder.note;
+            if (b2bOrder.totalAmount) orderUpdateData.totalAmount = b2bOrder.totalAmount;
+            if (b2bOrder.discount) orderUpdateData.discount = b2bOrder.discount;
+            if (b2bOrder.finalAmount) orderUpdateData.finalAmount = b2bOrder.finalAmount;
+            if (b2bOrder.handoverDate) orderUpdateData.handoverDate = b2bOrder.handoverDate;
+            
+            console.log('Order update payload:', orderUpdateData);
+            
+            // Update order using PUT endpoint
+            const orderUpdateResponse = await axiosInstance.put(
+              endpoints.orders.update(orderId),
+              orderUpdateData
+            );
+            
+            console.log('Order update response:', orderUpdateResponse);
+            console.log('B2B order status updated to QUOTATION_RECEIVED successfully');
+            showSuccess('Đã gửi báo giá thành công! Đơn hàng chuyển sang trạng thái "Đã gửi báo giá"');
           } catch (orderUpdateError) {
             console.error('Error updating order status:', orderUpdateError);
-            showError('Báo giá đã tạo nhưng không thể cập nhật trạng thái đơn hàng');
+            console.error('Error details:', orderUpdateError.response?.data);
+            showError('Báo giá đã tạo nhưng không thể cập nhật trạng thái đơn hàng: ' + (orderUpdateError.response?.data?.message || orderUpdateError.message));
           }
+        } else {
+          console.log('Skipping order update - orderId:', orderId, 'resultData:', result.data, 'b2bOrder:', b2bOrder);
         }
         
         navigate('/evm-staff/orders');

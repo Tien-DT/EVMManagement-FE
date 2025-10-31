@@ -1,4 +1,4 @@
-// src/features/evm-staff/pages/EvmStaffContractDetailPage.jsx
+// src/features/dealer-manager/pages/DealerManagerContractDetailPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -29,7 +29,7 @@ import buildContractPdf from "../../../utils/pdf/contractPdfBuilder";
 
 const { Title, Text } = Typography;
 
-const EvmStaffContractDetailPage = () => {
+const DealerManagerContractDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [contract, setContract] = useState(null);
@@ -352,11 +352,14 @@ const EvmStaffContractDetailPage = () => {
               if (currentOrder.handoverDate) orderUpdateData.handoverDate = currentOrder.handoverDate;
               
               // Update order with PUT
+              // For dealer manager, set order status to DEALER_SIGNED_CONTRACT
+              orderUpdateData.status = 'DEALER_SIGNED_CONTRACT';
+              
               await axiosInstance.put(
                 endpoints.orders.update(contract.orderId),
                 orderUpdateData
               );
-              message.success('Đã tự động cập nhật trạng thái order → Hợp đồng đã ký');
+              message.success('Đã tự động cập nhật trạng thái order → Dealer đã ký HĐ');
             }
           } catch (statusError) {
             console.error('Error updating order status:', statusError);
@@ -415,7 +418,8 @@ const EvmStaffContractDetailPage = () => {
   };
 
   const handleEdit = () => {
-    navigate(`/evm-staff/contracts/edit/${id}`);
+    // Dealer can't edit contracts
+    message.warning('Không thể chỉnh sửa hợp đồng');
   };
 
   const handleDelete = async () => {
@@ -425,7 +429,7 @@ const EvmStaffContractDetailPage = () => {
         const response = await contractService.deleteContract(id);
         if (response && (response.success || response.data)) {
           message.success("Xóa hợp đồng thành công");
-          navigate("/evm-staff/contracts");
+          navigate("/dealer/contracts");
         } else {
           message.error("Không thể xóa hợp đồng");
         }
@@ -453,7 +457,7 @@ const EvmStaffContractDetailPage = () => {
         <Button 
           type="primary" 
           icon={<ArrowLeftOutlined />} 
-          onClick={() => navigate("/evm-staff/contracts")}
+          onClick={() => navigate("/dealer/contracts")}
         >
           Quay lại danh sách
         </Button>
@@ -596,7 +600,7 @@ const EvmStaffContractDetailPage = () => {
             <Space>
               <Button 
                 icon={<ArrowLeftOutlined />} 
-                onClick={() => navigate("/evm-staff/contracts")}
+                onClick={() => navigate("/dealer/contracts")}
               >
                 Quay lại
               </Button>
@@ -844,4 +848,4 @@ const EvmStaffContractDetailPage = () => {
   );
 };
 
-export default EvmStaffContractDetailPage;
+export default DealerManagerContractDetailPage;

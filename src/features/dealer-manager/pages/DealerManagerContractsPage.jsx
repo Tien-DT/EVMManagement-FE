@@ -1,281 +1,598 @@
 // src/features/dealer-manager/pages/DealerManagerContractsPage.jsx
-import React, { useState, useEffect } from 'react';
-import { Card, Table, Tag, Button, message, Modal, Descriptions } from 'antd';
-import { FileTextOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { useAuth } from '../../../hooks/useAuth';
-import axiosInstance from '../../../api/axiosInstance';
-import endpoints from '../../../api/endpoints';
-import FileUpload from '../../../components/FileUpload';
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Table,
+  Button,
+  Card,
+  Space,
+  message,
+  Tag,
+  Spin,
+  Row,
+  Col,
+  Typography,
+  Input,
+  Select,
+} from "antd";
+import {
+  EyeOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
+import { useAuth } from "../../../hooks/useAuth";
+import { contractService } from "../../dealer-staff/services/contractService";
+import axiosInstance from "../../../api/axiosInstance";
+import endpoints from "../../../api/endpoints";
+import moment from "moment";
 
 const DealerManagerContractsPage = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [contracts, setContracts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedContract, setSelectedContract] = useState(null);
-  const [signModalVisible, setSignModalVisible] = useState(false);
-  const [signing, setSigning] = useState(false);
-  const [uploadedContractUrl, setUploadedContractUrl] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [dealerId, setDealerId] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
+  const { Text } = Typography;
+  const { Search } = Input;
+  const { Option } = Select;
+
+  // Get dealerId from API
   useEffect(() => {
-    if (user?.dealerId) {
-      loadContracts();
-    }
+    const fetchDealerId = async () => {
+      if (!user?.id) {
+        console.log("No user.id found");
+        return;
+      }
+
+      try {
+        const response = await axiosInstance.get(
+          endpoints.userProfile.getByAccount(user.id)
+        );
+
+        if (response.success && response.data) {
+          const userDealerId = response.data.dealerId;
+          if (userDealerId) {
+            console.log("✅ Fetched dealerId:", userDealerId);
+            setDealerId(userDealerId);
+          } else {
+            console.error("No dealerId in profile");
+            message.error("Không tìm thấy dealerId trong profile");
+          }
+        } else {
+          console.error("Profile API unsuccessful:", response);
+          message.error("Không tìm thấy thông tin dealer");
+        }
+      } catch (error) {
+        console.error("Error fetching dealerId:", error);
+        message.error("Lỗi khi tải thông tin dealer");
+      }
+    };
+
+    fetchDealerId();
   }, [user]);
 
-  const loadContracts = async () => {
-    setLoading(true);
+  // Cấu hình status với màu sắc và icon đẹp hơn
+  const statusConfig = useMemo(
+    () => ({
+      DRAFT: {
+        color: "#6b7280",
+        bgColor: "#f3f4f6",
+        borderColor: "#d1d5db",
+        text: "Bản nháp",
+        icon: <ClockCircleOutlined />,
+      },
+      PENDING_SIGNATURE: {
+        color: "#f59e0b",
+        bgColor: "#fef3c7",
+        borderColor: "#fcd34d",
+        text: "Chờ ký",
+        icon: <ClockCircleOutlined />,
+      },
+      ACTIVE: {
+        color: "#52c41a",
+        bgColor: "#f6ffed",
+        borderColor: "#b7eb8f",
+        text: "Đã ký",
+        icon: <CheckCircleOutlined />,
+      },
+      CANCELED: {
+        color: "#ff4d4f",
+        bgColor: "#fff1f0",
+        borderColor: "#ffccc7",
+        text: "Đã hủy",
+        icon: <DeleteOutlined />,
+      },
+    }),
+    []
+  );
+
+  const statusFilterOptions = useMemo(
+    () => [
+      { value: "ALL", label: "Tất cả" },
+      ...Object.keys(statusConfig).map((key) => ({
+        value: key,
+        label: (
+          <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ color: statusConfig[key].color }}>
+              {React.cloneElement(statusConfig[key].icon, {
+                style: { fontSize: 14 },
+              })}
+            </span>
+            {statusConfig[key].text}
+          </span>
+        ),
+      })),
+    ],
+    [statusConfig]
+  );
+
+  useEffect(() => {
+    if (dealerId) {
+      fetchContracts();
+    }
+  }, [dealerId, pagination.current, pagination.pageSize]);
+
+  const fetchContracts = async () => {
+    if (!dealerId) return;
+
     try {
-      // Get contracts by dealer
-      const response = await axiosInstance.get(`${endpoints.contracts.getAll}?dealerId=${user.dealerId}`);
-      console.log('Contracts loaded:', response);
-      
-      if (response.success && response.data) {
-        setContracts(response.data.items || response.data || []);
+      setLoading(true);
+      // Call API: GET /api/v1/Contracts/by-dealer/{dealerId}
+      const response = await axiosInstance.get(
+        endpoints.contracts.getByDealer(dealerId),
+        {
+          params: {
+            pageNumber: pagination.current,
+            pageSize: pagination.pageSize,
+          },
+        }
+      );
+
+      console.log("Contracts by dealer response:", response);
+
+      if (response && (response.success || response.data)) {
+        let items = [];
+        if (Array.isArray(response.data?.items)) {
+          items = response.data.items;
+        } else if (Array.isArray(response.data?.data)) {
+          items = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          items = response.data;
+        }
+
+        const sortedItems = [...items].sort((a, b) => {
+          const createdA = a?.createdDate ? new Date(a.createdDate).getTime() : 0;
+          const createdB = b?.createdDate ? new Date(b.createdDate).getTime() : 0;
+          return createdB - createdA;
+        });
+
+        setContracts(sortedItems);
+        setPagination((prev) => ({
+          ...prev,
+          total:
+            response.data?.totalItems ||
+            response.data?.totalCount ||
+            sortedItems.length,
+        }));
+      } else {
+        setError("Không thể tải danh sách hợp đồng");
       }
     } catch (error) {
-      console.error('Error loading contracts:', error);
-      message.error('Không thể tải danh sách hợp đồng');
+      console.error("Error fetching contracts:", error);
+      setError("Lỗi khi tải danh sách hợp đồng");
+      message.error("Không thể tải danh sách hợp đồng");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSignContract = (contract) => {
-    setSelectedContract(contract);
-    setUploadedContractUrl('');
-    setSignModalVisible(true);
+  const handleTableChange = (pagination) => {
+    setPagination({
+      ...pagination,
+    });
   };
 
-  const handleUploadComplete = (url) => {
-    console.log('Contract uploaded to Supabase:', url);
-    setUploadedContractUrl(url);
-  };
+  const filteredContracts = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
 
-  const handleConfirmSign = async () => {
-    if (!selectedContract) return;
-    
-    if (!uploadedContractUrl) {
-      message.error('Vui lòng upload ảnh hợp đồng đã ký!');
-      return;
-    }
-    
-    setSigning(true);
-    try {
-      // Update contract with uploaded link and status to ACTIVE (signed)
-      await axiosInstance.put(endpoints.contracts.update(selectedContract.id), {
-        ...selectedContract,
-        status: 'ACTIVE', // ContractStatus.ACTIVE
-        signedAt: new Date().toISOString(),
-        contractLink: uploadedContractUrl, // URL from Supabase
-      });
+    return contracts.filter((contract) => {
+      const matchesStatus =
+        statusFilter === "ALL" || contract.status === statusFilter;
 
-      message.success('Đã ký hợp đồng thành công!');
-      setSignModalVisible(false);
-      setSelectedContract(null);
-      setUploadedContractUrl('');
-      loadContracts();
-    } catch (error) {
-      console.error('Error signing contract:', error);
-      message.error('Không thể ký hợp đồng');
-    } finally {
-      setSigning(false);
-    }
-  };
+      if (!normalizedSearch) {
+        return matchesStatus;
+      }
 
-  const getStatusTag = (status) => {
-    const statusMap = {
-      DRAFT: { color: 'default', text: 'Nháp' },
-      PENDING_SIGNATURE: { color: 'warning', text: 'Chờ ký' },
-      ACTIVE: { color: 'success', text: 'Đã ký' },
-      CANCELED: { color: 'error', text: 'Đã hủy' },
-    };
-    const config = statusMap[status] || statusMap.DRAFT;
-    return <Tag color={config.color}>{config.text}</Tag>;
-  };
+      const code = (contract.code || "").toLowerCase();
+      const customerName = (contract.customer?.fullName || "").toLowerCase();
+      const orderCode = (contract.order?.code || "").toLowerCase();
+
+      const matchesSearch =
+        code.includes(normalizedSearch) ||
+        customerName.includes(normalizedSearch) ||
+        orderCode.includes(normalizedSearch);
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [contracts, statusFilter, searchTerm]);
 
   const columns = [
     {
-      title: 'Mã hợp đồng',
-      dataIndex: 'code',
-      key: 'code',
-      width: 150,
-      render: (text) => <span className="font-mono font-semibold">{text}</span>,
+      title: "Mã hợp đồng",
+      dataIndex: "code",
+      key: "code",
+      width: 130,
+      fixed: "left",
+      render: (text) => (
+        <span
+          style={{
+            fontWeight: 600,
+            color: "#1890ff",
+            fontSize: "13px",
+          }}
+        >
+          {text || "N/A"}
+        </span>
+      ),
     },
     {
-      title: 'Đơn hàng',
-      dataIndex: ['order', 'code'],
-      key: 'orderCode',
-      width: 150,
-    },
-    {
-      title: 'Khách hàng / Dealer',
-      dataIndex: ['customer', 'fullName'],
-      key: 'customer',
-      render: (text, record) => text || record.dealer?.name || 'N/A',
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      width: 120,
-      render: (status) => getStatusTag(status),
-    },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'createdDate',
-      key: 'createdDate',
-      width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A',
-    },
-    {
-      title: 'Ngày ký',
-      dataIndex: 'signedAt',
-      key: 'signedAt',
-      width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : '-',
-    },
-    {
-      title: 'Thao tác',
-      key: 'actions',
-      width: 150,
+      title: "Mã đơn hàng",
+      key: "orderCode",
+      width: 130,
+      ellipsis: true,
       render: (_, record) => (
-        <div className="flex gap-2">
-          {record.status === 'PENDING_SIGNATURE' && (
-            <Button
-              type="primary"
-              size="small"
-              icon={<CheckCircleOutlined />}
-              onClick={() => handleSignContract(record)}
-            >
-              Ký hợp đồng
-            </Button>
-          )}
-          {record.contractLink && (
-            <Button
-              size="small"
-              href={record.contractLink}
-              target="_blank"
-            >
-              Xem
-            </Button>
-          )}
-        </div>
+        <span style={{ fontWeight: 500 }}>
+          {record.order?.code || record.orderId || "N/A"}
+        </span>
+      ),
+    },
+    {
+      title: "Khách hàng",
+      key: "customer",
+      width: 170,
+      ellipsis: true,
+      render: (_, record) => (
+        <span style={{ fontWeight: 500 }}>
+          {record.customer?.fullName || record.customerId || "N/A"}
+        </span>
+      ),
+    },
+    {
+      title: "Thành tiền",
+      key: "finalAmount",
+      width: 130,
+      align: "right",
+      render: (_, record) => (
+        <span
+          style={{
+            fontWeight: 700,
+            color: "#52c41a",
+            fontSize: "13px",
+          }}
+        >
+          {record.order?.finalAmount
+            ? `${record.order.finalAmount.toLocaleString()} ₫`
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      width: 160,
+      render: (status) => {
+        const config = statusConfig[status] || statusConfig.DRAFT;
+        return (
+          <Tag
+            color={config.color}
+            style={{
+              padding: "4px 8px",
+              fontWeight: 500,
+              fontSize: "12px",
+            }}
+          >
+            {config.text}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Ngày ký",
+      dataIndex: "signedAt",
+      key: "signedAt",
+      width: 110,
+      align: "center",
+      render: (date) => (
+        <span style={{ fontSize: "13px" }}>
+          {date ? moment(date).format("DD/MM/YYYY") : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Thao tác",
+      key: "actions",
+      width: 100,
+      fixed: "right",
+      render: (_, record) => (
+        <Space size="small" style={{ justifyContent: "flex-end" }}>
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/dealer/contracts/${record.id}`)}
+            size="small"
+            title="Xem chi tiết"
+            style={{
+              color: "#1890ff",
+              padding: "4px 8px",
+            }}
+          />
+        </Space>
       ),
     },
   ];
 
-  return (
-    <div className="p-6">
-      <Card
-        title={
-          <div className="flex items-center gap-2">
-            <FileTextOutlined className="text-xl" />
-            <span>Hợp Đồng</span>
-          </div>
-        }
-        extra={
-          <Button onClick={loadContracts} loading={loading}>
-            Làm mới
+  if (loading && contracts.length === 0) {
+    return (
+      <Card>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <Spin size="large" />
+          <p style={{ marginTop: "16px" }}>Đang tải danh sách hợp đồng...</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p style={{ color: "#ff4d4f", fontSize: "16px" }}>Lỗi: {error}</p>
+          <Button
+            type="primary"
+            onClick={fetchContracts}
+            style={{ marginTop: "16px" }}
+          >
+            Thử lại
           </Button>
-        }
-      >
+        </div>
+      </Card>
+    );
+  }
+
+  const pageStyles = `
+    .contracts-page {
+      min-height: 100%;
+      padding: 32px 32px 48px;
+      background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%);
+    }
+
+    .contracts-hero-card {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: linear-gradient(135deg, rgba(24, 144, 255, 0.12), rgba(82, 196, 26, 0.1));
+      border-radius: 18px;
+      padding: 28px 32px;
+      box-shadow: 0 20px 45px rgba(24, 144, 255, 0.12);
+      margin-bottom: 28px;
+    }
+
+    @media (min-width: 768px) {
+      .contracts-hero-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .contracts-hero-card__title {
+      margin-bottom: 4px !important;
+    }
+
+    .contracts-hero-card__subtitle {
+      color: #4b5563;
+      font-size: 14px;
+    }
+
+    .contracts-card {
+      border-radius: 20px !important;
+      border: none !important;
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+    }
+
+    .contracts-card__toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .contracts-card__toolbar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .contracts-card__toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .contracts-card__count {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .contracts-card__search {
+      max-width: 280px;
+      flex: 1 1 auto;
+    }
+
+    .table-row-light {
+      background-color: #f9fbff;
+    }
+
+    .table-row-dark {
+      background-color: #ffffff;
+    }
+
+    :global(.contracts-card .ant-card-body) {
+      padding: 24px !important;
+    }
+
+    :global(.contracts-card .ant-table) {
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    :global(.contracts-card .ant-table-thead > tr > th) {
+      background-color: #f1f5f9 !important;
+      font-weight: 600 !important;
+      color: #1f2937 !important;
+    }
+
+    :global(.contracts-card .ant-table-tbody > tr > td) {
+      border-bottom: 1px solid #eef2f7;
+    }
+
+    :global(.contracts-card .ant-table-tbody > tr:hover > td) {
+      background: #ecf3ff !important;
+    }
+
+    :global(.contracts-card .ant-table-pagination) {
+      margin-top: 24px !important;
+    }
+
+    :global(.contracts-card__toolbar-right .ant-input-search .ant-input) {
+      border-radius: 999px 0 0 999px;
+    }
+
+    :global(.contracts-card__toolbar-right .ant-input-search .ant-input-search-button) {
+      border-radius: 0 999px 999px 0;
+    }
+
+    :global(.contracts-card__toolbar-right .ant-select-selector) {
+      border-radius: 999px !important;
+      background: #f8fafc !important;
+    }
+
+    :global(.contracts-card .ant-select-dropdown) {
+      border-radius: 12px;
+    }
+
+    :global(.contracts-card .ant-select-item-option-active) {
+      background-color: #f5f7ff !important;
+    }
+  `;
+
+  const { Title } = Typography;
+
+  return (
+    <div className="contracts-page">
+      <div className="contracts-hero-card">
+        <div>
+          <Title level={3} className="contracts-hero-card__title">
+            Quản lý hợp đồng
+          </Title>
+          <Text className="contracts-hero-card__subtitle">
+            Theo dõi và quản lý các hợp đồng kinh doanh với EVM.
+          </Text>
+        </div>
+      </div>
+
+      <Card className="contracts-card" bordered={false}>
+        <div className="contracts-card__toolbar">
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <Text type="secondary" className="contracts-card__count">
+              Hiển thị {filteredContracts.length} / {contracts.length} hợp đồng
+            </Text>
+          </div>
+
+          <div className="contracts-card__toolbar-right">
+            <Select
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value)}
+              className="contracts-card__type-filter"
+              style={{ minWidth: "170px" }}
+              size="middle"
+            >
+              {statusFilterOptions.map((option) => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+            <Search
+              allowClear
+              placeholder="Tìm kiếm theo mã, đơn hàng hoặc khách hàng"
+              className="contracts-card__search"
+              onChange={(event) => setSearchTerm(event.target.value)}
+              onSearch={(value) => setSearchTerm(value)}
+              enterButton
+            />
+          </div>
+        </div>
+
         <Table
           columns={columns}
-          dataSource={contracts}
+          dataSource={filteredContracts}
           rowKey="id"
           loading={loading}
+          scroll={{ x: 1100 }}
           pagination={{
-            pageSize: 10,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: false,
-            showTotal: (total) => `Tổng ${total} hợp đồng`,
+            onChange: (page, pageSize) => {
+              setPagination({
+                current: page,
+                pageSize,
+                total: pagination.total,
+              });
+            },
+            showTotal: (total) => (
+              <span style={{ fontWeight: 500 }}>
+                Tổng <span style={{ color: "#1890ff" }}>{total}</span> hợp
+                đồng
+              </span>
+            ),
+            style: { marginTop: "16px" },
           }}
+          locale={{
+            emptyText: (
+              <div style={{ padding: "40px", textAlign: "center" }}>
+                <p style={{ fontSize: "16px", color: "#999" }}>
+                  Không có dữ liệu hợp đồng
+                </p>
+              </div>
+            ),
+          }}
+          size="middle"
+          rowClassName={(record, index) =>
+            index % 2 === 0 ? "table-row-light" : "table-row-dark"
+          }
         />
       </Card>
 
-      {/* Sign Contract Modal */}
-      <Modal
-        title={
-          <div className="flex items-center gap-2">
-            <CheckCircleOutlined className="text-green-600" />
-            <span>Ký Hợp Đồng</span>
-          </div>
-        }
-        open={signModalVisible}
-        onCancel={() => {
-          setSignModalVisible(false);
-          setSelectedContract(null);
-        }}
-        onOk={handleConfirmSign}
-        okText="Xác nhận ký"
-        cancelText="Hủy"
-        confirmLoading={signing}
-        width={700}
-      >
-        {selectedContract && (
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-              <ExclamationCircleOutlined className="text-blue-600 mt-1" />
-              <div className="text-sm text-blue-800">
-                <strong>Hướng dẫn:</strong> 
-                <ol className="mt-2 ml-4 space-y-1">
-                  <li>1. Tải hợp đồng xuống (nếu có link) và in ra</li>
-                  <li>2. Ký bản cứng hợp đồng</li>
-                  <li>3. Chụp ảnh hoặc scan hợp đồng đã ký</li>
-                  <li>4. Upload ảnh lên hệ thống bên dưới</li>
-                  <li>5. Xác nhận ký hợp đồng</li>
-                </ol>
-              </div>
-            </div>
-
-            <Descriptions bordered size="small" column={2}>
-              <Descriptions.Item label="Mã hợp đồng" span={2}>
-                <span className="font-mono font-semibold">{selectedContract.code}</span>
-              </Descriptions.Item>
-              <Descriptions.Item label="Mã đơn hàng" span={2}>
-                {selectedContract.order?.code || 'N/A'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Ngày tạo">
-                {selectedContract.createdDate ? new Date(selectedContract.createdDate).toLocaleDateString('vi-VN') : 'N/A'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Người tạo">
-                {selectedContract.createdByUserName || 'N/A'}
-              </Descriptions.Item>
-              {selectedContract.terms && (
-                <Descriptions.Item label="Điều khoản" span={2}>
-                  <div className="max-h-40 overflow-y-auto whitespace-pre-wrap">
-                    {selectedContract.terms}
-                  </div>
-                </Descriptions.Item>
-              )}
-            </Descriptions>
-
-            {/* Upload Signed Contract */}
-            <div className="mt-4">
-              <h4 className="font-medium mb-3">Upload hợp đồng đã ký:</h4>
-              <FileUpload
-                onUploadComplete={handleUploadComplete}
-                acceptedFileTypes="image/*,.pdf"
-                maxFileSize={10}
-              />
-              {uploadedContractUrl && (
-                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
-                  <p className="text-sm text-green-800">
-                    ✅ Đã upload hợp đồng thành công!
-                  </p>
-                  <a 
-                    href={uploadedContractUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 text-sm underline"
-                  >
-                    Xem ảnh đã upload
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </Modal>
+      <style jsx>{pageStyles}</style>
     </div>
   );
 };

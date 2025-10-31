@@ -46,8 +46,12 @@ const EvmStaffQuotationDetailPage = () => {
         setLoading(false);
       }
     };
-    loadQuotation();
-  }, [id, getQuotationById, showError]);
+    
+    if (id) {
+      loadQuotation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Only depend on id to avoid infinite loop
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {

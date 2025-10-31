@@ -63,14 +63,25 @@ const TransportPage = () => {
   };
 
   const getStatusTag = (status) => {
+    // Normalize status to uppercase string for comparison
+    const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : status;
+    
     const statusMap = {
-      0: { text: "Chờ xử lý", color: "orange" }, // PENDING
-      1: { text: "Đang vận chuyển", color: "blue" }, // IN_TRANSIT
-      2: { text: "Hoàn thành", color: "green" }, // COMPLETED
-      3: { text: "Đã hủy", color: "red" }, // CANCELED
+      // Number format
+      0: { text: "Chờ xử lý", color: "orange" },
+      1: { text: "Đang vận chuyển", color: "blue" },
+      2: { text: "Đã giao hàng", color: "cyan" },
+      3: { text: "Hoàn thành", color: "green" },
+      4: { text: "Đã hủy", color: "red" },
+      // String format
+      'PENDING': { text: "Chờ xử lý", color: "orange" },
+      'IN_TRANSIT': { text: "Đang vận chuyển", color: "blue" },
+      'DELIVERED': { text: "Đã giao hàng", color: "cyan" },
+      'COMPLETED': { text: "Hoàn thành", color: "green" },
+      'CANCELED': { text: "Đã hủy", color: "red" },
     };
 
-    const statusInfo = statusMap[status] || { text: "Không xác định", color: "default" };
+    const statusInfo = statusMap[normalizedStatus] || { text: "Không xác định", color: "default" };
     return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
   };
 
