@@ -9,8 +9,6 @@ import {
   FileText,
   FileCheck,
   Truck,
-  FileText,
-  FileCheck,
   CreditCard,
   ChevronRight,
   Menu,

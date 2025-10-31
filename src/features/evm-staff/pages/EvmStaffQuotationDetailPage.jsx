@@ -72,7 +72,7 @@ const EvmStaffQuotationDetailPage = () => {
     };
 
     if (id) {
-      loadQuotation();
+      loadQuotationData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]); // Only depend on id to avoid infinite loop
