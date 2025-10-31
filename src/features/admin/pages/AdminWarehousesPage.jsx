@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Package, 
   Plus, 
@@ -7,8 +8,7 @@ import {
   Building, 
   Edit, 
   Trash2,
-  Eye,
-  Car
+  Eye
 } from 'lucide-react';
 import CreateWarehouseModal from '../components/CreateWarehouseModal';
 import axiosInstance from '../../../api/axiosInstance';
@@ -112,14 +112,34 @@ const AdminWarehousesPage = () => {
       </div>
       {/* Modal Add Evm Vehicle cho từng kho */}
       <Modal
-        title="Thêm xe vào kho EVM"
+        title={
+          <div style={{ fontSize: '20px', fontWeight: 600, color: '#1890ff' }}>
+            Thêm xe vào kho EVM
+          </div>
+        }
         open={showAddVehicleModal}
-        onCancel={() => setShowAddVehicleModal(false)}
+        onCancel={() => {
+          setShowAddVehicleModal(false);
+          setSelectedWarehouseId(null);
+        }}
         footer={null}
-        width={900}
+        width={1000}
         destroyOnClose
+        style={{ top: 20 }}
+        bodyStyle={{ 
+          padding: '24px',
+          maxHeight: 'calc(100vh - 150px)',
+          overflowY: 'auto'
+        }}
       >
-        <AddEvmVehicleToWarehouseForm warehouseId={selectedWarehouseId} />
+        <AddEvmVehicleToWarehouseForm 
+          warehouseId={selectedWarehouseId}
+          onSuccess={() => {
+            setShowAddVehicleModal(false);
+            setSelectedWarehouseId(null);
+            fetchWarehouses(); // Refresh warehouse list
+          }}
+        />
       </Modal>
 
       {/* Stats Cards */}
@@ -240,6 +260,13 @@ const AdminWarehousesPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <div className="flex items-center justify-center gap-2">
+                        <Link
+                          to={`/admin/warehouses/${warehouse.id}`}
+                          className="text-purple-600 hover:text-purple-900"
+                          title="Xem chi tiết"
+                        >
+                          <Eye size={18} />
+                        </Link>
                         <button
                           onClick={() => handleEditWarehouse(warehouse)}
                           className="text-blue-600 hover:text-blue-900"
@@ -257,8 +284,9 @@ const AdminWarehousesPage = () => {
                               }}
                               style={{ color: '#059669' }}
                               title="Thêm xe vào kho này"
+                              className="hover:opacity-70 transition-opacity"
                             >
-                              <Car size={19} style={{ marginRight: 3, verticalAlign: 'middle' }} />+
+                              <Plus size={19} />
                             </button>
                           </Tooltip>
                         )}

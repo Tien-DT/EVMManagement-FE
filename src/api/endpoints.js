@@ -272,6 +272,11 @@ const endpoints = {
     create: "/v1/Warehouses",
     update: (id) => `/v1/Warehouses/${id}`,
     delete: (id) => `/v1/Warehouses/${id}`,
+    // EVM Warehouse endpoints
+    evm: {
+      getAll: (organization = "EVM") => `/v1/Warehouses?organization=${organization}`,
+      addVehicles: "/v1/Warehouses/evm/add-vehicles",
+    },
   },
 };
 

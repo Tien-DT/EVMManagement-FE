@@ -14,7 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EvmStaffLayout from "../layouts/EVMStaffLayout";
+import EvmStaffLayout from "../layouts/EvmStaffLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -26,11 +26,10 @@ import EvmStaffDetailPage from "../features/admin/pages/EvmStaffDetailPage";
 import DealerContractsListPage from "../features/admin/pages/contracts/DealerContractsListPage";
 import CreateDealerContractPage from "../features/admin/pages/contracts/CreateDealerContractPage";
 import AdminDealerContractDetailPage from "../features/admin/pages/contracts/DealerContractDetailPage";
-import AdminWarehousesPage from "../features/admin/pages/WarehousesPage";
-import AdminCreateWarehousePage from "../features/admin/pages/CreateWarehousePage";
-import AdminWarehouseDetailPage from "../features/admin/pages/WarehouseDetailPage";
-import AdminEditWarehousePage from "../features/admin/pages/EditWarehousePage";
 import AdminWarehousesPage from "../features/admin/pages/AdminWarehousesPage";
+import AdminWarehouseDetailPage from "../features/admin/pages/AdminWarehouseDetailPage";
+import AdminCreateWarehousePage from "../features/admin/pages/CreateWarehousePage";
+import AdminEditWarehousePage from "../features/admin/pages/EditWarehousePage";
 
 // Dealer Pages
 import DealerListPage from "../features/dealer/pages/DealerListPage";
@@ -166,6 +165,7 @@ const AppRouter = () => (
               element={<RegisterDealerManagerPage />}
             />
             <Route path="/admin/warehouses" element={<AdminWarehousesPage />} />
+            <Route path="/admin/warehouses/:id" element={<AdminWarehouseDetailPage />} />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
             <Route path="/admin/dealers/:id" element={<DealerDetailPage />} />
@@ -418,15 +418,8 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["evm-staff"]} />}>
           <Route element={<EvmStaffLayout />}>
-            <Route
-              path="/evm-staff/dashboard"
-              element={<EvmStaffDashboardPage />}
-            />
-            <Route
-              path="/evm-staff/order-requests"
-              element={<EvmStaffOrderRequestsPage />}
-            />
-
+            <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
+            <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
             {/* Quotation Routes */}
             <Route
               path="/evm-staff/quotations"
