@@ -62,6 +62,7 @@ import DealerManagerQuotationsPage from "../features/dealer-manager/pages/Dealer
 import DealerManagerQuotationDetailPage from "../features/dealer-manager/pages/DealerManagerQuotationDetailPage";
 import DealerManagerCreateContractPage from "../features/dealer-manager/pages/CreateContractPage";
 import DealerManagerContractsPage from "../features/dealer-manager/pages/DealerManagerContractsPage";
+import DealerManagerContractDetailPage from "../features/dealer-manager/pages/DealerManagerContractDetailPage";
 import DealerManagerDepositsPage from "../features/dealer-manager/pages/DealerManagerDepositsPage";
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
@@ -279,11 +280,9 @@ const AppRouter = () => (
             <Route path="/dealer/transports" element={<TransportPage />} />
 
             {/* Contracts Management */}
-            <Route
-              path="/dealer/contracts"
-              element={<DealerManagerContractsPage />}
-            />
-
+            <Route path="/dealer/contracts" element={<DealerManagerContractsPage />} />
+            <Route path="/dealer/contracts/:id" element={<DealerManagerContractDetailPage />} />
+            
             {/* Deposits Management */}
             <Route
               path="/dealer/deposits"

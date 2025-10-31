@@ -9,7 +9,7 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
-  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [formData, setFormData] = useState({
     providerName: "",
     pickupLocation: "",
@@ -28,7 +28,7 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
   useEffect(() => {
     if (preselectedOrderId && orders.length > 0) {
       console.log('Pre-selecting order:', preselectedOrderId);
-      setSelectedOrderIds([preselectedOrderId]);
+      setSelectedOrderId(preselectedOrderId);
     }
   }, [preselectedOrderId, orders]);
 
@@ -76,17 +76,8 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (selectedOrderIds.length === 0) {
-      showError("Vui lòng chọn ít nhất một đơn hàng");
-      return;
-    }
-
-    // Validate all orders are from the same dealer
-    const selectedOrders = orders.filter(order => selectedOrderIds.includes(order.id));
-    const dealerIds = [...new Set(selectedOrders.map(order => order.dealerId))];
-
-    if (dealerIds.length > 1) {
-      showError("Tất cả đơn hàng phải cùng một đại lý");
+    if (!selectedOrderId) {
+      showError("Vui lòng chọn một đơn hàng");
       return;
     }
 
@@ -103,7 +94,7 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
     setLoading(true);
     try {
       const payload = {
-        orderIds: selectedOrderIds,
+        orderId: selectedOrderId,
         providerName: formData.providerName || null,
         pickupLocation: formData.pickupLocation,
         dropoffLocation: formData.dropoffLocation,
@@ -113,37 +104,36 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
       console.log('Creating transport with payload:', payload);
       await axiosInstance.post(endpoints.transports.create, payload);
       
-      // Update all selected orders' status to IN_TRANSIT
-      console.log('Updating order statuses to IN_TRANSIT for orders:', selectedOrderIds);
-      const selectedOrders = orders.filter(order => selectedOrderIds.includes(order.id));
+      // Update selected order status to IN_TRANSIT
+      console.log('Updating order status to IN_TRANSIT for order:', selectedOrderId);
+      const selectedOrder = orders.find(order => order.id === selectedOrderId);
       
-      for (const order of selectedOrders) {
+      if (selectedOrder) {
         try {
           // Build order update data with all non-null fields
           const orderUpdateData = {
-            code: order.code,
-            dealerId: order.dealerId,
+            code: selectedOrder.code,
+            dealerId: selectedOrder.dealerId,
             status: 'IN_TRANSIT', // Update status to IN_TRANSIT
-            orderType: order.orderType,
+            orderType: selectedOrder.orderType,
           };
           
           // Add optional fields if they exist
-          if (order.customerId) orderUpdateData.customerId = order.customerId;
-          if (order.quotationId) orderUpdateData.quotationId = order.quotationId;
-          if (order.handoverRecordId) orderUpdateData.handoverRecordId = order.handoverRecordId;
-          if (order.contractId) orderUpdateData.contractId = order.contractId;
-          if (order.depositId) orderUpdateData.depositId = order.depositId;
-          if (order.note) orderUpdateData.note = order.note;
-          if (order.totalAmount) orderUpdateData.totalAmount = order.totalAmount;
-          if (order.discount) orderUpdateData.discount = order.discount;
-          if (order.finalAmount) orderUpdateData.finalAmount = order.finalAmount;
-          if (order.handoverDate) orderUpdateData.handoverDate = order.handoverDate;
+          if (selectedOrder.customerId) orderUpdateData.customerId = selectedOrder.customerId;
+          if (selectedOrder.quotationId) orderUpdateData.quotationId = selectedOrder.quotationId;
+          if (selectedOrder.handoverRecordId) orderUpdateData.handoverRecordId = selectedOrder.handoverRecordId;
+          if (selectedOrder.contractId) orderUpdateData.contractId = selectedOrder.contractId;
+          if (selectedOrder.depositId) orderUpdateData.depositId = selectedOrder.depositId;
+          if (selectedOrder.note) orderUpdateData.note = selectedOrder.note;
+          if (selectedOrder.totalAmount) orderUpdateData.totalAmount = selectedOrder.totalAmount;
+          if (selectedOrder.discount) orderUpdateData.discount = selectedOrder.discount;
+          if (selectedOrder.finalAmount) orderUpdateData.finalAmount = selectedOrder.finalAmount;
+          if (selectedOrder.handoverDate) orderUpdateData.handoverDate = selectedOrder.handoverDate;
           
-          console.log('Updating order', order.id, 'with data:', orderUpdateData);
-          await axiosInstance.put(endpoints.orders.update(order.id), orderUpdateData);
+          console.log('Updating order', selectedOrder.id, 'with data:', orderUpdateData);
+          await axiosInstance.put(endpoints.orders.update(selectedOrder.id), orderUpdateData);
         } catch (orderUpdateError) {
-          console.error('Error updating order status:', order.id, orderUpdateError);
-          // Continue updating other orders even if one fails
+          console.error('Error updating order status:', selectedOrder.id, orderUpdateError);
         }
       }
       
@@ -165,32 +155,23 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
       dropoffLocation: "",
       scheduledPickupAt: "",
     });
-    setSelectedOrderIds([]);
+    setSelectedOrderId(null);
     onClose();
   };
 
-  const toggleOrderSelection = (orderId) => {
-    setSelectedOrderIds((prev) =>
-      prev.includes(orderId)
-        ? prev.filter((id) => id !== orderId)
-        : [...prev, orderId]
-    );
+  const handleOrderSelection = (orderId) => {
+    setSelectedOrderId(orderId);
   };
 
-  // Auto-update dropoff location when orders are selected
+  // Auto-update dropoff location when order is selected
   useEffect(() => {
-    if (selectedOrderIds.length > 0) {
-      // Get unique dealer IDs from selected orders
-      const selectedOrders = orders.filter(order => selectedOrderIds.includes(order.id));
-      const dealerIds = [...new Set(selectedOrders.map(order => order.dealerId))];
-
-      if (dealerIds.length === 1) {
-        // If all selected orders are from the same dealer, auto-fill dropoff location
-        const firstOrder = selectedOrders[0];
-
+    if (selectedOrderId) {
+      const selectedOrder = orders.find(order => order.id === selectedOrderId);
+      
+      if (selectedOrder) {
         // Get dealer address from order
-        const dealerAddress = firstOrder.dealer?.address;
-        const dealerName = firstOrder.dealer?.name;
+        const dealerAddress = selectedOrder.dealer?.address;
+        const dealerName = selectedOrder.dealer?.name;
 
         if (dealerAddress) {
           setFormData(prev => ({
@@ -198,23 +179,15 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
             dropoffLocation: dealerName ? `${dealerName} - ${dealerAddress}` : dealerAddress
           }));
         }
-      } else if (dealerIds.length > 1) {
-        // If orders are from multiple dealers, show warning
-        showError("Các đơn hàng phải cùng một đại lý");
-        // Clear dropoff location
-        setFormData(prev => ({
-          ...prev,
-          dropoffLocation: ""
-        }));
       }
     } else {
-      // Clear dropoff location if no orders selected
+      // Clear dropoff location if no order selected
       setFormData(prev => ({
         ...prev,
         dropoffLocation: ""
       }));
     }
-  }, [selectedOrderIds, orders]);
+  }, [selectedOrderId, orders]);
 
   if (!visible) return null;
 
@@ -324,18 +297,7 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
-                      <input
-                        type="checkbox"
-                        checked={selectedOrderIds.length === orders.length && orders.length > 0}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedOrderIds(orders.map((o) => o.id));
-                          } else {
-                            setSelectedOrderIds([]);
-                          }
-                        }}
-                        className="rounded border-gray-300"
-                      />
+                      Chọn
                     </th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
                       Mã đơn
@@ -367,16 +329,16 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
                       <tr
                         key={order.id}
                         className={`hover:bg-gray-50 cursor-pointer ${
-                          selectedOrderIds.includes(order.id) ? "bg-blue-50" : ""
+                          selectedOrderId === order.id ? "bg-blue-50" : ""
                         }`}
-                        onClick={() => toggleOrderSelection(order.id)}
+                        onClick={() => handleOrderSelection(order.id)}
                       >
                         <td className="px-4 py-2">
                           <input
-                            type="checkbox"
-                            checked={selectedOrderIds.includes(order.id)}
-                            onChange={() => toggleOrderSelection(order.id)}
-                            className="rounded border-gray-300"
+                            type="radio"
+                            checked={selectedOrderId === order.id}
+                            onChange={() => handleOrderSelection(order.id)}
+                            className="border-gray-300"
                           />
                         </td>
                         <td className="px-4 py-2 text-sm font-mono">{order.code}</td>
@@ -397,9 +359,9 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
                 </tbody>
               </table>
             </div>
-            {selectedOrderIds.length > 0 && (
+            {selectedOrderId && (
               <p className="text-sm text-blue-600 mt-2">
-                Đã chọn {selectedOrderIds.length} đơn hàng
+                Đã chọn đơn hàng: {orders.find(o => o.id === selectedOrderId)?.code || 'N/A'}
               </p>
             )}
           </div>
@@ -415,7 +377,7 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
             </button>
             <button
               type="submit"
-              disabled={loading || selectedOrderIds.length === 0}
+              disabled={loading || !selectedOrderId}
               className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {loading ? (

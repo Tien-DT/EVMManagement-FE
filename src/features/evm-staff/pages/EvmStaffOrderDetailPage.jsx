@@ -68,9 +68,19 @@ const EvmStaffOrderDetailPage = () => {
   const getStatusIcon = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'COMPLETED': return <CheckCircle size={20} className="text-emerald-600" />;
-      case 'PROCESSING': return <Clock size={20} className="text-blue-600" />;
+      case 'AWAITING_CONFIRM': return <Clock size={20} className="text-yellow-600" />;
       case 'CONFIRMED': return <CheckCircle size={20} className="text-green-600" />;
+      case 'QUOTATION_RECEIVED': return <FileText size={20} className="text-purple-600" />;
+      case 'QUOTATION_ACCEPTED': return <CheckCircle size={20} className="text-blue-600" />;
+      case 'CREATED_CONTRACT': return <FileText size={20} className="text-indigo-600" />;
+      case 'DEALER_SIGNED_CONTRACT': return <FileText size={20} className="text-teal-600" />;
+      case 'SIGNED_CONTRACT': return <CheckCircle size={20} className="text-cyan-600" />;
+      case 'AWAITING_DEPOSIT': return <Clock size={20} className="text-orange-600" />;
+      case 'DEPOSIT_SUCCESS': return <CheckCircle size={20} className="text-teal-600" />;
+      case 'IN_PROGRESS': return <Clock size={20} className="text-blue-600" />;
+      case 'IN_TRANSIT': return <Package size={20} className="text-cyan-600" />;
+      case 'READY_FOR_HANDOVER': return <CheckCircle size={20} className="text-green-600" />;
+      case 'COMPLETED': return <CheckCircle size={20} className="text-emerald-600" />;
       case 'CANCELED': return <XCircle size={20} className="text-red-600" />;
       default: return <AlertCircle size={20} className="text-gray-600" />;
     }
@@ -79,9 +89,19 @@ const EvmStaffOrderDetailPage = () => {
   const getStatusStyle = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'PROCESSING': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'AWAITING_CONFIRM': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'CONFIRMED': return 'bg-green-50 text-green-700 border-green-200';
+      case 'QUOTATION_RECEIVED': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'QUOTATION_ACCEPTED': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'CREATED_CONTRACT': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'DEALER_SIGNED_CONTRACT': return 'bg-teal-50 text-teal-700 border-teal-200';
+      case 'SIGNED_CONTRACT': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+      case 'AWAITING_DEPOSIT': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'DEPOSIT_SUCCESS': return 'bg-teal-50 text-teal-700 border-teal-200';
+      case 'IN_PROGRESS': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'IN_TRANSIT': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+      case 'READY_FOR_HANDOVER': return 'bg-green-50 text-green-700 border-green-200';
+      case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'CANCELED': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
@@ -90,9 +110,19 @@ const EvmStaffOrderDetailPage = () => {
   const getStatusText = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'COMPLETED': return 'Hoàn thành';
-      case 'PROCESSING': return 'Đang xử lý';
+      case 'AWAITING_CONFIRM': return 'Chờ EVM xác nhận';
       case 'CONFIRMED': return 'Đã xác nhận';
+      case 'QUOTATION_RECEIVED': return 'Đã gửi báo giá';
+      case 'QUOTATION_ACCEPTED': return 'Báo giá được chấp nhận';
+      case 'CREATED_CONTRACT': return 'Đã tạo hợp đồng';
+      case 'DEALER_SIGNED_CONTRACT': return 'Dealer đã ký HĐ';
+      case 'SIGNED_CONTRACT': return 'Hợp đồng đã ký';
+      case 'AWAITING_DEPOSIT': return 'Chờ đặt cọc';
+      case 'DEPOSIT_SUCCESS': return 'Đã đặt cọc';
+      case 'IN_PROGRESS': return 'Đang chuẩn bị xe';
+      case 'IN_TRANSIT': return 'Đang vận chuyển';
+      case 'READY_FOR_HANDOVER': return 'Sẵn sàng bàn giao';
+      case 'COMPLETED': return 'Hoàn thành';
       case 'CANCELED': return 'Đã hủy';
       default: return 'Không xác định';
     }
@@ -110,6 +140,47 @@ const EvmStaffOrderDetailPage = () => {
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
+    }
+  };
+
+  // Helper function to build order update data with all non-null fields
+  const buildOrderUpdateData = (order, newStatus) => {
+    const updateData = {
+      code: order.code,
+      dealerId: order.dealerId,
+      status: newStatus,
+      orderType: order.orderType,
+    };
+    
+    // Add optional fields if they exist
+    if (order.customerId) updateData.customerId = order.customerId;
+    if (order.quotationId) updateData.quotationId = order.quotationId;
+    if (order.handoverRecordId) updateData.handoverRecordId = order.handoverRecordId;
+    if (order.contractId) updateData.contractId = order.contractId;
+    if (order.depositId) updateData.depositId = order.depositId;
+    if (order.note) updateData.note = order.note;
+    if (order.totalAmount) updateData.totalAmount = order.totalAmount;
+    if (order.discount) updateData.discount = order.discount;
+    if (order.finalAmount) updateData.finalAmount = order.finalAmount;
+    if (order.handoverDate) updateData.handoverDate = order.handoverDate;
+    
+    return updateData;
+  };
+
+  // Confirm order: AWAITING_CONFIRM → CONFIRMED
+  const [isConfirming, setIsConfirming] = useState(false);
+  const handleConfirmOrder = async () => {
+    setIsConfirming(true);
+    try {
+      const updateData = buildOrderUpdateData(order, 'CONFIRMED');
+      await orderService.updateOrder(order.id, updateData);
+      showSuccess('Xác nhận đơn hàng thành công');
+      fetchOrderDetails(); // Refresh order data
+    } catch (error) {
+      console.error('Error confirming order:', error);
+      showError(error.response?.data?.message || 'Lỗi khi xác nhận đơn hàng');
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -141,6 +212,16 @@ const EvmStaffOrderDetailPage = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          {order.status?.toUpperCase() === 'AWAITING_CONFIRM' && (
+            <button
+              onClick={handleConfirmOrder}
+              disabled={isConfirming}
+              className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <CheckCircle size={16} />
+              {isConfirming ? 'Đang xác nhận...' : 'Xác nhận đơn hàng'}
+            </button>
+          )}
           <button
             onClick={() => navigate(`/evm-staff/orders/${id}/edit`)}
             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 flex items-center gap-2"
