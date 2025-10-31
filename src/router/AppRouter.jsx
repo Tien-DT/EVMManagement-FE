@@ -14,13 +14,14 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EVMStaffLayout from "../layouts/EVMStaffLayout"; 
+import EvmStaffLayout from "../layouts/EvmStaffLayout"; 
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
 import RegisterDealerManagerPage from "../features/admin/pages/RegisterDealerManagerPage";
 import AdminWarehousesPage from "../features/admin/pages/AdminWarehousesPage";
+import AdminWarehouseDetailPage from "../features/admin/pages/AdminWarehouseDetailPage";
 
 // Dealer Pages
 import DealerListPage from "../features/dealer/pages/DealerListPage";
@@ -141,6 +142,7 @@ const AppRouter = () => (
             <Route path="/admin/register" element={<SignUpForm />} />
             <Route path="/admin/register-dealer-manager" element={<RegisterDealerManagerPage />} />
             <Route path="/admin/warehouses" element={<AdminWarehousesPage />} />
+            <Route path="/admin/warehouses/:id" element={<AdminWarehouseDetailPage />} />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
             <Route path="/admin/dealers/:id" element={<DealerDetailPage />} />
@@ -293,7 +295,7 @@ const AppRouter = () => (
       {/* EVM Staff Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["evm-staff"]} />}>
-          <Route element={<EVMStaffLayout />}>
+          <Route element={<EvmStaffLayout />}>
             <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
             <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
             
