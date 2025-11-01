@@ -25,6 +25,7 @@ const EvmStaffCreateQuotationPage = () => {
   const { requestId, id } = useParams();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
+  const autoAccept = searchParams.get('autoAccept') === 'true'; // Check if auto-accept flag is set
   const { showSuccess, showError } = useNotification();
   const { createQuotation, updateQuotation, isSubmitting } = useCreateQuotation();
   const { user } = useAuth();
@@ -258,10 +259,13 @@ const EvmStaffCreateQuotationPage = () => {
             console.log('Current B2B Order:', b2bOrder);
             
             // Build update request with all non-null fields
+            // If autoAccept flag is set (from AWAITING_CONFIRM), update directly to QUOTATION_ACCEPTED
+            const newStatus = autoAccept ? 'QUOTATION_ACCEPTED' : 'QUOTATION_RECEIVED';
+            
             const orderUpdateData = {
               code: b2bOrder.code,
               dealerId: b2bOrder.dealerId,
-              status: 'QUOTATION_RECEIVED', // Update status
+              status: newStatus, // Update status based on autoAccept flag
               quotationId: result.data.id, // Link quotation
               orderType: b2bOrder.orderType,
             };
@@ -286,8 +290,13 @@ const EvmStaffCreateQuotationPage = () => {
             );
             
             console.log('Order update response:', orderUpdateResponse);
-            console.log('B2B order status updated to QUOTATION_RECEIVED successfully');
-            showSuccess('Đã gửi báo giá thành công! Đơn hàng chuyển sang trạng thái "Đã gửi báo giá"');
+            console.log(`B2B order status updated to ${newStatus} successfully`);
+            
+            if (autoAccept) {
+              showSuccess('Đã tạo báo giá thành công! Đơn hàng chuyển sang trạng thái "Báo giá được chấp nhận"');
+            } else {
+              showSuccess('Đã gửi báo giá thành công! Đơn hàng chuyển sang trạng thái "Đã gửi báo giá"');
+            }
           } catch (orderUpdateError) {
             console.error('Error updating order status:', orderUpdateError);
             console.error('Error details:', orderUpdateError.response?.data);

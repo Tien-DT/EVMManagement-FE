@@ -63,6 +63,7 @@ const EvmStaffOrdersPage = () => {
       case 'CONFIRMED': return 'bg-green-50 text-green-700 border-green-200';
       case 'QUOTATION_RECEIVED': return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'QUOTATION_ACCEPTED': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'QUOTATION_REJECTED': return 'bg-red-50 text-red-700 border-red-200';
       case 'CREATED_CONTRACT': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case 'SIGNED_CONTRACT': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
       case 'DEALER_SIGNED_CONTRACT': return 'bg-teal-50 text-teal-700 border-teal-200';
@@ -84,6 +85,7 @@ const EvmStaffOrdersPage = () => {
       case 'CONFIRMED': return <CheckCircle size={16} />;
       case 'QUOTATION_RECEIVED': return <FileText size={16} />;
       case 'QUOTATION_ACCEPTED': return <CheckCircle size={16} />;
+      case 'QUOTATION_REJECTED': return <XCircle size={16} />;
       case 'CREATED_CONTRACT': return <FileText size={16} />;
       case 'SIGNED_CONTRACT': return <CheckCircle size={16} />;
       case 'DEALER_SIGNED_CONTRACT': return <FileText size={16} />;
@@ -105,6 +107,7 @@ const EvmStaffOrdersPage = () => {
       case 'CONFIRMED': return 'Đã xác nhận';
       case 'QUOTATION_RECEIVED': return 'Đã gửi báo giá';
       case 'QUOTATION_ACCEPTED': return 'Báo giá được chấp nhận';
+      case 'QUOTATION_REJECTED': return 'Báo giá bị từ chối';
       case 'CREATED_CONTRACT': return 'Đã tạo hợp đồng';
       case 'SIGNED_CONTRACT': return 'Hợp đồng đã ký';
       case 'DEALER_SIGNED_CONTRACT': return 'Dealer đã ký HĐ';
@@ -324,13 +327,13 @@ const EvmStaffOrdersPage = () => {
         
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle size={20} className="text-green-600" />
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <Clock size={20} className="text-yellow-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Chờ báo giá</p>
+              <p className="text-sm text-gray-600">Chờ xác nhận</p>
               <p className="text-xl font-bold text-gray-900">
-                {b2bOrders.filter(o => o.status?.toUpperCase() === 'CONFIRMED' && !o.quotationId).length}
+                {b2bOrders.filter(o => o.status?.toUpperCase() === 'AWAITING_CONFIRM').length}
               </p>
             </div>
           </div>
@@ -386,11 +389,14 @@ const EvmStaffOrdersPage = () => {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
             <option value="all">Tất cả trạng thái</option>
+            <option value="AWAITING_CONFIRM">Chờ EVM xác nhận</option>
             <option value="CONFIRMED">Đã xác nhận</option>
             <option value="QUOTATION_RECEIVED">Đã gửi báo giá</option>
             <option value="QUOTATION_ACCEPTED">Báo giá được chấp nhận</option>
+            <option value="QUOTATION_REJECTED">Báo giá bị từ chối</option>
             <option value="CREATED_CONTRACT">Đã tạo hợp đồng</option>
-            <option value="SIGNED_CONTRACT">Hợp đồng đã ký</option>
+            <option value="SIGNED_CONTRACT">EVM đã ký HĐ</option>
+            <option value="DEALER_SIGNED_CONTRACT">Dealer đã ký HĐ</option>
             <option value="AWAITING_DEPOSIT">Chờ đặt cọc</option>
             <option value="DEPOSIT_SUCCESS">Đã đặt cọc</option>
             <option value="IN_PROGRESS">Đang chuẩn bị xe</option>

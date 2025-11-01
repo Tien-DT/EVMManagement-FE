@@ -25,12 +25,7 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
   const navigate = useNavigate();
   const { clearCart } = useCart();
   const [loading, setLoading] = useState(false);
-  const [quotations, setQuotations] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [selectedQuotation, setSelectedQuotation] = useState(null);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [discountAmount, setDiscountAmount] = useState(0);
-  const [finalAmount, setFinalAmount] = useState(0);
   const [dealerId, setDealerId] = useState(null);
 
   // Fetch dealerId and customers
@@ -62,127 +57,13 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
     fetchDealerAndCustomers();
   }, []);
 
-  // Calculate total from cart if coming from cart
-  useEffect(() => {
-    if (fromCart && cartItems && cartItems.length > 0) {
-      const calculatedTotal = cartItems.reduce((sum, item) => {
-        return (
-          sum +
-          item.variant.price *
-            item.quantity *
-            ((100 - item.discountPercent) / 100)
-        );
-      }, 0);
+  // No longer need to calculate amounts from cart
 
-      setTotalAmount(calculatedTotal);
-      setFinalAmount(calculatedTotal);
-      
-      form.setFieldsValue({
-        totalAmount: calculatedTotal,
-        finalAmount: calculatedTotal,
-        discountAmount: 0,
-      });
-    }
-  }, [fromCart, cartItems, form]);
+  // No longer need to fetch quotations
 
-  // Lấy danh sách báo giá khi component mount
-  useEffect(() => {
-    const fetchQuotations = async () => {
-      if (user && user.id) {
-        setLoading(true);
-        try {
-          const response = await orderService.getQuotations(user.id);
-          console.log("Quotations API response:", response);
+  // No longer need quotation change handler
 
-          if (!response) {
-            console.error("API response is undefined or null");
-            setQuotations([]);
-            setLoading(false);
-            return;
-          }
-
-          let quotationsData = [];
-
-          if (Array.isArray(response)) {
-            quotationsData = response;
-          } else if (response.data) {
-            if (Array.isArray(response.data)) {
-              quotationsData = response.data;
-            } else if (typeof response.data === "object") {
-              if (Array.isArray(response.data.items)) {
-                quotationsData = response.data.items;
-              } else if (Array.isArray(response.data.data)) {
-                quotationsData = response.data.data;
-              } else if (
-                response.data.quotations &&
-                Array.isArray(response.data.quotations)
-              ) {
-                quotationsData = response.data.quotations;
-              }
-            }
-          }
-
-          console.log("Final quotations data:", quotationsData);
-          setQuotations(quotationsData);
-
-          if (quotationsData.length === 0) {
-            console.warn("No quotations found");
-          }
-        } catch (error) {
-          console.error("Error fetching quotations:", error);
-          message.error("Không thể tải danh sách báo giá");
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchQuotations();
-  }, [user]);
-
-  // Xử lý khi chọn báo giá
-  const handleQuotationChange = (quotationId) => {
-    const quotation = quotations.find((q) => q.id === quotationId);
-    if (quotation) {
-      setSelectedQuotation(quotation);
-
-      let calculatedTotal = 0;
-      if (
-        quotation.quotationDetails &&
-        Array.isArray(quotation.quotationDetails)
-      ) {
-        calculatedTotal = quotation.quotationDetails.reduce((sum, detail) => {
-          const itemTotal =
-            (detail.unitPrice *
-              detail.quantity *
-              (100 - (detail.discountPercent || 0))) /
-            100;
-          return sum + itemTotal;
-        }, 0);
-      }
-
-      setTotalAmount(calculatedTotal);
-      setDiscountAmount(0);
-      setFinalAmount(calculatedTotal);
-
-      form.setFieldsValue({
-        quotationId: quotation.id,
-        customerId: quotation.customerId,
-        totalAmount: calculatedTotal,
-        discountAmount: 0,
-        finalAmount: calculatedTotal,
-      });
-    }
-  };
-
-  // Xử lý khi thay đổi giá trị discountAmount
-  const handleDiscountChange = (value) => {
-    const discount = value || 0;
-    setDiscountAmount(discount);
-    const final = totalAmount - discount;
-    setFinalAmount(final);
-    form.setFieldsValue({ finalAmount: final });
-  };
+  // No longer need discount change handler
 
   // Xử lý submit form
   const handleSubmit = async (values) => {
@@ -196,18 +77,7 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
         return;
       }
 
-      // Validate amounts
-      if (!values.totalAmount || values.totalAmount <= 0) {
-        message.error("Tổng tiền phải lớn hơn 0");
-        setLoading(false);
-        return;
-      }
-
-      if (!values.finalAmount || values.finalAmount <= 0) {
-        message.error("Thành tiền phải lớn hơn 0");
-        setLoading(false);
-        return;
-      }
+      // No longer need to validate amounts
 
       // Lấy thông tin từ localStorage
       const userStr = localStorage.getItem("user");
@@ -316,25 +186,17 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
         return;
       }
 
-      // Chuẩn bị dữ liệu order
+      // Chuẩn bị dữ liệu order (without amounts and quotation)
       const orderData = {
         code: values.code.trim(),
         customerId: values.customerId,
         dealerId: dealerIdToUse,
         createdByUserId: userProfileId,
         status: values.status,
-        totalAmount: Number(values.totalAmount),
-        discountAmount: Number(values.discountAmount || 0),
-        finalAmount: Number(values.finalAmount),
         expectedDeliveryAt: expectedDeliveryDate,
         orderType: values.orderType,
         isFinanced: Boolean(values.isFinanced),
       };
-
-      // Only add quotationId if it exists and is not null
-      if (values.quotationId) {
-        orderData.quotationId = values.quotationId;
-      }
 
       console.log("📤 Creating order with data:", JSON.stringify(orderData, null, 2));
       console.log("📤 Request will be sent to:", process.env.REACT_APP_API_BASE_URL + "/v1/Orders");
@@ -442,16 +304,7 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
     }
   };
 
-  if (loading && quotations.length === 0) {
-    return (
-      <div
-        className="loading-container"
-        style={{ textAlign: "center", padding: "50px" }}
-      >
-        <Spin size="large" />
-      </div>
-    );
-  }
+  // No longer need loading spinner check for quotations
 
   return (
     <Form
@@ -459,10 +312,9 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
       layout="vertical"
       onFinish={handleSubmit}
       initialValues={{
-        status: "CONFIRMED",
+        status: "AWAITING_CONFIRM",
         orderType: "B2C",
         isFinanced: false,
-        discountAmount: 0,
       }}
     >
       <Form.Item
@@ -473,27 +325,7 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
         <Input placeholder="Nhập mã đơn hàng" />
       </Form.Item>
 
-      {!fromCart && (
-        <Form.Item
-          name="quotationId"
-          label="Báo giá"
-          rules={[{ required: !fromCart, message: "Vui lòng chọn báo giá" }]}
-        >
-          <Select
-            placeholder="Chọn báo giá"
-            onChange={handleQuotationChange}
-            loading={loading}
-            notFoundContent={loading ? <Spin size="small" /> : "Không có báo giá"}
-          >
-            {quotations.map((quotation) => (
-              <Option key={quotation.id} value={quotation.id}>
-                {quotation.code} -{" "}
-                {quotation.customerName || "Không có tên khách hàng"}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-      )}
+      {/* Removed quotation selection field */}
 
       <Form.Item 
         name="customerId" 
@@ -528,63 +360,12 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
         label="Trạng thái"
         rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
       >
-        <Select placeholder="Chọn trạng thái">
-          <Option value="CONFIRMED">Đã xác nhận</Option>
-          <Option value="AWAITING_DEPOSIT">Chờ đặt cọc</Option>
-          <Option value="IN_PROGRESS">Đang xử lý</Option>
-          <Option value="READY_FOR_HANDOVER">Sẵn sàng bàn giao</Option>
-          <Option value="COMPLETED">Hoàn thành</Option>
-          <Option value="CANCELED">Đã hủy</Option>
+        <Select placeholder="Chọn trạng thái" disabled>
+          <Option value="AWAITING_CONFIRM">Chờ xác nhận</Option>
         </Select>
       </Form.Item>
 
-      <Divider>Thông tin thanh toán</Divider>
-
-      <Form.Item
-        name="totalAmount"
-        label="Tổng tiền"
-        rules={[{ required: true, message: "Vui lòng nhập tổng tiền" }]}
-      >
-        <InputNumber
-          style={{ width: "100%" }}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-          disabled={fromCart}
-        />
-      </Form.Item>
-
-      <Form.Item
-        name="discountAmount"
-        label="Giảm giá"
-        rules={[{ required: true, message: "Vui lòng nhập số tiền giảm giá" }]}
-      >
-        <InputNumber
-          style={{ width: "100%" }}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-          onChange={handleDiscountChange}
-          min={0}
-        />
-      </Form.Item>
-
-      <Form.Item
-        name="finalAmount"
-        label="Thành tiền"
-        rules={[{ required: true, message: "Vui lòng nhập thành tiền" }]}
-      >
-        <InputNumber
-          style={{ width: "100%" }}
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-          disabled
-        />
-      </Form.Item>
+      {/* Removed amount fields: totalAmount, discountAmount, finalAmount */}
 
       <Form.Item
         name="expectedDeliveryAt"
