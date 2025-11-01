@@ -22,59 +22,73 @@ const CustomerForm = ({
       {/* Họ tên */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Họ và tên
+          Họ và tên <span className="text-red-500">*</span>
         </label>
         <input
           {...register("fullName")}
           type="text"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+          className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 ${
+            errors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+          }`}
           placeholder="Nguyễn Văn A"
         />
         {errors.fullName && (
-          <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <span>⚠</span> {errors.fullName.message}
+          </p>
         )}
       </div>
 
       {/* Số điện thoại */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Số điện thoại
+          Số điện thoại <span className="text-red-500">*</span>
         </label>
         <input
           {...register("phone")}
           type="text"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+          className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 ${
+            errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+          }`}
           placeholder="0912345678"
         />
         {errors.phone && (
-          <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <span>⚠</span> {errors.phone.message}
+          </p>
         )}
       </div>
 
       {/* Email */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Email
+          Email <span className="text-red-500">*</span>
         </label>
         <input
           {...register("email")}
           type="email"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+          className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 ${
+            errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+          }`}
           placeholder="user@example.com"
         />
         {errors.email && (
-          <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <span>⚠</span> {errors.email.message}
+          </p>
         )}
       </div>
 
       {/* Giới tính */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Giới tính
+          Giới tính <span className="text-red-500">*</span>
         </label>
         <select
           {...register("gender")}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+          className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 ${
+            errors.gender ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+          }`}
         >
           <option value="">-- Chọn giới tính --</option>
           <option value="male">Nam</option>
@@ -82,7 +96,9 @@ const CustomerForm = ({
           <option value="other">Khác</option>
         </select>
         {errors.gender && (
-          <p className="text-red-500 text-sm mt-1">{errors.gender.message}</p>
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <span>⚠</span> {errors.gender.message}
+          </p>
         )}
       </div>
 

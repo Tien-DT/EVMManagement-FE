@@ -67,7 +67,11 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
           </svg>
         ),
       },
-      // Ẩn tab "Báo giá" cho Dealer_Staff
+      {
+        name: "Báo giá",
+        path: "/dealer-staff/quotations",
+        icon: <FileText size={20} />,
+      },
       {
         name: "Hợp đồng",
         path: "/dealer-staff/contracts",

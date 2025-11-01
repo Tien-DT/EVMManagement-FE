@@ -418,10 +418,18 @@ const OrdersPage = () => {
 
   const statusSequence = useMemo(
     () => [
+      "AWAITING_CONFIRM",
       "CONFIRMED",
-      "QUOTATION_RECEIVED",  // For B2B orders only
+      "QUOTATION_RECEIVED",
+      "QUOTATION_ACCEPTED",
+      "QUOTATION_REJECTED",
+      "CREATED_CONTRACT",
+      "SIGNED_CONTRACT",
+      "DEALER_SIGNED_CONTRACT",
       "AWAITING_DEPOSIT",
+      "DEPOSIT_SUCCESS",
       "IN_PROGRESS",
+      "IN_TRANSIT",
       "READY_FOR_HANDOVER",
       "COMPLETED",
     ],
@@ -477,6 +485,13 @@ const OrdersPage = () => {
   // Cấu hình status với màu sắc và icon đẹp hơn
   const statusConfig = useMemo(
     () => ({
+      AWAITING_CONFIRM: {
+        color: "#faad14",
+        bgColor: "#fffbe6",
+        borderColor: "#ffe58f",
+        text: "Chờ EVM xác nhận",
+        icon: <ClockCircleOutlined />,
+      },
       CONFIRMED: {
         color: "#1890ff",
         bgColor: "#e6f7ff",
@@ -491,6 +506,41 @@ const OrdersPage = () => {
         text: "Đã nhận báo giá",
         icon: <FileTextOutlined />,
       },
+      QUOTATION_ACCEPTED: {
+        color: "#1890ff",
+        bgColor: "#e6f7ff",
+        borderColor: "#91d5ff",
+        text: "Báo giá được chấp nhận",
+        icon: <CheckCircleOutlined />,
+      },
+      QUOTATION_REJECTED: {
+        color: "#ff4d4f",
+        bgColor: "#fff1f0",
+        borderColor: "#ffccc7",
+        text: "Báo giá bị từ chối",
+        icon: <StopOutlined />,
+      },
+      CREATED_CONTRACT: {
+        color: "#722ed1",
+        bgColor: "#f9f0ff",
+        borderColor: "#d3adf7",
+        text: "Đã tạo hợp đồng",
+        icon: <FileTextOutlined />,
+      },
+      SIGNED_CONTRACT: {
+        color: "#52c41a",
+        bgColor: "#f6ffed",
+        borderColor: "#b7eb8f",
+        text: "Hợp đồng đã ký",
+        icon: <CheckCircleOutlined />,
+      },
+      DEALER_SIGNED_CONTRACT: {
+        color: "#13c2c2",
+        bgColor: "#e6fffb",
+        borderColor: "#87e8de",
+        text: "Dealer đã ký HĐ",
+        icon: <FileTextOutlined />,
+      },
       AWAITING_DEPOSIT: {
         color: "#fa8c16",
         bgColor: "#fff7e6",
@@ -498,12 +548,26 @@ const OrdersPage = () => {
         text: "Chờ đặt cọc",
         icon: <ClockCircleOutlined />,
       },
+      DEPOSIT_SUCCESS: {
+        color: "#13c2c2",
+        bgColor: "#e6fffb",
+        borderColor: "#87e8de",
+        text: "Đã đặt cọc",
+        icon: <DollarCircleOutlined />,
+      },
       IN_PROGRESS: {
         color: "#52c41a",
         bgColor: "#f6ffed",
         borderColor: "#b7eb8f",
-        text: "Đã ký",
-        icon: <CheckCircleOutlined />,
+        text: "Đang chuẩn bị xe",
+        icon: <RocketOutlined />,
+      },
+      IN_TRANSIT: {
+        color: "#1890ff",
+        bgColor: "#e6f7ff",
+        borderColor: "#91d5ff",
+        text: "Đang vận chuyển",
+        icon: <RocketOutlined />,
       },
       READY_FOR_HANDOVER: {
         color: "#13c2c2",
@@ -868,6 +932,50 @@ const OrdersPage = () => {
     }
   };
 
+  // Helper function to build order update data with all non-null fields
+  const buildOrderUpdateData = (order, newStatus) => {
+    const updateData = {
+      code: order.code,
+      dealerId: order.dealerId,
+      status: newStatus,
+      orderType: order.orderType,
+    };
+    
+    if (order.customerId) updateData.customerId = order.customerId;
+    if (order.quotationId) updateData.quotationId = order.quotationId;
+    if (order.handoverRecordId) updateData.handoverRecordId = order.handoverRecordId;
+    if (order.contractId) updateData.contractId = order.contractId;
+    if (order.depositId) updateData.depositId = order.depositId;
+    if (order.note) updateData.note = order.note;
+    if (order.totalAmount) updateData.totalAmount = order.totalAmount;
+    if (order.discount) updateData.discount = order.discount;
+    if (order.finalAmount) updateData.finalAmount = order.finalAmount;
+    if (order.handoverDate) updateData.handoverDate = order.handoverDate;
+    if (order.expectedDeliveryAt) updateData.expectedDeliveryAt = order.expectedDeliveryAt;
+    
+    return updateData;
+  };
+
+  // Handle create quotation for AWAITING_CONFIRM order (auto-accept)
+  const handleCreateQuotation = (order) => {
+    // Navigate to dealer-staff create quotation page with autoAccept flag
+    navigate(`/dealer-staff/quotations/create?orderId=${order.id}&autoAccept=true`);
+  };
+
+  // Handle confirm order: AWAITING_CONFIRM → READY_FOR_HANDOVER
+  const handleConfirmOrder = async (order) => {
+    try {
+      const updateData = buildOrderUpdateData(order, 'READY_FOR_HANDOVER');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
+      message.success('Đã xác nhận đơn hàng → Sẵn sàng bàn giao');
+      // Refresh orders list
+      window.location.reload();
+    } catch (error) {
+      console.error('Error confirming order:', error);
+      message.error(error.response?.data?.message || 'Lỗi khi xác nhận đơn hàng');
+    }
+  };
+
   const columns = [
     {
       title: "Đơn hàng",
@@ -1039,45 +1147,91 @@ const OrdersPage = () => {
     {
       title: "Thao tác",
       key: "actions",
-      width: 170,
+      width: 250,
       fixed: "right",
-      render: (_, record) => (
-        <Space size="small" style={{ justifyContent: "flex-end" }}>
-          <Button
-            type="text"
-            icon={<EyeOutlined />}
-            onClick={() => navigate(`/dealer-staff/orders/${record.id}`)}
-            size="small"
-            title="Xem chi tiết"
-            style={{ color: "#1890ff", padding: "4px 8px" }}
-          />
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => navigate(`/dealer-staff/orders/edit/${record.id}`)}
-            size="small"
-            title="Chỉnh sửa"
-            style={{ color: "#52c41a", padding: "4px 8px" }}
-          />
-          <Popconfirm
-            title="Xác nhận xóa"
-            description="Bạn có chắc chắn muốn xóa đơn hàng này?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-          >
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              title="Xóa"
-              style={{ padding: "4px 8px" }}
-            />
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_, record) => {
+        const normalizedStatus = getNormalizedStatus(record.status);
+        const isAwaitingConfirm = normalizedStatus === 'AWAITING_CONFIRM';
+        
+        return (
+          <Space size="small" style={{ justifyContent: "flex-end" }}>
+            {/* Show 2 buttons for AWAITING_CONFIRM status */}
+            {isAwaitingConfirm && (
+              <>
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<FileTextOutlined />}
+                  onClick={() => handleCreateQuotation(record)}
+                  title="Tạo báo giá"
+                  style={{ 
+                    backgroundColor: "#722ed1", 
+                    borderColor: "#722ed1",
+                    padding: "4px 12px",
+                    fontSize: "12px"
+                  }}
+                >
+                  Tạo báo giá
+                </Button>
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<CheckCircleOutlined />}
+                  onClick={() => handleConfirmOrder(record)}
+                  title="Xác nhận đơn hàng"
+                  style={{ 
+                    backgroundColor: "#52c41a", 
+                    borderColor: "#52c41a",
+                    padding: "4px 12px",
+                    fontSize: "12px"
+                  }}
+                >
+                  Xác nhận
+                </Button>
+              </>
+            )}
+            
+            {/* Default actions for other statuses */}
+            {!isAwaitingConfirm && (
+              <>
+                <Button
+                  type="text"
+                  icon={<EyeOutlined />}
+                  onClick={() => navigate(`/dealer-staff/orders/${record.id}`)}
+                  size="small"
+                  title="Xem chi tiết"
+                  style={{ color: "#1890ff", padding: "4px 8px" }}
+                />
+                <Button
+                  type="text"
+                  icon={<EditOutlined />}
+                  onClick={() => navigate(`/dealer-staff/orders/edit/${record.id}`)}
+                  size="small"
+                  title="Chỉnh sửa"
+                  style={{ color: "#52c41a", padding: "4px 8px" }}
+                />
+                <Popconfirm
+                  title="Xác nhận xóa"
+                  description="Bạn có chắc chắn muốn xóa đơn hàng này?"
+                  onConfirm={() => handleDelete(record.id)}
+                  okText="Xóa"
+                  cancelText="Hủy"
+                  okButtonProps={{ danger: true }}
+                >
+                  <Button
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    size="small"
+                    title="Xóa"
+                    style={{ padding: "4px 8px" }}
+                  />
+                </Popconfirm>
+              </>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 

@@ -1,6 +1,7 @@
 // src/features/dealer-staff/pages/CreateCustomerPage.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 import { useCreateCustomer } from "../hooks/useCreateCustomer";
 import CustomerForm from "../components/CustomerForm";
 
@@ -12,10 +13,16 @@ const CreateCustomerPage = () => {
   const onSubmit = async (data) => {
     const result = await submitForm(data);
     if (result?.success) {
-      alert("Tạo khách hàng thành công!");
-      navigate("/dealer-staff/customers");
+      message.success("Tạo khách hàng thành công!", 2);
+      // Auto redirect to customers list after 1 second
+      setTimeout(() => {
+        navigate("/dealer-staff/customers");
+      }, 1000);
     } else {
-      alert(`Lỗi: ${result?.error || "Không thể tạo khách hàng"}`);
+      // Show detailed error message
+      const errorMessage = result?.error || "Không thể tạo khách hàng";
+      message.error(`Lỗi: ${errorMessage}`, 5);
+      console.error("Create customer error:", result);
     }
   };
 
