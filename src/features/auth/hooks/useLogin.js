@@ -99,6 +99,18 @@ export const useLogin = () => {
         userInfo.role
       );
 
+      // Check for mustChangePassword flag from login response
+      const mustChangePassword = response.data?.mustChangePassword || 
+                                  response.data?.must_change_password ||
+                                  decodedToken.mustChangePassword ||
+                                  decodedToken.must_change_password;
+
+      // Store temporary password in localStorage for first-time password change
+      // This will be used if backend requires current password for first change
+      if (mustChangePassword) {
+        localStorage.setItem("temp_password_for_change", data.password);
+      }
+
       // Fetch UserProfile để lấy dealerId
       try {
         console.log("📞 Fetching user profile for account:", userInfo.id);
@@ -113,6 +125,52 @@ export const useLogin = () => {
           userInfo.fullName = profileResponse.data.fullName || userInfo.name;
           userInfo.phoneNumber = profileResponse.data.phoneNumber;
 
+          // Check for mustChangePassword from userProfile
+          const profileMustChangePassword = profileResponse.data.mustChangePassword ||
+                                            profileResponse.data.must_change_password ||
+                                            profileResponse.data.account?.mustChangePassword ||
+                                            profileResponse.data.account?.must_change_password;
+          
+          // Check if password was already changed (has passwordChangedAt)
+          // If passwordChangedAt exists, user has already changed password before
+          const passwordAlreadyChanged = !!(
+            profileResponse.data.passwordChangedAt || 
+            profileResponse.data.password_changed_at ||
+            profileResponse.data.account?.passwordChangedAt ||
+            profileResponse.data.account?.password_changed_at
+          );
+          
+          // Check if password was never changed (no passwordChangedAt)
+          // This is important for first-time dealer manager login
+          const passwordNeverChanged = !passwordAlreadyChanged;
+          
+          // Check if user is dealer manager
+          const isDealerManager = userInfo.role?.toLowerCase() === "dealer_manager" ||
+                                  userInfo.role?.toLowerCase() === "dealer" ||
+                                  (userInfo.role?.toLowerCase().includes("dealer") && 
+                                   userInfo.role?.toLowerCase().includes("manager"));
+
+          // Set mustChangePassword flag if:
+          // 1. Detected from login response or token (backend explicitly says must change)
+          // 2. Detected from userProfile (backend explicitly says must change)
+          // 3. Password never changed AND user is dealer manager (first-time login)
+          // BUT: If password was already changed, NEVER set mustChangePassword = true
+          if (passwordAlreadyChanged) {
+            // Password already changed - never require change again
+            userInfo.mustChangePassword = false;
+            userInfo.isPasswordChanged = true;
+            userInfo.passwordChangedAt = profileResponse.data.passwordChangedAt || 
+                                         profileResponse.data.password_changed_at ||
+                                         profileResponse.data.account?.passwordChangedAt ||
+                                         profileResponse.data.account?.password_changed_at;
+          } else {
+            // Password not changed yet
+            userInfo.mustChangePassword = mustChangePassword || 
+                                          profileMustChangePassword ||
+                                          (passwordNeverChanged && isDealerManager);
+            userInfo.isPasswordChanged = false;
+          }
+
           // Save full profile to localStorage
           localStorage.setItem(
             "userProfile",
@@ -123,12 +181,87 @@ export const useLogin = () => {
             "💾 User profile saved with userProfileId:",
             userInfo.userProfileId,
             "dealerId:",
-            userInfo.dealerId
+            userInfo.dealerId,
+            "mustChangePassword:",
+            userInfo.mustChangePassword
           );
+        } else {
+          // If profile fetch fails but response exists, check if password was changed
+          // Check from stored userProfile if available
+          let passwordAlreadyChanged = false;
+          try {
+            const storedUserProfile = localStorage.getItem("userProfile");
+            if (storedUserProfile) {
+              const storedProfile = JSON.parse(storedUserProfile);
+              passwordAlreadyChanged = !!(
+                storedProfile.passwordChangedAt || 
+                storedProfile.password_changed_at ||
+                storedProfile.account?.passwordChangedAt ||
+                storedProfile.account?.password_changed_at
+              );
+            }
+          } catch (e) {
+            console.warn("Could not parse stored userProfile:", e);
+          }
+          
+          // Also check from localStorage flag
+          const passwordChangedFromLocalStorage = localStorage.getItem(`password_changed_${userInfo.id}`) === "true";
+          
+          if (passwordAlreadyChanged || passwordChangedFromLocalStorage) {
+            userInfo.mustChangePassword = false;
+            userInfo.isPasswordChanged = true;
+          } else {
+            // Check if user is dealer manager for first-time login
+            const isDealerManager = userInfo.role?.toLowerCase() === "dealer_manager" ||
+                                    userInfo.role?.toLowerCase() === "dealer" ||
+                                    (userInfo.role?.toLowerCase().includes("dealer") && 
+                                     userInfo.role?.toLowerCase().includes("manager"));
+            
+            // If dealer manager and password not changed, require change
+            userInfo.mustChangePassword = mustChangePassword || 
+                                          (isDealerManager && !mustChangePassword);
+            userInfo.isPasswordChanged = false;
+          }
         }
       } catch (profileError) {
         console.warn("⚠️ Could not fetch user profile:", profileError);
         // Continue anyway - some users might not have a profile yet
+        
+        // Check if password was changed from stored userProfile
+        let passwordAlreadyChanged = false;
+        try {
+          const storedUserProfile = localStorage.getItem("userProfile");
+          if (storedUserProfile) {
+            const storedProfile = JSON.parse(storedUserProfile);
+            passwordAlreadyChanged = !!(
+              storedProfile.passwordChangedAt || 
+              storedProfile.password_changed_at ||
+              storedProfile.account?.passwordChangedAt ||
+              storedProfile.account?.password_changed_at
+            );
+          }
+        } catch (e) {
+          console.warn("Could not parse stored userProfile:", e);
+        }
+        
+        // Also check from localStorage flag
+        const passwordChangedFromLocalStorage = localStorage.getItem(`password_changed_${userInfo.id}`) === "true";
+        
+        if (passwordAlreadyChanged || passwordChangedFromLocalStorage) {
+          // Password already changed - never require change again
+          userInfo.mustChangePassword = false;
+          userInfo.isPasswordChanged = true;
+        } else {
+          // Check if dealer manager (first-time login scenario)
+          const isDealerManager = userInfo.role?.toLowerCase() === "dealer_manager" ||
+                                  userInfo.role?.toLowerCase() === "dealer" ||
+                                  (userInfo.role?.toLowerCase().includes("dealer") && 
+                                   userInfo.role?.toLowerCase().includes("manager"));
+          
+          userInfo.mustChangePassword = mustChangePassword || 
+                                        (isDealerManager && !mustChangePassword);
+          userInfo.isPasswordChanged = false;
+        }
       }
 
       // Lưu vào context
