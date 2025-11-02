@@ -26,6 +26,8 @@ import { contractService } from "../services/contractService";
 import moment from "moment";
 import FileUpload from "../../../components/FileUpload";
 import buildContractPdf from "../../../utils/pdf/contractPdfBuilder";
+import axiosInstance from "../../../api/axiosInstance";
+import endpoints from "../../../api/endpoints";
 
 const { Title, Text } = Typography;
 
@@ -286,12 +288,81 @@ const ContractDetailPage = () => {
         return;
       }
       setUpdatingContractLink(true);
-      const payload = { contractLink: url || null };
-      const response = await contractService.updateContract(id, payload);
+      
+      console.log('📄 Uploading contract PDF, URL:', url);
+      console.log('📄 Current contract:', contract);
+      
+      // 1. Update contract with all fields + status ACTIVE + contractLink + signedAt
+      // Build contract update data with all non-null fields
+      const contractUpdateData = {
+        code: contract.code,
+        orderId: contract.orderId,
+        customerId: contract.customerId || null,
+        dealerId: contract.dealerId || null,
+        createdByUserId: contract.createdByUserId,
+        signedByUserId: contract.signedByUserId || null,
+        contractType: contract.contractType || 'B2C',
+        terms: contract.terms || '',
+        status: url ? 'ACTIVE' : contract.status, // Change status to ACTIVE when PDF uploaded
+        signedAt: url ? new Date().toISOString() : contract.signedAt, // Set signedAt to now when PDF uploaded
+        contractLink: url || null, // Set contractLink to uploaded file URL
+      };
+      
+      console.log('📄 Contract update payload:', contractUpdateData);
+      
+      const response = await axiosInstance.put(
+        endpoints.contracts.update(id),
+        contractUpdateData
+      );
+      
       if (response && (response.success || response.data)) {
         message.success(
-          url ? "Đã cập nhật tài liệu hợp đồng đã ký." : "Đã xoá tài liệu hợp đồng."
+          url ? "Đã upload PDF hợp đồng thành công!" : "Đã xoá tài liệu hợp đồng."
         );
+        
+        // 2. Auto update order status to COMPLETED if PDF uploaded
+        if (url && contract.orderId) {
+          try {
+            console.log('📦 Updating order status to COMPLETED...');
+            
+            // Load current order data first
+            const orderResponse = await axiosInstance.get(endpoints.orders.getById(contract.orderId));
+            const currentOrder = orderResponse.data || orderResponse;
+            
+            if (currentOrder) {
+              // Build update data with all non-null fields
+              const orderUpdateData = {
+                code: currentOrder.code,
+                dealerId: currentOrder.dealerId,
+                status: 'COMPLETED', // Update status
+                orderType: currentOrder.orderType,
+              };
+              
+              // Add optional fields if they exist
+              if (currentOrder.customerId) orderUpdateData.customerId = currentOrder.customerId;
+              if (currentOrder.quotationId) orderUpdateData.quotationId = currentOrder.quotationId;
+              if (currentOrder.handoverRecordId) orderUpdateData.handoverRecordId = currentOrder.handoverRecordId;
+              if (currentOrder.contractId) orderUpdateData.contractId = currentOrder.contractId;
+              if (currentOrder.depositId) orderUpdateData.depositId = currentOrder.depositId;
+              if (currentOrder.note) orderUpdateData.note = currentOrder.note;
+              if (currentOrder.totalAmount) orderUpdateData.totalAmount = currentOrder.totalAmount;
+              if (currentOrder.discount) orderUpdateData.discount = currentOrder.discount;
+              if (currentOrder.finalAmount) orderUpdateData.finalAmount = currentOrder.finalAmount;
+              if (currentOrder.handoverDate) orderUpdateData.handoverDate = currentOrder.handoverDate;
+              
+              // Update order with PUT
+              await axiosInstance.put(
+                endpoints.orders.update(contract.orderId),
+                orderUpdateData
+              );
+              message.success('Đã tự động cập nhật trạng thái order → Hoàn thành');
+            }
+          } catch (statusError) {
+            console.error('Error updating order status:', statusError);
+            message.warning('Upload thành công nhưng không thể tự động cập nhật trạng thái order');
+          }
+        }
+        
         await fetchContractDetails();
       } else {
         message.error("Không thể cập nhật tài liệu hợp đồng");

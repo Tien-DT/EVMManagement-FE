@@ -976,6 +976,11 @@ const OrdersPage = () => {
     }
   };
 
+  // Handle create contract for READY_FOR_HANDOVER order
+  const handleCreateContract = (order) => {
+    navigate(`/dealer-staff/contracts/create?orderId=${order.id}`);
+  };
+
   const columns = [
     {
       title: "Đơn hàng",
@@ -1152,6 +1157,7 @@ const OrdersPage = () => {
       render: (_, record) => {
         const normalizedStatus = getNormalizedStatus(record.status);
         const isAwaitingConfirm = normalizedStatus === 'AWAITING_CONFIRM';
+        const isReadyForHandover = normalizedStatus === 'READY_FOR_HANDOVER';
         
         return (
           <Space size="small" style={{ justifyContent: "flex-end" }}>
@@ -1191,8 +1197,27 @@ const OrdersPage = () => {
               </>
             )}
             
+            {/* Show Tạo hợp đồng button for READY_FOR_HANDOVER status */}
+            {isReadyForHandover && (
+              <Button
+                type="primary"
+                size="small"
+                icon={<FileTextOutlined />}
+                onClick={() => handleCreateContract(record)}
+                title="Tạo hợp đồng"
+                style={{ 
+                  backgroundColor: "#1890ff", 
+                  borderColor: "#1890ff",
+                  padding: "4px 12px",
+                  fontSize: "12px"
+                }}
+              >
+                Tạo hợp đồng
+              </Button>
+            )}
+            
             {/* Default actions for other statuses */}
-            {!isAwaitingConfirm && (
+            {!isAwaitingConfirm && !isReadyForHandover && (
               <>
                 <Button
                   type="text"

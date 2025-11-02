@@ -63,17 +63,12 @@ const AdminSidebar = () => {
           icon: Package,
           label: "Warehouses",
         },
+        {
+          path: "/admin/register-dealer-manager",
+          icon: UserCog,
+          label: "Register Dealer Manager",
+        },
       ],
-    },
-    {
-      path: "/admin/warehouses",
-      icon: Package,
-      label: "Warehouses",
-    },
-    {
-      path: "/admin/register-dealer-manager",
-      icon: UserCog,
-      label: "Register Dealer Manager",
     },
     {
       title: "Settings",
