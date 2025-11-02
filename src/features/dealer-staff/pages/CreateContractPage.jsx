@@ -87,9 +87,16 @@ const CreateContractPage = () => {
   };
 
   useEffect(() => {
+    console.log("CreateContractPage: dealerId changed:", dealerId);
+    console.log("CreateContractPage: user:", user);
+    console.log("CreateContractPage: storedUserProfile:", storedUserProfile);
+    
     if (!dealerId) {
+      console.warn("CreateContractPage: No dealerId, skipping fetchOrders");
       return;
     }
+    
+    console.log("CreateContractPage: Fetching orders for dealerId:", dealerId);
     fetchOrders(dealerId);
   }, [dealerId]);
 
@@ -123,31 +130,93 @@ const CreateContractPage = () => {
         { orderType: 0 }
       );
 
-      if (!response || response.success === false) {
+      console.log("Orders API response:", response);
+      console.log("Full response structure:", JSON.stringify(response, null, 2));
+
+      // Kiểm tra nếu response không hợp lệ hoặc có lỗi
+      if (!response) {
+        console.error("No response received");
+        message.error("Không thể tải danh sách đơn hàng");
+        setOrders([]);
+        return;
+      }
+
+      // Nếu response.success === false
+      if (response.success === false) {
+        console.error("Response indicates failure:", response);
         message.error(response?.message || "Không thể tải danh sách đơn hàng");
         setOrders([]);
         return;
       }
 
-      if (response.data) {
-        let ordersData = [];
+      // Xử lý response - kiểm tra cả response.success === true và response không có success property
+      let ordersData = [];
 
+      // Trường hợp 1: response có success === true và response.data
+      if (response.success === true && response.data) {
+        // Trường hợp 1a: response.data.items là array
         if (Array.isArray(response.data.items)) {
           ordersData = response.data.items;
-        } else if (Array.isArray(response.data.data)) {
-          ordersData = response.data.data;
-        } else if (Array.isArray(response.data)) {
-          ordersData = response.data;
+          console.log("Found items array:", ordersData.length);
         }
+        // Trường hợp 1b: response.data.data là array
+        else if (Array.isArray(response.data.data)) {
+          ordersData = response.data.data;
+          console.log("Found data array:", ordersData.length);
+        }
+        // Trường hợp 1c: response.data chính nó là array
+        else if (Array.isArray(response.data)) {
+          ordersData = response.data;
+          console.log("Response.data is array:", ordersData.length);
+        }
+      }
+      // Trường hợp 2: response không có success property nhưng có data
+      else if (response.data) {
+        // Trường hợp 2a: response.data.items là array
+        if (Array.isArray(response.data.items)) {
+          ordersData = response.data.items;
+          console.log("Found items array (no success property):", ordersData.length);
+        }
+        // Trường hợp 2b: response.data.data là array
+        else if (Array.isArray(response.data.data)) {
+          ordersData = response.data.data;
+          console.log("Found data array (no success property):", ordersData.length);
+        }
+        // Trường hợp 2c: response.data chính nó là array
+        else if (Array.isArray(response.data)) {
+          ordersData = response.data;
+          console.log("Response.data is array (no success property):", ordersData.length);
+        }
+      }
+      // Trường hợp 3: response chính nó là array
+      else if (Array.isArray(response)) {
+        ordersData = response;
+        console.log("Response is array:", ordersData.length);
+      }
 
+      console.log("Processed ordersData:", ordersData);
+      console.log("Number of orders:", ordersData.length);
+
+      if (ordersData.length > 0) {
         setOrders(ordersData);
       } else {
-        message.error("Không thể tải danh sách đơn hàng");
+        console.warn("No orders found in response");
         setOrders([]);
+        // Không hiển thị error nếu không có đơn hàng, chỉ log warning
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
-      message.error("Lỗi khi tải danh sách đơn hàng");
+      console.error("Error details:", {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+      });
+      message.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Lỗi khi tải danh sách đơn hàng"
+      );
+      setOrders([]);
     } finally {
       setLoading(false);
     }

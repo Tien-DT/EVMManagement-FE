@@ -96,6 +96,11 @@ import ContractsPage from "../features/dealer-staff/pages/ContractsPage";
 import CreateContractPage from "../features/dealer-staff/pages/CreateContractPage";
 import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPage";
 
+// Test Drive Pages
+import TestDriveBookingsPage from "../features/dealer-staff/pages/TestDriveBookingsPage";
+import CreateTestDriveBookingPage from "../features/dealer-staff/pages/CreateTestDriveBookingPage";
+import TestDriveDetailPage from "../features/dealer-staff/pages/TestDriveDetailPage";
+
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
 import EvmStaffOrderRequestsPage from "../features/evm-staff/pages/EvmStaffOrderRequestsPage";
@@ -409,6 +414,20 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/contracts/:id"
               element={<ContractDetailPage />}
+            />
+
+            {/* Test Drive Routes */}
+            <Route
+              path="/dealer-staff/test-drives"
+              element={<TestDriveBookingsPage />}
+            />
+            <Route
+              path="/dealer-staff/test-drives/create"
+              element={<CreateTestDriveBookingPage />}
+            />
+            <Route
+              path="/dealer-staff/test-drives/:id"
+              element={<TestDriveDetailPage />}
             />
           </Route>
         </Route>
