@@ -142,47 +142,6 @@ const endpoints = {
     create: "/v1/MasterTimeSlots",
     update: (id) => `/v1/MasterTimeSlots/${id}`,
     delete: (id) => `/v1/MasterTimeSlots/${id}`,
-    getActive: "/v1/MasterTimeSlots/active",
-    updateIsActive: (id) => `/v1/MasterTimeSlots/${id}/is-active`,
-  },
-
-  // Vehicle Time Slots endpoints
-  vehicleTimeSlots: {
-    getAll: "/v1/VehicleTimeSlots",
-    getById: (id) => `/v1/VehicleTimeSlots/${id}`,
-    create: "/v1/VehicleTimeSlots",
-    update: (id) => `/v1/VehicleTimeSlots/${id}`,
-    delete: (id) => `/v1/VehicleTimeSlots/${id}`,
-    getByVehicle: (vehicleId) => `/v1/VehicleTimeSlots/by-vehicle/${vehicleId}`,
-    getByDealer: (dealerId) => `/v1/VehicleTimeSlots/by-dealer/${dealerId}`,
-    getByStatus: "/v1/VehicleTimeSlots/by-status",
-    updateStatus: (id) => `/v1/VehicleTimeSlots/${id}/status`,
-    updateIsDeleted: (id) => `/v1/VehicleTimeSlots/${id}/is-deleted`,
-  },
-
-  // Available Slots endpoints
-  availableSlots: {
-    getAll: "/v1/AvailableSlots",
-    getById: (id) => `/v1/AvailableSlots/${id}`,
-    create: "/v1/AvailableSlots",
-    update: (id) => `/v1/AvailableSlots/${id}`,
-    delete: (id) => `/v1/AvailableSlots/${id}`,
-    getByVehicle: (vehicleId) => `/v1/AvailableSlots/by-vehicle/${vehicleId}`,
-    getByDealer: (dealerId) => `/v1/AvailableSlots/by-dealer/${dealerId}`,
-    getAvailable: "/v1/AvailableSlots/available",
-    updateIsDeleted: (id) => `/v1/AvailableSlots/${id}/is-deleted`,
-  },
-
-  // Test Drive Bookings endpoints
-  testDriveBookings: {
-    getAll: "/v1/TestDriveBookings",
-    getById: (id) => `/v1/TestDriveBookings/${id}`,
-    create: "/v1/TestDriveBookings",
-    update: (id) => `/v1/TestDriveBookings/${id}`,
-    delete: (id) => `/v1/TestDriveBookings/${id}`,
-    filter: "/v1/TestDriveBookings/filter",
-    updateIsDeleted: (id) => `/v1/TestDriveBookings/${id}/is-deleted`,
-    updateStatus: (id) => `/v1/TestDriveBookings/${id}/status`,
   },
 
   // Test Drive Vehicles endpoints
