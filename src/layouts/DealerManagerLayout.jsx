@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
-import DealerManagerSidebar from "./sidebar/DealerManagerSidebar";
+import DealerManagerSidebar from "./Sidebar/DealerManagerSidebar";
 import { useAuth } from "../context/AuthContext";
 import ForceChangePasswordModal from "../features/auth/components/ForceChangePasswordModal";
 
@@ -24,22 +24,25 @@ const DealerManagerLayout = () => {
     if (user) {
       const role = user.role?.toLowerCase() || "";
       // Check if user is dealer manager (role can be "dealer_manager", "dealer", or similar)
-      const isDealerManager = role === "dealer_manager" || 
-                               role === "dealer" ||
-                               (role.includes("dealer") && role.includes("manager"));
-      
+      const isDealerManager =
+        role === "dealer_manager" ||
+        role === "dealer" ||
+        (role.includes("dealer") && role.includes("manager"));
+
       if (isDealerManager) {
         // Check if password was already changed from multiple sources
         // 1. From user object (from login/context)
         // 2. From localStorage (local state)
         // 3. From userProfile in localStorage (backend data)
-        const passwordChangedFromUser = user.isPasswordChanged || 
-                                         user.passwordChangedAt ||
-                                         user.password_changed_at;
-        
-        const passwordChangedFromLocalStorage = user.id && 
-                                                 localStorage.getItem(`password_changed_${user.id}`) === "true";
-        
+        const passwordChangedFromUser =
+          user.isPasswordChanged ||
+          user.passwordChangedAt ||
+          user.password_changed_at;
+
+        const passwordChangedFromLocalStorage =
+          user.id &&
+          localStorage.getItem(`password_changed_${user.id}`) === "true";
+
         // Get userProfile from localStorage to check passwordChangedAt from backend
         let passwordChangedFromBackend = false;
         try {
@@ -47,7 +50,7 @@ const DealerManagerLayout = () => {
           if (storedUserProfile) {
             const userProfile = JSON.parse(storedUserProfile);
             passwordChangedFromBackend = !!(
-              userProfile.passwordChangedAt || 
+              userProfile.passwordChangedAt ||
               userProfile.password_changed_at ||
               userProfile.account?.passwordChangedAt ||
               userProfile.account?.password_changed_at
@@ -56,27 +59,33 @@ const DealerManagerLayout = () => {
         } catch (e) {
           console.warn("Could not parse userProfile from localStorage:", e);
         }
-        
+
         // Password is considered changed if any source indicates it
-        const passwordChanged = passwordChangedFromUser || 
-                                passwordChangedFromLocalStorage || 
-                                passwordChangedFromBackend;
-        
+        const passwordChanged =
+          passwordChangedFromUser ||
+          passwordChangedFromLocalStorage ||
+          passwordChangedFromBackend;
+
         // Check for mustChangePassword flag
-        const mustChangePassword = user.mustChangePassword || 
-                                    user.must_change_password;
-        
+        const mustChangePassword =
+          user.mustChangePassword || user.must_change_password;
+
         // Check if user has skipped password change before
-        const hasSkipped = user.passwordChangeSkipped || 
-                          (user.id && localStorage.getItem(`password_change_skipped_${user.id}`) === "true");
-        
+        const hasSkipped =
+          user.passwordChangeSkipped ||
+          (user.id &&
+            localStorage.getItem(`password_change_skipped_${user.id}`) ===
+              "true");
+
         // Show modal ONLY if:
         // 1. User is dealer manager
         // 2. Has mustChangePassword flag
         // 3. Hasn't skipped before
         // 4. Password NOT changed yet (first-time login)
         if (mustChangePassword && !hasSkipped && !passwordChanged) {
-          console.log("📋 Showing force change password modal for dealer manager (first-time login)");
+          console.log(
+            "📋 Showing force change password modal for dealer manager (first-time login)"
+          );
           setShowForceChangePassword(true);
         } else {
           console.log("🚫 Not showing force change password modal:", {
@@ -85,7 +94,7 @@ const DealerManagerLayout = () => {
             passwordChanged,
             passwordChangedFromUser,
             passwordChangedFromLocalStorage,
-            passwordChangedFromBackend
+            passwordChangedFromBackend,
           });
         }
       }
@@ -101,7 +110,7 @@ const DealerManagerLayout = () => {
     if (user?.id) {
       localStorage.setItem(`password_change_skipped_${user.id}`, "true");
     }
-    
+
     if (setUser && user) {
       setUser({
         ...user,
@@ -109,7 +118,7 @@ const DealerManagerLayout = () => {
         mustChangePassword: false, // Clear flag to prevent showing again
       });
     }
-    
+
     setShowForceChangePassword(false);
   };
 
@@ -118,7 +127,7 @@ const DealerManagerLayout = () => {
     if (user?.id) {
       localStorage.setItem(`password_changed_${user.id}`, "true");
     }
-    
+
     if (setUser && user) {
       setUser({
         ...user,

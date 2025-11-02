@@ -36,6 +36,7 @@ import { useOrders } from "../hooks/useOrders";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
+import DepositModal from "../components/DepositModal";
 
 const pageStyles = `
   .orders-page {
@@ -415,6 +416,8 @@ const OrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [orderTypeFilter, setOrderTypeFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
+  const [depositModalVisible, setDepositModalVisible] = useState(false);
+  const [selectedOrderForDeposit, setSelectedOrderForDeposit] = useState(null);
 
   const statusSequence = useMemo(
     () => [
@@ -489,7 +492,7 @@ const OrdersPage = () => {
         color: "#faad14",
         bgColor: "#fffbe6",
         borderColor: "#ffe58f",
-        text: "Chờ EVM xác nhận",
+        text: "Chờ xác nhận",
         icon: <ClockCircleOutlined />,
       },
       CONFIRMED: {
@@ -981,6 +984,53 @@ const OrdersPage = () => {
     navigate(`/dealer-staff/contracts/create?orderId=${order.id}`);
   };
 
+  // Handle deposit for QUOTATION_ACCEPTED order
+  const handleDeposit = (order) => {
+    setSelectedOrderForDeposit(order);
+    setDepositModalVisible(true);
+  };
+
+  const handleDepositModalClose = () => {
+    setDepositModalVisible(false);
+    setSelectedOrderForDeposit(null);
+  };
+
+  const handleDepositSuccess = () => {
+    setDepositModalVisible(false);
+    setSelectedOrderForDeposit(null);
+    message.success('Đặt cọc thành công!');
+    // Refresh to see updated status
+    window.location.reload();
+  };
+
+  // Handle confirm after deposit: DEPOSIT_SUCCESS → READY_FOR_HANDOVER
+  const handleConfirmAfterDeposit = async (order) => {
+    try {
+      const updateData = buildOrderUpdateData(order, 'READY_FOR_HANDOVER');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
+      message.success('Đã xác nhận → Sẵn sàng bàn giao');
+      // Refresh orders list
+      window.location.reload();
+    } catch (error) {
+      console.error('Error confirming after deposit:', error);
+      message.error(error.response?.data?.message || 'Lỗi khi xác nhận đơn hàng');
+    }
+  };
+
+  // Handle mark as paid: QUOTATION_ACCEPTED → DEPOSIT_SUCCESS
+  const handleMarkAsPaid = async (order) => {
+    try {
+      const updateData = buildOrderUpdateData(order, 'DEPOSIT_SUCCESS');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
+      message.success('Đã đánh dấu đơn hàng là đã thanh toán');
+      // Refresh orders list
+      window.location.reload();
+    } catch (error) {
+      console.error('Error marking as paid:', error);
+      message.error(error.response?.data?.message || 'Lỗi khi cập nhật trạng thái');
+    }
+  };
+
   const columns = [
     {
       title: "Đơn hàng",
@@ -1157,6 +1207,8 @@ const OrdersPage = () => {
       render: (_, record) => {
         const normalizedStatus = getNormalizedStatus(record.status);
         const isAwaitingConfirm = normalizedStatus === 'AWAITING_CONFIRM';
+        const isQuotationAccepted = normalizedStatus === 'QUOTATION_ACCEPTED';
+        const isDepositSuccess = normalizedStatus === 'DEPOSIT_SUCCESS';
         const isReadyForHandover = normalizedStatus === 'READY_FOR_HANDOVER';
         
         return (
@@ -1197,6 +1249,59 @@ const OrdersPage = () => {
               </>
             )}
             
+            {/* Show 2 buttons for QUOTATION_ACCEPTED status */}
+            {isQuotationAccepted && (
+              <>
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<DollarCircleOutlined />}
+                  onClick={() => handleDeposit(record)}
+                  title="Đặt cọc 10%"
+                  style={{ 
+                    backgroundColor: "#fa8c16", 
+                    borderColor: "#fa8c16",
+                    padding: "4px 12px",
+                    fontSize: "12px"
+                  }}
+                >
+                  Đặt cọc
+                </Button>
+                <Button
+                  type="default"
+                  size="small"
+                  icon={<CheckCircleOutlined />}
+                  onClick={() => handleMarkAsPaid(record)}
+                  title="Đánh dấu đã thanh toán"
+                  style={{ 
+                    padding: "4px 12px",
+                    fontSize: "12px"
+                  }}
+                >
+                  Đã thanh toán
+                </Button>
+              </>
+            )}
+            
+            {/* Show Xác nhận button for DEPOSIT_SUCCESS status */}
+            {isDepositSuccess && (
+              <Button
+                type="primary"
+                size="small"
+                icon={<CheckCircleOutlined />}
+                onClick={() => handleConfirmAfterDeposit(record)}
+                title="Xác nhận sau đặt cọc"
+                style={{ 
+                  backgroundColor: "#52c41a", 
+                  borderColor: "#52c41a",
+                  padding: "4px 12px",
+                  fontSize: "12px"
+                }}
+              >
+                Xác nhận
+              </Button>
+            )}
+            
             {/* Show Tạo hợp đồng button for READY_FOR_HANDOVER status */}
             {isReadyForHandover && (
               <Button
@@ -1217,7 +1322,7 @@ const OrdersPage = () => {
             )}
             
             {/* Default actions for other statuses */}
-            {!isAwaitingConfirm && !isReadyForHandover && (
+            {!isAwaitingConfirm && !isQuotationAccepted && !isDepositSuccess && !isReadyForHandover && (
               <>
                 <Button
                   type="text"
@@ -1437,6 +1542,14 @@ const OrdersPage = () => {
           }
         />
       </Card>
+
+      {/* Deposit Modal */}
+      <DepositModal
+        visible={depositModalVisible}
+        order={selectedOrderForDeposit}
+        onClose={handleDepositModalClose}
+        onSuccess={handleDepositSuccess}
+      />
 
       <style jsx>{pageStyles}</style>
     </div>

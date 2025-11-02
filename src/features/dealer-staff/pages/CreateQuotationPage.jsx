@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 import { useCreateQuotation } from '../../evm-staff/hooks/useCreateQuotation';
-import QuotationDetailForm from '../../evm-staff/components/QuotationDetailForm';
+import DealerQuotationDetailForm from '../components/DealerQuotationDetailForm';
 import { useAuth } from '../../../hooks/useAuth';
 import orderService from '../../evm-staff/services/orderService';
 import axiosInstance from '../../../api/axiosInstance';
@@ -46,15 +46,7 @@ const CreateQuotationPage = () => {
     validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split('T')[0], // 30 ngày sau
-    quotationDetails: [
-      {
-        vehicleVariantId: '',
-        quantity: 1,
-        unitPrice: 0,
-        discountPercent: 0,
-        note: '',
-      }
-    ]
+    quotationDetails: [] // Start with empty array - user will add vehicles from warehouse
   });
 
   // Set user ID when user is loaded
@@ -82,84 +74,17 @@ const CreateQuotationPage = () => {
         // Auto-generate code for quotation
         const quotationCode = `BG-${Date.now().toString().slice(-8)}`;
         
-        // Group orderDetails by vehicleVariantId and sum quantities
-        const groupedDetails = {};
-        order.orderDetails?.forEach(detail => {
-          const variantId = detail.vehicleVariantId;
-          if (!groupedDetails[variantId]) {
-            groupedDetails[variantId] = {
-              vehicleVariantId: variantId,
-              vehicleId: detail.vehicleId,
-              quantity: 0,
-              discountPercent: detail.discountPercent || 0,
-              note: detail.note || '',
-            };
-          }
-          groupedDetails[variantId].quantity += (detail.quantity || 1);
-        });
-        
-        // Load prices and details from VehicleVariants for each unique variant
-        const quotationDetailsWithPrices = await Promise.all(
-          Object.values(groupedDetails).map(async (detail) => {
-            let unitPrice = 0;
-            let vehicleModelName = 'Unknown Model';
-            let variantInfo = '';
-            
-            // Fetch variant to get price and details
-            try {
-              const variantResponse = await axiosInstance.get(
-                endpoints.vehicleVariants.getById(detail.vehicleVariantId)
-              );
-              const variant = variantResponse.data;
-              unitPrice = variant?.price || 0;
-              
-              // Build variant info string
-              variantInfo = [
-                variant?.color,
-                variant?.engine,
-                variant?.batteryType
-              ].filter(Boolean).join(' - ');
-              
-              console.log(`Loaded variant ${detail.vehicleVariantId}:`, variant);
-              
-              // Fetch vehicle model if modelId exists
-              if (variant?.modelId) {
-                try {
-                  const modelResponse = await axiosInstance.get(
-                    endpoints.vehicleModels.getById(variant.modelId)
-                  );
-                  vehicleModelName = modelResponse.data?.name || 'Unknown Model';
-                  console.log(`Loaded model name:`, vehicleModelName);
-                } catch (modelError) {
-                  console.error('Error loading vehicle model:', modelError);
-                }
-              }
-            } catch (error) {
-              console.error('Error loading variant price:', error);
-            }
-            
-            return {
-              vehicleVariantId: detail.vehicleVariantId,
-              vehicleId: detail.vehicleId,
-              quantity: detail.quantity,
-              unitPrice: unitPrice,
-              discountPercent: detail.discountPercent,
-              note: detail.note,
-              // Additional info for display
-              vehicleModelName: vehicleModelName,
-              variantInfo: variantInfo,
-            };
-          })
-        );
+        // Note: Dealer staff will manually select vehicles from warehouse
+        // So we don't auto-fill quotationDetails from order details anymore
         
         setFormData(prev => ({
           ...prev,
           code: quotationCode,
           customerId: order.customerId,
-          quotationDetails: quotationDetailsWithPrices
+          // quotationDetails stays empty - user will add vehicles from warehouse
         }));
         
-        console.log('Quotation details with prices:', quotationDetailsWithPrices);
+        console.log('B2B order loaded. Dealer will select vehicles from warehouse.');
         
       } catch (error) {
         console.error('Error loading B2B order:', error);
@@ -190,7 +115,16 @@ const CreateQuotationPage = () => {
     }
 
     if (!formData.quotationDetails || formData.quotationDetails.length === 0) {
-      showError('Vui lòng thêm ít nhất một chi tiết báo giá');
+      showError('Vui lòng thêm ít nhất một xe vào báo giá');
+      return;
+    }
+
+    // Validate all details have required fields
+    const invalidDetail = formData.quotationDetails.find(
+      d => !d.vehicleVariantId || !d.unitPrice || d.quantity < 1
+    );
+    if (invalidDetail) {
+      showError('Vui lòng điền đầy đủ thông tin cho tất cả các xe');
       return;
     }
 
@@ -207,7 +141,8 @@ const CreateQuotationPage = () => {
         return;
       }
       
-      // Clean quotation details - remove UI-only fields and extra fields not in DTO
+      // Clean quotation details - remove UI-only fields (warehouseId, vehicleId)
+      // Only keep DTO fields: vehicleVariantId, quantity, unitPrice, discountPercent, note
       const cleanedData = {
         code: formData.code,
         customerId: formData.customerId || null, // Ensure null for B2B orders
@@ -219,7 +154,7 @@ const CreateQuotationPage = () => {
           vehicleVariantId: detail.vehicleVariantId,
           quantity: detail.quantity,
           unitPrice: detail.unitPrice,
-          discountPercent: detail.discountPercent,
+          discountPercent: detail.discountPercent || 0,
           note: detail.note || '',
         }))
       };
@@ -239,7 +174,7 @@ const CreateQuotationPage = () => {
       if (result.success) {
         showSuccess(isEditMode ? 'Cập nhật báo giá thành công!' : 'Tạo báo giá thành công!');
         
-        // If creating quotation for B2B order, update order status
+        // If creating quotation for B2B order, update order status and amounts
         console.log('Checking B2B order update - orderId:', orderId, 'result.data:', result.data);
         
         if (orderId && result.data?.id && b2bOrder) {
@@ -248,6 +183,26 @@ const CreateQuotationPage = () => {
             console.log('Order ID:', orderId);
             console.log('Quotation ID:', result.data.id);
             console.log('Current B2B Order:', b2bOrder);
+            
+            // Fetch quotation details to get total amount
+            console.log('Fetching quotation details to calculate amounts...');
+            const quotationResponse = await axiosInstance.get(
+              endpoints.quotations.getById(result.data.id)
+            );
+            
+            console.log('Quotation details response:', quotationResponse);
+            
+            const quotationData = quotationResponse.data?.data || quotationResponse.data;
+            const quotationTotal = quotationData.total || 0;
+            
+            console.log('Quotation total:', quotationTotal);
+            
+            // Calculate amounts
+            const totalAmount = quotationTotal;
+            const discountAmount = 0; // Tạm thời = 0 như yêu cầu
+            const finalAmount = totalAmount - discountAmount;
+            
+            console.log('Calculated amounts:', { totalAmount, discountAmount, finalAmount });
             
             // Build update request with all non-null fields
             // If autoAccept flag is set (from AWAITING_CONFIRM), update directly to QUOTATION_ACCEPTED
@@ -259,6 +214,10 @@ const CreateQuotationPage = () => {
               status: newStatus, // Update status based on autoAccept flag
               quotationId: result.data.id, // Link quotation
               orderType: b2bOrder.orderType,
+              // Update amounts from quotation
+              totalAmount: totalAmount,
+              discountAmount: discountAmount,
+              finalAmount: finalAmount,
             };
             
             // Add optional fields if they exist
@@ -267,9 +226,6 @@ const CreateQuotationPage = () => {
             if (b2bOrder.contractId) orderUpdateData.contractId = b2bOrder.contractId;
             if (b2bOrder.depositId) orderUpdateData.depositId = b2bOrder.depositId;
             if (b2bOrder.note) orderUpdateData.note = b2bOrder.note;
-            if (b2bOrder.totalAmount) orderUpdateData.totalAmount = b2bOrder.totalAmount;
-            if (b2bOrder.discount) orderUpdateData.discount = b2bOrder.discount;
-            if (b2bOrder.finalAmount) orderUpdateData.finalAmount = b2bOrder.finalAmount;
             if (b2bOrder.handoverDate) orderUpdateData.handoverDate = b2bOrder.handoverDate;
             if (b2bOrder.expectedDeliveryAt) orderUpdateData.expectedDeliveryAt = b2bOrder.expectedDeliveryAt;
             
@@ -283,6 +239,7 @@ const CreateQuotationPage = () => {
             
             console.log('Order update response:', orderUpdateResponse);
             console.log(`B2B order status updated to ${newStatus} successfully`);
+            console.log(`Order amounts updated: total=${totalAmount}, discount=${discountAmount}, final=${finalAmount}`);
             
             if (autoAccept) {
               showSuccess('Đã tạo báo giá thành công! Đơn hàng chuyển sang trạng thái "Báo giá được chấp nhận"');
@@ -425,7 +382,7 @@ const CreateQuotationPage = () => {
 
       {/* Quotation Details Form */}
       <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100">
-        <QuotationDetailForm
+        <DealerQuotationDetailForm
           details={formData.quotationDetails || []}
           onChange={handleDetailsChange}
         />

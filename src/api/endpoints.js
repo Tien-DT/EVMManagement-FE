@@ -239,11 +239,9 @@ const endpoints = {
 
   // Payments endpoints (VNPAY Integration)
   payments: {
-    vnpay: {
-      create: "/v1/Payments/vnpay/create",
-      callback: "/v1/Payments/vnpay/callback",
-      return: "/v1/Payments/vnpay/return",
-    },
+    vnpayCreate: "/v1/Payments/vnpay/create",
+    vnpayCallback: "/v1/Payments/vnpay/callback",
+    vnpayReturn: "/v1/Payments/vnpay/return",
   },
 
   // Transport endpoints
@@ -276,6 +274,10 @@ const endpoints = {
     evm: {
       getAll: (organization = "EVM") => `/v1/Warehouses?organization=${organization}`,
       addVehicles: "/v1/Warehouses/evm/add-vehicles",
+    },
+    // Dealer Warehouse endpoints
+    dealer: {
+      addVehicles: "/v1/Warehouses/dealer/add-vehicles",
     },
   },
 };

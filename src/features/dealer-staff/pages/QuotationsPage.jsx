@@ -12,8 +12,11 @@ import {
   Eye,
   Loader2,
   AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import { useQuotations } from "../hooks/useQuotations";
+import axiosInstance from "../../../api/axiosInstance";
+import endpoints from "../../../api/endpoints";
 
 const QuotationsPage = () => {
   const navigate = useNavigate();
@@ -46,7 +49,9 @@ const QuotationsPage = () => {
     const statusMap = {
       DRAFT: "Nháp",
       PENDING: "Chờ xử lý",
+      SENT: "Đã gửi",
       APPROVED: "Đã duyệt",
+      ACCEPTED: "Đã chấp nhận",
       REJECTED: "Từ chối",
       EXPIRED: "Hết hạn",
     };
@@ -65,11 +70,34 @@ const QuotationsPage = () => {
     const colorMap = {
       DRAFT: "bg-gray-100 text-gray-800",
       PENDING: "bg-yellow-100 text-yellow-800",
+      SENT: "bg-blue-100 text-blue-800",
       APPROVED: "bg-green-100 text-green-800",
+      ACCEPTED: "bg-green-100 text-green-800",
       REJECTED: "bg-red-100 text-red-800",
       EXPIRED: "bg-gray-100 text-gray-800",
     };
     return colorMap[status] || "bg-gray-100 text-gray-800";
+  };
+
+  // Handle accept quotation
+  const handleAcceptQuotation = async (quotation) => {
+    if (!window.confirm("Bạn có chắc chắn muốn chấp nhận báo giá này?")) {
+      return;
+    }
+
+    try {
+      await axiosInstance.put(endpoints.quotations.update(quotation.id), {
+        ...quotation,
+        status: "ACCEPTED",
+      });
+      alert("Đã chấp nhận báo giá thành công!");
+      refreshQuotations();
+    } catch (error) {
+      console.error("Error accepting quotation:", error);
+      alert(
+        `Lỗi: ${error.response?.data?.message || "Không thể chấp nhận báo giá"}`
+      );
+    }
   };
 
   // Loading state
@@ -215,13 +243,22 @@ const QuotationsPage = () => {
                         >
                           <Eye size={18} />
                         </button>
+                        {(quotation.status === "SENT" || quotation.status === "PENDING") && (
+                          <button
+                            onClick={() => handleAcceptQuotation(quotation)}
+                            className="text-green-600 hover:text-green-900"
+                            title="Chấp nhận báo giá"
+                          >
+                            <CheckCircle size={18} />
+                          </button>
+                        )}
                         <button
                           onClick={() =>
                             navigate(
-                              `/evm-staff/quotations/edit/${quotation.id}`
+                              `/dealer-staff/quotations/edit/${quotation.id}`
                             )
                           }
-                          className="text-green-600 hover:text-green-900"
+                          className="text-yellow-600 hover:text-yellow-900"
                           title="Chỉnh sửa"
                         >
                           <Edit size={18} />

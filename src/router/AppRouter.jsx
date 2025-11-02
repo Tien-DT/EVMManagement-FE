@@ -14,7 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EvmStaffLayout from "../layouts/EvmStaffLayout";
+import EvmStaffLayout from "../layouts/EVMStaffLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -165,7 +165,10 @@ const AppRouter = () => (
               element={<RegisterDealerManagerPage />}
             />
             <Route path="/admin/warehouses" element={<AdminWarehousesPage />} />
-            <Route path="/admin/warehouses/:id" element={<AdminWarehouseDetailPage />} />
+            <Route
+              path="/admin/warehouses/:id"
+              element={<AdminWarehouseDetailPage />}
+            />
             <Route path="/admin/dealers" element={<DealerListPage />} />
             <Route path="/admin/dealers/new" element={<DealerFormPage />} />
             <Route path="/admin/dealers/:id" element={<DealerDetailPage />} />
@@ -280,9 +283,15 @@ const AppRouter = () => (
             <Route path="/dealer/transports" element={<TransportPage />} />
 
             {/* Contracts Management */}
-            <Route path="/dealer/contracts" element={<DealerManagerContractsPage />} />
-            <Route path="/dealer/contracts/:id" element={<DealerManagerContractDetailPage />} />
-            
+            <Route
+              path="/dealer/contracts"
+              element={<DealerManagerContractsPage />}
+            />
+            <Route
+              path="/dealer/contracts/:id"
+              element={<DealerManagerContractDetailPage />}
+            />
+
             {/* Deposits Management */}
             <Route
               path="/dealer/deposits"
@@ -418,8 +427,14 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["evm-staff"]} />}>
           <Route element={<EvmStaffLayout />}>
-            <Route path="/evm-staff/dashboard" element={<EvmStaffDashboardPage />} />
-            <Route path="/evm-staff/order-requests" element={<EvmStaffOrderRequestsPage />} />
+            <Route
+              path="/evm-staff/dashboard"
+              element={<EvmStaffDashboardPage />}
+            />
+            <Route
+              path="/evm-staff/order-requests"
+              element={<EvmStaffOrderRequestsPage />}
+            />
             {/* Quotation Routes */}
             <Route
               path="/evm-staff/quotations"

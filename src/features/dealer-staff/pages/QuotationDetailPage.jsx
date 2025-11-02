@@ -18,9 +18,12 @@ import {
   ArrowLeftOutlined, 
   EditOutlined, 
   DeleteOutlined,
-  FilePdfOutlined
+  FilePdfOutlined,
+  CheckCircleOutlined
 } from "@ant-design/icons";
 import { quotationService } from "../services/quotationService";
+import axiosInstance from "../../../api/axiosInstance";
+import endpoints from "../../../api/endpoints";
 import moment from "moment";
 
 const { Title, Text } = Typography;
@@ -58,7 +61,9 @@ const QuotationDetailPage = () => {
       ACTIVE: { color: "green", text: "Đang hoạt động" },
       INACTIVE: { color: "red", text: "Không hoạt động" },
       PENDING: { color: "orange", text: "Đang chờ" },
+      SENT: { color: "blue", text: "Đã gửi" },
       APPROVED: { color: "blue", text: "Đã duyệt" },
+      ACCEPTED: { color: "green", text: "Đã chấp nhận" },
       REJECTED: { color: "red", text: "Đã từ chối" },
     };
 
@@ -68,6 +73,27 @@ const QuotationDetailPage = () => {
         {config.text}
       </Tag>
     );
+  };
+
+  const handleAccept = async () => {
+    if (!window.confirm("Bạn có chắc chắn muốn chấp nhận báo giá này?")) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await axiosInstance.put(endpoints.quotations.update(id), {
+        ...quotation,
+        status: "ACCEPTED",
+      });
+      message.success("Đã chấp nhận báo giá thành công!");
+      fetchQuotationDetails(); // Refresh to show new status
+    } catch (error) {
+      console.error("Error accepting quotation:", error);
+      message.error(error.response?.data?.message || "Không thể chấp nhận báo giá");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = () => {
@@ -135,8 +161,18 @@ const QuotationDetailPage = () => {
               >
                 Quay lại
               </Button>
+              {(quotation.status === "SENT" || quotation.status === "PENDING") && (
+                <Button 
+                  type="primary"
+                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                  icon={<CheckCircleOutlined />} 
+                  onClick={handleAccept}
+                >
+                  Chấp nhận báo giá
+                </Button>
+              )}
               <Button 
-                type="primary" 
+                type="default" 
                 icon={<EditOutlined />} 
                 onClick={handleEdit}
               >

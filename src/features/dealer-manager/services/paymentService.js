@@ -20,7 +20,7 @@ export const paymentService = {
     try {
       console.log("Creating VNPAY payment with data:", paymentData);
       const response = await axiosInstance.post(
-        endpoints.payments.vnpay.create,
+        endpoints.payments.vnpayCreate,
         paymentData
       );
       console.log("VNPAY payment created:", response);
@@ -51,7 +51,7 @@ export const paymentService = {
       
       // Send to backend for verification
       const response = await axiosInstance.get(
-        endpoints.payments.vnpay.callback,
+        endpoints.payments.vnpayCallback,
         { params: callbackData }
       );
       
@@ -72,7 +72,7 @@ export const paymentService = {
     try {
       console.log("Processing VNPAY return with data:", returnData);
       const response = await axiosInstance.get(
-        endpoints.payments.vnpay.return,
+        endpoints.payments.vnpayReturn,
         { params: returnData }
       );
       console.log("VNPAY return processed:", response);

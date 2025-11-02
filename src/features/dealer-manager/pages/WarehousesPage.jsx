@@ -12,11 +12,14 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useWarehouses } from "../hooks/useWarehouses";
+import AddVehiclesToWarehouseModal from "../components/AddVehiclesToWarehouseModal";
 
 const WarehousesPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [dealerId, setDealerId] = useState(null);
+  const [addVehiclesModalOpen, setAddVehiclesModalOpen] = useState(false);
+  const [selectedWarehouse, setSelectedWarehouse] = useState(null);
 
   // Get dealerId from localStorage or context
   useEffect(() => {
@@ -114,6 +117,16 @@ const WarehousesPage = () => {
         alert(`Xóa kho hàng thất bại: ${result.error}`);
       }
     }
+  };
+
+  const handleAddVehicles = (warehouse) => {
+    setSelectedWarehouse(warehouse);
+    setAddVehiclesModalOpen(true);
+  };
+
+  const handleAddVehiclesSuccess = () => {
+    // Refresh warehouses list
+    refreshWarehouses();
   };
 
   // Loading state
@@ -225,7 +238,7 @@ const WarehousesPage = () => {
             Current Stock
           </h3>
           <p className="text-3xl font-bold text-gray-900">
-            {warehouses.reduce((sum, w) => sum + (w.currentStock || 0), 0)}
+            {warehouses.reduce((sum, w) => sum + (w.vehicles?.length || 0), 0)}
           </p>
         </div>
       </div>
@@ -255,8 +268,10 @@ const WarehousesPage = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredWarehouses.map((warehouse) => {
+                // Count vehicles in this warehouse
+                const currentStock = warehouse.vehicles?.length || 0;
                 const capacityPercentage = getCapacityPercentage(
-                  warehouse.currentStock || 0,
+                  currentStock,
                   warehouse.capacity || 0
                 );
 
@@ -292,8 +307,7 @@ const WarehousesPage = () => {
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">
-                            {warehouse.currentStock || 0} /{" "}
-                            {warehouse.capacity || 0}
+                            {currentStock} / {warehouse.capacity || 0}
                           </span>
                           <span className="text-gray-500 font-medium">
                             {capacityPercentage.toFixed(0)}%
@@ -322,6 +336,13 @@ const WarehousesPage = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleAddVehicles(warehouse)}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Thêm xe vào kho"
+                        >
+                          <Plus size={18} />
+                        </button>
                         <button
                           onClick={() =>
                             navigate(`/dealer/warehouses/${warehouse.id}`)
@@ -404,6 +425,18 @@ const WarehousesPage = () => {
           </div>
         )}
       </div>
+
+      {/* Add Vehicles Modal */}
+      <AddVehiclesToWarehouseModal
+        isOpen={addVehiclesModalOpen}
+        onClose={() => {
+          setAddVehiclesModalOpen(false);
+          setSelectedWarehouse(null);
+        }}
+        warehouseId={selectedWarehouse?.id}
+        dealerId={dealerId}
+        onSuccess={handleAddVehiclesSuccess}
+      />
     </div>
   );
 };
