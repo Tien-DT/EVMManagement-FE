@@ -77,6 +77,9 @@ import ReportDetailPage from "../features/dealer-manager/pages/ReportDetailPage"
 import DepositsPage from "../features/dealer-manager/pages/DepositsPage";
 import CreateDepositPage from "../features/dealer-manager/pages/CreateDepositPage";
 import DepositDetailPage from "../features/dealer-manager/pages/DepositDetailPage";
+import MasterTimeSlotsPage from "../features/dealer-manager/pages/MasterTimeSlotsPage";
+import CreateMasterTimeSlotPage from "../features/dealer-manager/pages/CreateMasterTimeSlotPage";
+import EditMasterTimeSlotPage from "../features/dealer-manager/pages/EditMasterTimeSlotPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
@@ -345,6 +348,20 @@ const AppRouter = () => (
             <Route
               path="/dealer-manager/deposits/:id"
               element={<DepositDetailPage />}
+            />
+
+            {/* Master Time Slots Routes */}
+            <Route
+              path="/dealer-manager/master-time-slots"
+              element={<MasterTimeSlotsPage />}
+            />
+            <Route
+              path="/dealer-manager/master-time-slots/create"
+              element={<CreateMasterTimeSlotPage />}
+            />
+            <Route
+              path="/dealer-manager/master-time-slots/:id/edit"
+              element={<EditMasterTimeSlotPage />}
             />
           </Route>
         </Route>

@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  Clock,
 } from "lucide-react";
 
 const DealerManagerSidebar = () => {
@@ -75,11 +76,20 @@ const DealerManagerSidebar = () => {
       icon: CreditCard,
       label: "Deposits",
     },
+    {
+      path: "/dealer-manager/master-time-slots",
+      icon: Clock,
+      label: "Master Time Slots",
+    },
   ];
 
   const isActive = (path) => {
     // Handle contracts detail pages
     if (path === "/dealer-manager/contracts") {
+      return location.pathname === path || location.pathname.startsWith(path + "/");
+    }
+    // Handle master time slots detail pages
+    if (path === "/dealer-manager/master-time-slots") {
       return location.pathname === path || location.pathname.startsWith(path + "/");
     }
     return location.pathname === path;
@@ -180,20 +190,6 @@ const DealerManagerSidebar = () => {
             );
           })}
         </nav>
-
-        {/* Help Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg p-4 border border-blue-500/30">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-3">
-              <span className="text-2xl">💡</span>
-            </div>
-            <h3 className="text-sm font-semibold mb-2">Need help?</h3>
-            <p className="text-xs text-blue-300 mb-3">Contact support team</p>
-            <button className="w-full py-2 px-4 bg-white text-blue-900 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
-              GET SUPPORT
-            </button>
-          </div>
-        </div>
       </aside>
     </>
   );

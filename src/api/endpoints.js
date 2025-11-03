@@ -139,8 +139,10 @@ const endpoints = {
   masterTimeSlots: {
     getAll: "/v1/MasterTimeSlots",
     getById: (id) => `/v1/MasterTimeSlots/${id}`,
+    getByDealer: (dealerId) => `/v1/MasterTimeSlots/dealer/${dealerId}`,
     create: "/v1/MasterTimeSlots",
     update: (id) => `/v1/MasterTimeSlots/${id}`,
+    updateIsActive: (id) => `/v1/MasterTimeSlots/${id}/is-active`,
     delete: (id) => `/v1/MasterTimeSlots/${id}`,
   },
 

@@ -20,6 +20,26 @@ export const masterTimeSlotService = {
     }
   },
 
+  // Get time slots by dealer with pagination
+  getByDealer: async (dealerId, pageNumber = 1, pageSize = 10) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.masterTimeSlots.getByDealer(dealerId),
+        {
+          params: {
+            pageNumber,
+            pageSize,
+          },
+        }
+      );
+      console.log("Get time slots by dealer response:", response);
+      return response;
+    } catch (error) {
+      console.error("Get time slots by dealer error:", error);
+      throw error;
+    }
+  },
+
   // Get time slot by ID
   getById: async (id) => {
     try {
@@ -35,6 +55,7 @@ export const masterTimeSlotService = {
   // Create new time slot
   create: async (data) => {
     try {
+      console.log("Create time slot request data:", data);
       const response = await axiosInstance.post(endpoints.masterTimeSlots.create, data);
       console.log("Create time slot response:", response);
       return response;
@@ -52,6 +73,26 @@ export const masterTimeSlotService = {
       return response;
     } catch (error) {
       console.error("Update time slot error:", error);
+      throw error;
+    }
+  },
+
+  // Update isActive status of time slot
+  updateIsActive: async (id, isActive) => {
+    try {
+      const response = await axiosInstance.patch(
+        endpoints.masterTimeSlots.updateIsActive(id),
+        null,
+        {
+          params: {
+            isActive,
+          },
+        }
+      );
+      console.log("Update isActive response:", response);
+      return response;
+    } catch (error) {
+      console.error("Update isActive error:", error);
       throw error;
     }
   },
