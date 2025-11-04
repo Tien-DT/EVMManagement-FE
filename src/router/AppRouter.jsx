@@ -120,6 +120,9 @@ import EvmStaffWarehousesPage from "../features/evm-staff/pages/WarehousesPage";
 import EvmStaffCreateWarehousePage from "../features/evm-staff/pages/CreateWarehousePage";
 import EvmStaffWarehouseDetailPage from "../features/evm-staff/pages/WarehouseDetailPage";
 import EvmStaffEditWarehousePage from "../features/evm-staff/pages/EditWarehousePage";
+import EvmStaffContractsPage from "../features/evm-staff/pages/EvmStaffContractsPage";
+import EvmStaffContractDetailPage from "../features/evm-staff/pages/EvmStaffContractDetailPage";
+import EvmStaffCreateContractPage from "../features/evm-staff/pages/EvmStaffCreateContractPage";
 
 // Payment Pages
 import VNPayReturnPage from "../pages/VNPayReturnPage";
@@ -531,6 +534,24 @@ const AppRouter = () => (
             <Route
               path="/evm-staff/reports/:id"
               element={<EvmStaffReportDetailPage />}
+            />
+
+            {/* Contracts Routes */}
+            <Route
+              path="/evm-staff/contracts"
+              element={<EvmStaffContractsPage />}
+            />
+            <Route
+              path="/evm-staff/contracts/create"
+              element={<EvmStaffCreateContractPage />}
+            />
+            <Route
+              path="/evm-staff/contracts/:id"
+              element={<EvmStaffContractDetailPage />}
+            />
+            <Route
+              path="/evm-staff/contracts/edit/:id"
+              element={<EvmStaffContractDetailPage />}
             />
 
             {/* Warehouse Routes */}
