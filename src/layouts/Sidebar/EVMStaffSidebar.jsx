@@ -9,7 +9,8 @@ import {
   Car,
   Truck,
   Settings,
-  Package
+  Package,
+  FileSignature
 } from 'lucide-react';
 
 const EvmStaffSidebar = () => {
@@ -34,6 +35,11 @@ const EvmStaffSidebar = () => {
           path: '/evm-staff/quotations',
           icon: FileText,
           label: 'Quotations'
+        },
+        {
+          path: '/evm-staff/contracts',
+          icon: FileSignature,
+          label: 'Contracts'
         },
         {
           path: '/evm-staff/orders',
