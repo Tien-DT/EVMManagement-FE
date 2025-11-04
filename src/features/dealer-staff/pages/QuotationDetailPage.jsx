@@ -1,6 +1,6 @@
 // src/features/dealer-staff/pages/QuotationDetailPage.jsx
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { 
   Card, 
   Descriptions, 
@@ -31,8 +31,18 @@ const { Title, Text } = Typography;
 const QuotationDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [orderId, setOrderId] = useState(null);
+
+  // Get orderId from navigation state if available
+  useEffect(() => {
+    if (location.state?.orderId) {
+      setOrderId(location.state.orderId);
+      console.log('Received orderId from navigation:', location.state.orderId);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     fetchQuotationDetails();
@@ -82,11 +92,65 @@ const QuotationDetailPage = () => {
 
     try {
       setLoading(true);
+      
+      // Update quotation status
       await axiosInstance.put(endpoints.quotations.update(id), {
         ...quotation,
         status: "ACCEPTED",
       });
       message.success("Đã chấp nhận báo giá thành công!");
+      
+      // Update order status if orderId is available (from navigation state or quotation)
+      const orderIdToUpdate = orderId || quotation.orderId || quotation.order?.id;
+      if (orderIdToUpdate) {
+        try {
+          console.log('Updating order status for orderId:', orderIdToUpdate);
+          
+          // Get order details
+          const orderResponse = await axiosInstance.get(
+            endpoints.orders.getById(orderIdToUpdate)
+          );
+          const order = orderResponse.data?.data || orderResponse.data;
+          
+          if (order) {
+            // Build order update payload
+            const orderUpdateData = {
+              code: order.code,
+              dealerId: order.dealerId,
+              status: 'QUOTATION_ACCEPTED',
+              quotationId: id,
+              orderType: order.orderType,
+            };
+            
+            // Add optional fields if they exist
+            if (order.customerId) orderUpdateData.customerId = order.customerId;
+            if (order.handoverRecordId) orderUpdateData.handoverRecordId = order.handoverRecordId;
+            if (order.contractId) orderUpdateData.contractId = order.contractId;
+            if (order.depositId) orderUpdateData.depositId = order.depositId;
+            if (order.note) orderUpdateData.note = order.note;
+            if (order.totalAmount) orderUpdateData.totalAmount = order.totalAmount;
+            if (order.discountAmount) orderUpdateData.discountAmount = order.discountAmount;
+            if (order.finalAmount) orderUpdateData.finalAmount = order.finalAmount;
+            if (order.handoverDate) orderUpdateData.handoverDate = order.handoverDate;
+            if (order.expectedDeliveryAt) orderUpdateData.expectedDeliveryAt = order.expectedDeliveryAt;
+            
+            console.log('Order update payload:', orderUpdateData);
+            
+            // Update order
+            await axiosInstance.put(
+              endpoints.orders.update(orderIdToUpdate),
+              orderUpdateData
+            );
+            
+            console.log('Order status updated to QUOTATION_ACCEPTED');
+            message.success('Đã cập nhật trạng thái đơn hàng thành công!');
+          }
+        } catch (orderError) {
+          console.error('Error updating order status:', orderError);
+          message.warning('Báo giá đã được chấp nhận nhưng không thể cập nhật trạng thái đơn hàng');
+        }
+      }
+      
       fetchQuotationDetails(); // Refresh to show new status
     } catch (error) {
       console.error("Error accepting quotation:", error);
@@ -164,7 +228,12 @@ const QuotationDetailPage = () => {
               {(quotation.status === "SENT" || quotation.status === "PENDING") && (
                 <Button 
                   type="primary"
-                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                  style={{ 
+                    backgroundColor: "#10b981", 
+                    borderColor: "#10b981",
+                    opacity: 1,
+                    fontWeight: 500
+                  }}
                   icon={<CheckCircleOutlined />} 
                   onClick={handleAccept}
                 >

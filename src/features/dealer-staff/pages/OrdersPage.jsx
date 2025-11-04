@@ -1207,6 +1207,7 @@ const OrdersPage = () => {
       render: (_, record) => {
         const normalizedStatus = getNormalizedStatus(record.status);
         const isAwaitingConfirm = normalizedStatus === 'AWAITING_CONFIRM';
+        const isQuotationReceived = normalizedStatus === 'QUOTATION_RECEIVED';
         const isQuotationAccepted = normalizedStatus === 'QUOTATION_ACCEPTED';
         const isDepositSuccess = normalizedStatus === 'DEPOSIT_SUCCESS';
         const isReadyForHandover = normalizedStatus === 'READY_FOR_HANDOVER';
@@ -1247,6 +1248,27 @@ const OrdersPage = () => {
                   Xác nhận
                 </Button>
               </>
+            )}
+            
+            {/* Show Xem báo giá button for QUOTATION_RECEIVED status */}
+            {isQuotationReceived && record.quotationId && (
+              <Button
+                type="primary"
+                size="small"
+                icon={<FileTextOutlined />}
+                onClick={() => navigate(`/dealer-staff/quotations/${record.quotationId}`, {
+                  state: { orderId: record.id }
+                })}
+                title="Xem chi tiết báo giá"
+                style={{ 
+                  backgroundColor: "#722ed1", 
+                  borderColor: "#722ed1",
+                  padding: "4px 12px",
+                  fontSize: "12px"
+                }}
+              >
+                Xem báo giá
+              </Button>
             )}
             
             {/* Show 2 buttons for QUOTATION_ACCEPTED status */}
@@ -1322,7 +1344,7 @@ const OrdersPage = () => {
             )}
             
             {/* Default actions for other statuses */}
-            {!isAwaitingConfirm && !isQuotationAccepted && !isDepositSuccess && !isReadyForHandover && (
+            {!isAwaitingConfirm && !isQuotationReceived && !isQuotationAccepted && !isDepositSuccess && !isReadyForHandover && (
               <>
                 <Button
                   type="text"

@@ -99,12 +99,21 @@ const DealerManagerContractDetailPage = () => {
       REFUNDED: "Đã hoàn tiền",
     };
     const orderStatusMap = {
+      AWAITING_CONFIRM: "Chờ xác nhận",
       CONFIRMED: "Đã xác nhận",
+      QUOTATION_RECEIVED: "Đã nhận báo giá",
+      QUOTATION_ACCEPTED: "Đã chấp nhận báo giá",
+      CREATED_CONTRACT: "Chờ Dealer ký hợp đồng",
+      DEALER_SIGNED_CONTRACT: "Dealer đã ký HĐ",
+      SIGNED_CONTRACT: "Hợp đồng đã ký",
       AWAITING_DEPOSIT: "Chờ đặt cọc",
-      IN_PROGRESS: "Đã ký",
+      DEPOSIT_SUCCESS: "Đặt cọc thành công",
       READY_FOR_HANDOVER: "Sẵn sàng bàn giao",
+      IN_TRANSIT: "Đang vận chuyển",
+      DELIVERED: "Đã giao hàng",
       COMPLETED: "Hoàn thành",
       CANCELED: "Đã hủy",
+      REJECTED: "Bị từ chối",
     };
 
     const sections = [
@@ -401,12 +410,21 @@ const DealerManagerContractDetailPage = () => {
 
   const getOrderStatusTag = (status) => {
     const map = {
+      AWAITING_CONFIRM: { color: "gold", text: "Chờ xác nhận" },
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
+      QUOTATION_RECEIVED: { color: "geekblue", text: "Đã nhận báo giá" },
+      QUOTATION_ACCEPTED: { color: "green", text: "Đã chấp nhận báo giá" },
+      CREATED_CONTRACT: { color: "purple", text: "Chờ Dealer ký hợp đồng" },
+      DEALER_SIGNED_CONTRACT: { color: "cyan", text: "Dealer đã ký HĐ" },
+      SIGNED_CONTRACT: { color: "cyan", text: "Hợp đồng đã ký" },
       AWAITING_DEPOSIT: { color: "orange", text: "Chờ đặt cọc" },
-      IN_PROGRESS: { color: "green", text: "Đã ký" },
+      DEPOSIT_SUCCESS: { color: "lime", text: "Đặt cọc thành công" },
       READY_FOR_HANDOVER: { color: "cyan", text: "Sẵn sàng bàn giao" },
+      IN_TRANSIT: { color: "blue", text: "Đang vận chuyển" },
+      DELIVERED: { color: "geekblue", text: "Đã giao hàng" },
       COMPLETED: { color: "green", text: "Hoàn thành" },
       CANCELED: { color: "red", text: "Đã hủy" },
+      REJECTED: { color: "red", text: "Bị từ chối" },
     };
 
     const normalized = status?.toUpperCase?.() || "";
