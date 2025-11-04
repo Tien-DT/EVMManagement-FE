@@ -139,7 +139,7 @@ const DealerManagerOrdersPage = () => {
       color: "#531dab",
       bgColor: "#f9f0ff",
       borderColor: "#d3adf7",
-      text: "Chờ EVM ký hợp đồng",
+      text: "Chờ Dealer ký hợp đồng",
       icon: <FileTextOutlined />,
     },
     DEALER_SIGNED_CONTRACT: {
@@ -567,15 +567,6 @@ const DealerManagerOrdersPage = () => {
       ),
     },
     {
-      title: "Khách hàng",
-      key: "customer",
-      width: 160,
-      ellipsis: true,
-      render: (_, record) => {
-        return record.customer?.fullName || <span style={{ color: "#999" }}>N/A</span>;
-      },
-    },
-    {
       title: "Loại đơn",
       dataIndex: "orderType",
       key: "orderType",
@@ -627,6 +618,19 @@ const DealerManagerOrdersPage = () => {
       render: (date) => (
         <span style={{ fontSize: "13px" }}>
           {date ? moment(date).format("DD/MM/YYYY") : "N/A"}
+        </span>
+      ),
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdDate",
+      key: "createdDate",
+      width: 150,
+      sorter: (a, b) => moment(a.createdDate).unix() - moment(b.createdDate).unix(),
+      defaultSortOrder: 'ascend',
+      render: (date) => (
+        <span style={{ fontSize: "12px", color: "#666" }}>
+          {date ? moment(date).format("DD/MM/YYYY HH:mm:ss") : "N/A"}
         </span>
       ),
     },
@@ -776,24 +780,26 @@ const DealerManagerOrdersPage = () => {
             />
           </Tooltip>
 
-          {/* B2B Orders with Quotation - Accept Quotation Button */}
+          {/* B2B Orders with Quotation - View Quotation Button */}
           {(record.orderType === 1 || record.orderType === "B2B") &&
            record.quotationId &&
            record.status === "QUOTATION_RECEIVED" && (
-            <Tooltip title="Chấp nhận báo giá từ EVM Staff">
+            <Tooltip title="Xem chi tiết báo giá">
               <Button
                 type="primary"
                 size="small"
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleAcceptQuotation(record)}
+                icon={<FileTextOutlined />}
+                onClick={() => navigate(`/dealer/quotations/${record.quotationId}`, {
+                  state: { orderId: record.id }
+                })}
                 style={{
                   padding: "4px 8px",
                   fontSize: "12px",
-                  backgroundColor: "#52c41a",
-                  borderColor: "#52c41a"
+                  backgroundColor: "#722ed1",
+                  borderColor: "#722ed1"
                 }}
               >
-                Chấp nhận báo giá
+                Xem báo giá
               </Button>
             </Tooltip>
           )}
@@ -1001,7 +1007,7 @@ const DealerManagerOrdersPage = () => {
               dataSource={displayedOrders}
               rowKey="id"
               loading={isLoading}
-              scroll={{ x: 1600 }}
+              scroll={{ x: 1610 }}
               pagination={{
                 current: pagination.currentPage,
                 pageSize: pagination.pageSize,

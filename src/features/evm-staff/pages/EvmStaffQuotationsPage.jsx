@@ -45,8 +45,10 @@ const EvmStaffQuotationsPage = () => {
       case 'DRAFT': return 'bg-gray-100 text-gray-800 border-gray-200';
       case 'SENT': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'APPROVED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'ACCEPTED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'REJECTED': return 'bg-red-50 text-red-700 border-red-200';
       case 'EXPIRED': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'CONVERTED_TO_ORDER': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -57,8 +59,10 @@ const EvmStaffQuotationsPage = () => {
       case 'DRAFT': return <FileText size={16} />;
       case 'SENT': return <Send size={16} />;
       case 'APPROVED': return <CheckCircle size={16} />;
+      case 'ACCEPTED': return <CheckCircle size={16} />;
       case 'REJECTED': return <XCircle size={16} />;
       case 'EXPIRED': return <AlertCircle size={16} />;
+      case 'CONVERTED_TO_ORDER': return <CheckCircle size={16} />;
       default: return null;
     }
   };
@@ -66,11 +70,13 @@ const EvmStaffQuotationsPage = () => {
   const getStatusText = (status) => {
     const upperStatus = status?.toUpperCase();
     switch(upperStatus) {
-      case 'DRAFT': return 'Draft';
-      case 'SENT': return 'Sent';
-      case 'APPROVED': return 'Approved';
-      case 'REJECTED': return 'Rejected';
-      case 'EXPIRED': return 'Expired';
+      case 'DRAFT': return 'Bản nháp';
+      case 'SENT': return 'Đã gửi';
+      case 'APPROVED': return 'Đã duyệt';
+      case 'ACCEPTED': return 'Đã chấp nhận';
+      case 'REJECTED': return 'Bị từ chối';
+      case 'EXPIRED': return 'Hết hạn';
+      case 'CONVERTED_TO_ORDER': return 'Đã chuyển thành đơn hàng';
       default: return 'Unknown';
     }
   };
@@ -159,9 +165,9 @@ const EvmStaffQuotationsPage = () => {
               <CheckCircle size={20} className="text-emerald-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Approved</p>
+              <p className="text-sm text-gray-600">Đã chấp nhận</p>
               <p className="text-xl font-bold text-gray-900">
-                {quotations.filter(q => q.status?.toUpperCase() === 'APPROVED').length}
+                {quotations.filter(q => q.status?.toUpperCase() === 'ACCEPTED' || q.status?.toUpperCase() === 'APPROVED').length}
               </p>
             </div>
           </div>
@@ -203,11 +209,13 @@ const EvmStaffQuotationsPage = () => {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
             <option value="all">All Status</option>
-            <option value="DRAFT">Draft</option>
-            <option value="SENT">Sent</option>
-            <option value="APPROVED">Approved</option>
-            <option value="REJECTED">Rejected</option>
-            <option value="EXPIRED">Expired</option>
+            <option value="DRAFT">Bản nháp</option>
+            <option value="SENT">Đã gửi</option>
+            <option value="APPROVED">Đã duyệt</option>
+            <option value="ACCEPTED">Đã chấp nhận</option>
+            <option value="REJECTED">Bị từ chối</option>
+            <option value="EXPIRED">Hết hạn</option>
+            <option value="CONVERTED_TO_ORDER">Đã chuyển thành đơn hàng</option>
           </select>
         </div>
       </div>

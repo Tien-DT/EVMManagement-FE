@@ -93,10 +93,14 @@ const EvmStaffQuotationDetailPage = () => {
         return "bg-blue-50 text-blue-700 border-blue-300";
       case "APPROVED":
         return "bg-emerald-50 text-emerald-700 border-emerald-300";
+      case "ACCEPTED":
+        return "bg-emerald-50 text-emerald-700 border-emerald-300";
       case "REJECTED":
         return "bg-red-50 text-red-700 border-red-300";
       case "EXPIRED":
         return "bg-orange-50 text-orange-700 border-orange-300";
+      case "CONVERTED_TO_ORDER":
+        return "bg-cyan-50 text-cyan-700 border-cyan-300";
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
@@ -111,10 +115,14 @@ const EvmStaffQuotationDetailPage = () => {
         return <Send size={24} />;
       case "APPROVED":
         return <CheckCircle size={24} />;
+      case "ACCEPTED":
+        return <CheckCircle size={24} />;
       case "REJECTED":
         return <XCircle size={24} />;
       case "EXPIRED":
         return <AlertCircle size={24} />;
+      case "CONVERTED_TO_ORDER":
+        return <ShoppingCart size={24} />;
       default:
         return null;
     }
@@ -129,10 +137,14 @@ const EvmStaffQuotationDetailPage = () => {
         return "Đã gửi";
       case "APPROVED":
         return "Đã duyệt";
+      case "ACCEPTED":
+        return "Đã chấp nhận";
       case "REJECTED":
         return "Bị từ chối";
       case "EXPIRED":
         return "Hết hạn";
+      case "CONVERTED_TO_ORDER":
+        return "Đã chuyển thành đơn hàng";
       default:
         return "Không xác định";
     }

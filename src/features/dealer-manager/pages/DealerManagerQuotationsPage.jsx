@@ -46,9 +46,9 @@ const DealerManagerQuotationsPage = () => {
       text: 'Đã gửi',
       icon: <ClockCircleOutlined />,
     },
-    APPROVED: {
+    ACCEPTED: {
       color: 'success',
-      text: 'Đã duyệt',
+      text: 'Đã chấp nhận',
       icon: <CheckCircleOutlined />,
     },
     REJECTED: {
@@ -56,10 +56,10 @@ const DealerManagerQuotationsPage = () => {
       text: 'Bị từ chối',
       icon: <CloseCircleOutlined />,
     },
-    EXPIRED: {
-      color: 'warning',
-      text: 'Hết hạn',
-      icon: <ExclamationCircleOutlined />,
+    CONVERTED_TO_ORDER: {
+      color: 'cyan',
+      text: 'Đã chuyển thành đơn hàng',
+      icon: <CheckCircleOutlined />,
     },
   };
 
@@ -192,28 +192,28 @@ const DealerManagerQuotationsPage = () => {
 
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <Card size="small">
+        <Card size="small" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           <Text type="secondary">Tổng báo giá</Text>
           <Title level={4} style={{ margin: '8px 0 0 0' }}>
             {quotations?.length || 0}
           </Title>
         </Card>
-        <Card size="small">
+        <Card size="small" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           <Text type="secondary">Đã gửi</Text>
           <Title level={4} style={{ margin: '8px 0 0 0', color: '#1890ff' }}>
             {quotations?.filter((q) => q.status?.toUpperCase() === 'SENT').length || 0}
           </Title>
         </Card>
-        <Card size="small">
-          <Text type="secondary">Đã duyệt</Text>
+        <Card size="small" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <Text type="secondary">Đã chấp nhận</Text>
           <Title level={4} style={{ margin: '8px 0 0 0', color: '#52c41a' }}>
-            {quotations?.filter((q) => q.status?.toUpperCase() === 'APPROVED').length || 0}
+            {quotations?.filter((q) => q.status?.toUpperCase() === 'ACCEPTED').length || 0}
           </Title>
         </Card>
-        <Card size="small">
-          <Text type="secondary">Bị từ chối</Text>
-          <Title level={4} style={{ margin: '8px 0 0 0', color: '#ff4d4f' }}>
-            {quotations?.filter((q) => q.status?.toUpperCase() === 'REJECTED').length || 0}
+        <Card size="small" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <Text type="secondary">Đã chuyển đơn</Text>
+          <Title level={4} style={{ margin: '8px 0 0 0', color: '#13c2c2' }}>
+            {quotations?.filter((q) => q.status?.toUpperCase() === 'CONVERTED_TO_ORDER').length || 0}
           </Title>
         </Card>
       </div>
@@ -232,14 +232,14 @@ const DealerManagerQuotationsPage = () => {
           <Select
             value={filterStatus}
             onChange={(value) => setFilterStatus(value)}
-            style={{ width: 180 }}
+            style={{ width: 220 }}
           >
             <Option value="ALL">Tất cả trạng thái</Option>
             <Option value="DRAFT">Bản nháp</Option>
             <Option value="SENT">Đã gửi</Option>
-            <Option value="APPROVED">Đã duyệt</Option>
+            <Option value="ACCEPTED">Đã chấp nhận</Option>
             <Option value="REJECTED">Bị từ chối</Option>
-            <Option value="EXPIRED">Hết hạn</Option>
+            <Option value="CONVERTED_TO_ORDER">Đã chuyển thành đơn hàng</Option>
           </Select>
         </Space>
       </Card>

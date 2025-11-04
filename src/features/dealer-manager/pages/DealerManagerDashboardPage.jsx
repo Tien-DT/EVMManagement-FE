@@ -10,11 +10,21 @@ import {
   Spin,
   Select,
   Badge,
+  Row,
+  Col,
+  Statistic,
+  Typography,
 } from "antd";
 import {
   EyeOutlined,
   ShoppingCartOutlined,
   PlusOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  RocketOutlined,
+  DollarCircleOutlined,
+  TruckOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../../hooks/useAuth";
 import { useDealerManagerOrders } from "../hooks/useDealerManagerOrders";
@@ -24,6 +34,7 @@ import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
 
+const { Title, Text } = Typography;
 const { Option } = Select;
 
 const DealerManagerDashboardPage = () => {
@@ -443,44 +454,138 @@ const DealerManagerDashboardPage = () => {
     );
   }
 
+  // Calculate statistics
+  const statsData = {
+    total: orders?.length || 0,
+    confirmed: orders?.filter(o => o.status === 'CONFIRMED').length || 0,
+    inProgress: orders?.filter(o => o.status === 'IN_PROGRESS').length || 0,
+    completed: orders?.filter(o => o.status === 'COMPLETED').length || 0,
+    awaiting: orders?.filter(o => o.status === 'AWAITING_DEPOSIT').length || 0,
+    ready: orders?.filter(o => o.status === 'READY_FOR_HANDOVER').length || 0,
+  };
+
   return (
-    <div className="dealer-dashboard">
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+      {/* Hero Header */}
       <Card
-        title={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: "18px", fontWeight: 600 }}>
-              Quản lý đơn hàng Dealer
-            </span>
-            <Space>
-              <Select
-                value={orderTypeFilter}
-                onChange={setOrderTypeFilter}
-                style={{ width: 150 }}
-              >
-                <Option value="ALL">Tất cả</Option>
-                <Option value="B2C">B2C</Option>
-                <Option value="B2B">B2B</Option>
-                <Option value="B2C_P">Đặt trước</Option>
-              </Select>
-              <Badge count={cartItems.length} showZero>
-                <Button
-                  type="primary"
-                  icon={<ShoppingCartOutlined />}
-                  onClick={() => setCartVisible(true)}
-                  size="large"
-                  style={{
-                    backgroundColor: '#1890ff',
-                    borderColor: '#1890ff',
-                    fontWeight: 600,
-                  }}
-                >
-                  Giỏ B2B
-                </Button>
-              </Badge>
-            </Space>
+        bordered={false}
+        style={{
+          marginBottom: '24px',
+          borderRadius: '12px',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <Title level={3} style={{ color: 'white', margin: 0 }}>
+              Dashboard Quản lý Đơn hàng
+            </Title>
+            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px' }}>
+              Quản lý và theo dõi đơn hàng từ EVM
+            </Text>
           </div>
-        }
-        styles={{ body: { padding: "16px" } }}
+          <Space size="middle">
+            <Select
+              value={orderTypeFilter}
+              onChange={setOrderTypeFilter}
+              style={{ width: 150 }}
+              size="large"
+            >
+              <Option value="ALL">Tất cả</Option>
+              <Option value="B2C">B2C</Option>
+              <Option value="B2B">B2B</Option>
+              <Option value="B2C_P">Đặt trước</Option>
+            </Select>
+            <Badge count={cartItems.length} showZero>
+              <Button
+                type="primary"
+                icon={<ShoppingCartOutlined />}
+                onClick={() => setCartVisible(true)}
+                size="large"
+                style={{
+                  backgroundColor: 'white',
+                  borderColor: 'white',
+                  color: '#667eea',
+                  fontWeight: 600,
+                  height: '40px',
+                }}
+              >
+                Giỏ B2B
+              </Button>
+            </Badge>
+          </Space>
+        </div>
+      </Card>
+
+      {/* Stats Cards */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Card bordered={false} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Statistic
+              title="Tổng đơn hàng"
+              value={statsData.total}
+              prefix={<FileTextOutlined style={{ color: '#1890ff' }} />}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Card bordered={false} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Statistic
+              title="Đã xác nhận"
+              value={statsData.confirmed}
+              prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+              valueStyle={{ color: '#52c41a' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Card bordered={false} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Statistic
+              title="Chờ đặt cọc"
+              value={statsData.awaiting}
+              prefix={<ClockCircleOutlined style={{ color: '#fa8c16' }} />}
+              valueStyle={{ color: '#fa8c16' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Card bordered={false} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Statistic
+              title="Đang xử lý"
+              value={statsData.inProgress}
+              prefix={<RocketOutlined style={{ color: '#1890ff' }} />}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Card bordered={false} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Statistic
+              title="Sẵn sàng bàn giao"
+              value={statsData.ready}
+              prefix={<TruckOutlined style={{ color: '#13c2c2' }} />}
+              valueStyle={{ color: '#13c2c2' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Card bordered={false} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Statistic
+              title="Hoàn thành"
+              value={statsData.completed}
+              prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+              valueStyle={{ color: '#52c41a' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Orders Table */}
+      <Card
+        bordered={false}
+        style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
       >
         {isLoading ? (
           <div style={{ textAlign: "center", padding: "50px" }}>
