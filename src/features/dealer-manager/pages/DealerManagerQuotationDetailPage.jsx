@@ -39,7 +39,6 @@ const DealerManagerQuotationDetailPage = () => {
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
-  const [loadingVariants, setLoadingVariants] = useState(false);
 
   useEffect(() => {
     const loadQuotation = async () => {
@@ -49,71 +48,6 @@ const DealerManagerQuotationDetailPage = () => {
         console.log('Quotation loaded:', data);
         if (data) {
           setQuotation(data);
-          
-          // Load vehicle variant and model details if not included
-          if (data.quotationDetails && data.quotationDetails.length > 0) {
-            setLoadingVariants(true);
-            try {
-              const axiosInstance = (await import('../../../api/axiosInstance')).default;
-              const endpoints = (await import('../../../api/endpoints')).default;
-              
-              // Load vehicle variant details for each quotation detail
-              const detailsWithVariants = await Promise.all(
-                data.quotationDetails.map(async (detail) => {
-                  // If variant info is already loaded, skip
-                  if (detail.vehicleVariant?.vehicleModel?.name) {
-                    return detail;
-                  }
-                  
-                  // Otherwise, fetch variant details
-                  if (detail.vehicleVariantId) {
-                    try {
-                      const variantResponse = await axiosInstance.get(
-                        endpoints.vehicleVariants.getById(detail.vehicleVariantId)
-                      );
-                      const variantData = variantResponse.data || variantResponse;
-                      
-                      // Fetch model details if not included
-                      let modelData = null;
-                      if (variantData.modelId) {
-                        try {
-                          const modelResponse = await axiosInstance.get(
-                            endpoints.vehicleModels.getById(variantData.modelId)
-                          );
-                          modelData = modelResponse.data || modelResponse;
-                        } catch (modelError) {
-                          console.error('Error loading model:', modelError);
-                        }
-                      }
-                      
-                      return {
-                        ...detail,
-                        vehicleVariant: {
-                          ...variantData,
-                          vehicleModel: modelData,
-                        },
-                      };
-                    } catch (variantError) {
-                      console.error('Error loading variant:', variantError);
-                      return detail;
-                    }
-                  }
-                  
-                  return detail;
-                })
-              );
-              
-              // Update quotation with loaded variant details
-              setQuotation({
-                ...data,
-                quotationDetails: detailsWithVariants,
-              });
-            } catch (error) {
-              console.error('Error loading vehicle variants:', error);
-            } finally {
-              setLoadingVariants(false);
-            }
-          }
         } else {
           console.error('No quotation data received');
           message.error('Không tìm thấy báo giá');
@@ -254,30 +188,19 @@ const DealerManagerQuotationDetailPage = () => {
       title: 'Mẫu xe',
       key: 'vehicleModel',
       width: 200,
-      render: (_, record) => {
-        const modelName = record.vehicleVariant?.vehicleModel?.name 
-          || record.vehicleVariant?.modelName
-          || record.modelName
-          || 'N/A';
-        
-        return (
-          <Space>
-            <CarOutlined style={{ color: '#1890ff' }} />
-            <Text strong>{modelName}</Text>
-          </Space>
-        );
-      },
+      render: (_, record) => (
+        <Space>
+          <CarOutlined style={{ color: '#1890ff' }} />
+          <Text strong>{record.vehicleVariant?.vehicleModel?.name || 'N/A'}</Text>
+        </Space>
+      ),
     },
     {
       title: 'Biến thể',
+      dataIndex: ['vehicleVariant', 'color'],
       key: 'color',
       width: 150,
-      render: (_, record) => {
-        const color = record.vehicleVariant?.color 
-          || record.color
-          || '-';
-        return <Text>{color}</Text>;
-      },
+      render: (text) => <Text>{text || '-'}</Text>,
     },
     {
       title: 'Số lượng',
@@ -457,7 +380,6 @@ const DealerManagerQuotationDetailPage = () => {
               rowKey={(record) => record.id}
               pagination={false}
               scroll={{ x: 1000 }}
-              loading={loadingVariants}
               summary={() => (
                 <Table.Summary fixed>
                   <Table.Summary.Row>

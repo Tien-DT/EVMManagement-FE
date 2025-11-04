@@ -9,6 +9,7 @@ import {
   message,
   Tag,
   Spin,
+  Select,
   Badge,
   Popconfirm,
   Tooltip,
@@ -138,7 +139,7 @@ const DealerManagerOrdersPage = () => {
       color: "#531dab",
       bgColor: "#f9f0ff",
       borderColor: "#d3adf7",
-      text: "Chờ Dealer ký hợp đồng",
+      text: "Chờ EVM ký hợp đồng",
       icon: <FileTextOutlined />,
     },
     DEALER_SIGNED_CONTRACT: {
@@ -636,28 +637,115 @@ const DealerManagerOrdersPage = () => {
       width: 190,
       render: (status, record) => {
         const config = statusConfig[status] || statusConfig.CONFIRMED;
+        const selectDisabled =
+          isTerminalOrderStatus(record.status) || updatingStatus[record.id];
+
+        // Check if order is B2B
+        const isB2B = record.orderType === 1 || record.orderType === "B2B";
+
+        // Lọc chỉ hiển thị các trạng thái có thể chuyển đến
+        const availableStatuses = Object.entries(statusConfig).filter(([key]) => {
+          // QUOTATION_RECEIVED chỉ hiển thị cho B2B orders
+          if (key === "QUOTATION_RECEIVED" && !isB2B) {
+            return false;
+          }
+          return canTransitionOrderStatus(record.status, key);
+        });
 
         return (
-          <Tag
-            style={{
-              backgroundColor: config.bgColor,
-              borderColor: config.borderColor,
-              color: config.color,
-              padding: "6px 12px",
-              borderRadius: "6px",
-              border: `1px solid ${config.borderColor}`,
-              fontWeight: 500,
-              fontSize: "13px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
+          <Select
+            value={status}
+            onChange={(newStatus) =>
+              handleStatusChange(record.id, newStatus, record)
+            }
+            loading={updatingStatus[record.id]}
+            disabled={selectDisabled}
+            style={{ width: "100%" }}
+            size="middle"
+            dropdownStyle={{
+              padding: "4px",
             }}
+            optionLabelProp="label"
           >
-            <span style={{ display: "flex", alignItems: "center" }}>
-              {config.icon}
-            </span>
-            <span>{config.text}</span>
-          </Tag>
+            {availableStatuses.map(([key, cfg]) => (
+              <Select.Option
+                key={key}
+                value={key}
+                label={
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "2px 0",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: cfg.color,
+                        fontSize: "14px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      {cfg.icon}
+                    </span>
+                    <span
+                      style={{
+                        color: cfg.color,
+                        fontWeight: 500,
+                        fontSize: "13px",
+                      }}
+                    >
+                      {cfg.text}
+                    </span>
+                  </div>
+                }
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "6px 8px",
+                    borderRadius: "4px",
+                    backgroundColor: cfg.bgColor,
+                    border: `1px solid ${cfg.borderColor}`,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: cfg.color,
+                      fontSize: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {cfg.icon}
+                  </span>
+                  <span
+                    style={{
+                      color: cfg.color,
+                      fontWeight: 500,
+                      fontSize: "13px",
+                      flex: 1,
+                    }}
+                  >
+                    {cfg.text}
+                  </span>
+                  {status === key && (
+                    <CheckCircleOutlined
+                      style={{
+                        color: cfg.color,
+                        fontSize: "14px",
+                      }}
+                    />
+                  )}
+                </div>
+              </Select.Option>
+            ))}
+          </Select>
         );
       },
     },
