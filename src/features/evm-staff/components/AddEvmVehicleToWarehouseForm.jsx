@@ -388,9 +388,10 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
                             style={{ marginBottom: 0 }}
                           >
                             <Select size="large" placeholder="Chọn trạng thái">
-                              <Option value="IN_STOCK">In Storage</Option>
-                              <Option value="SOLD">Sold</Option>
+                              <Option value="IN_STOCK">In Stock</Option>
                               <Option value="RESERVED">Reserved</Option>
+                              <Option value="IN_TRANSIT">In Transit</Option>
+                              <Option value="SOLD">Sold</Option>
                         </Select>
                       </Form.Item>
                         </div>
@@ -465,8 +466,7 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
                         >
                           <Select size="large" placeholder="Chọn mục đích">
                             <Option value="FOR_SALE">For Sale</Option>
-                            <Option value="FOR_TEST_DRIVE">For Test Drive</Option>
-                            <Option value="FOR_RENT">For Rent</Option>
+                            <Option value="TEST_DRIVE">Test Drive</Option>
                         </Select>
                       </Form.Item>
 

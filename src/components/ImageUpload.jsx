@@ -125,21 +125,22 @@ const ImageUpload = ({ value, onChange, disabled = false }) => {
         </div>
       )}
 
-      {/* Drag & Drop Area */}
+      {/* Upload Area - Click to select file */}
       {!preview && (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`
-            rounded-lg border-2 border-dashed transition-colors text-center p-6
+            rounded-lg border-2 border-dashed transition-all text-center p-8
             ${isDragging 
-              ? 'border-blue-400 bg-blue-50' 
-              : 'border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50'
+              ? 'border-blue-500 bg-blue-50 scale-105' 
+              : 'border-slate-300 bg-slate-50 hover:border-blue-500 hover:bg-blue-50 hover:shadow-md'
             }
             ${(disabled || loading) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
           onClick={() => !disabled && !loading && fileInputRef.current?.click()}
+          title="Click để chọn ảnh"
         >
           <input
             ref={fileInputRef}
@@ -148,28 +149,32 @@ const ImageUpload = ({ value, onChange, disabled = false }) => {
             onChange={handleInputChange}
             disabled={disabled || loading}
             className="hidden"
+            style={{ display: 'none' }}
             id="image-upload-input"
           />
           
           {loading ? (
             <div className="flex flex-col items-center">
-              <svg className="animate-spin h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-10 w-10 text-blue-500 mb-3" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-sm font-medium text-slate-900">Đang tải lên...</p>
+              <p className="text-sm font-semibold text-slate-900">Đang tải lên...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <Upload className="mx-auto h-8 w-8 text-slate-400 mb-2" />
-              <p className="text-sm font-medium text-slate-900 mb-1">Kéo thả ảnh vào đây hoặc</p>
-              <label 
-                htmlFor="image-upload-input"
-                className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium"
-                onClick={(e) => e.stopPropagation()}
-              >
-                duyệt file
-              </label>
+              <div className="mb-3 p-3 bg-blue-100 rounded-full">
+                <Upload className="h-8 w-8 text-blue-600" />
+              </div>
+              <p className="text-base font-semibold text-slate-900 mb-2">
+                Click vào đây để chọn ảnh
+              </p>
+              <p className="text-sm text-slate-600 mb-1">
+                hoặc kéo thả ảnh vào đây
+              </p>
+              <p className="text-xs text-slate-500">
+                JPG, PNG, GIF, WebP - Tối đa 5MB
+              </p>
             </div>
           )}
         </div>
