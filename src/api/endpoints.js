@@ -277,7 +277,12 @@ const endpoints = {
     // EVM Warehouse endpoints
     evm: {
       getAll: (organization = "EVM") => `/v1/Warehouses?organization=${organization}`,
+      getVehicles: (warehouseId) => `/v1/Warehouses/evm?warehouseId=${warehouseId}`,
       addVehicles: "/v1/Warehouses/evm/add-vehicles",
+    },
+    // Dealer Warehouse endpoints
+    dealer: {
+      addVehicles: "/v1/Warehouses/dealer/add-vehicles",
     },
   },
 };

@@ -24,26 +24,34 @@ export const useWarehouses = (pageNumber = 1, pageSize = 10) => {
 
       if (response.success && response.data) {
         // Handle both array and paginated response
-        const warehousesData = Array.isArray(response.data)
+        let warehousesData = Array.isArray(response.data)
           ? response.data
           : response.data.items || response.data.warehouses || [];
+
+        // EVM Staff chỉ thấy EVM Warehouse, không thấy Dealer Warehouse
+        warehousesData = warehousesData.filter(
+          (warehouse) => warehouse.type === "EVM" || warehouse.type === "evm"
+        );
+
+        console.log(`Filtered EVM warehouses: ${warehousesData.length} items`);
 
         setWarehouses(warehousesData);
         
         // Update pagination if provided in response
+        // Update totalCount to reflect filtered results
         if (response.pagination) {
           setPagination({
             currentPage: response.pagination.currentPage || page,
             pageSize: response.pagination.pageSize || size,
-            totalPages: response.pagination.totalPages || 0,
-            totalCount: response.pagination.totalCount || 0,
+            totalPages: Math.ceil(warehousesData.length / size),
+            totalCount: warehousesData.length,
           });
         } else if (response.data?.pagination) {
           setPagination({
             currentPage: response.data.pagination.currentPage || page,
             pageSize: response.data.pagination.pageSize || size,
-            totalPages: response.data.pagination.totalPages || 0,
-            totalCount: response.data.pagination.totalCount || 0,
+            totalPages: Math.ceil(warehousesData.length / size),
+            totalCount: warehousesData.length,
           });
         }
       } else {
