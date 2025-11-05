@@ -101,6 +101,7 @@ const EvmStaffOrderDetailPage = () => {
       case 'IN_PROGRESS': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'IN_TRANSIT': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
       case 'READY_FOR_HANDOVER': return 'bg-green-50 text-green-700 border-green-200';
+      case 'PAY_SUCCESS': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'CANCELED': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
@@ -122,6 +123,7 @@ const EvmStaffOrderDetailPage = () => {
       case 'IN_PROGRESS': return 'Đang chuẩn bị xe';
       case 'IN_TRANSIT': return 'Đang vận chuyển';
       case 'READY_FOR_HANDOVER': return 'Sẵn sàng bàn giao';
+      case 'PAY_SUCCESS': return 'Dealer đã trả phần tiền còn lại';
       case 'COMPLETED': return 'Hoàn thành';
       case 'CANCELED': return 'Đã hủy';
       default: return 'Không xác định';

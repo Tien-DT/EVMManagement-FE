@@ -191,6 +191,13 @@ const DealerManagerOrdersPage = () => {
       text: "Sẵn sàng bàn giao",
       icon: <RocketOutlined />,
     },
+    PAY_SUCCESS: {
+      color: "#52c41a",
+      bgColor: "#f6ffed",
+      borderColor: "#b7eb8f",
+      text: "Đã thanh toán thành công",
+      icon: <CheckCircleOutlined />,
+    },
     COMPLETED: {
       color: "#52c41a",
       bgColor: "#f6ffed",

@@ -58,18 +58,18 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
       
       console.log('Extracted orders list:', ordersList);
       
-      // Filter B2B orders with COMPLETED status
+      // Filter B2B orders with PAY_SUCCESS status
       const completedB2BOrders = ordersList.filter(order => {
         const isB2B = order.orderType === 1 || order.orderType === 'B2B' || String(order.orderType).toUpperCase() === 'B2B';
-        const isCompleted = order.status?.toUpperCase() === 'COMPLETED';
-        console.log(`Order ${order.code}: isB2B=${isB2B}, isCompleted=${isCompleted}, orderType=${order.orderType}, status=${order.status}`);
-        return isB2B && isCompleted;
+        const isPaid = order.status?.toUpperCase() === 'PAY_SUCCESS';
+        console.log(`Order ${order.code}: isB2B=${isB2B}, isPaid=${isPaid}, orderType=${order.orderType}, status=${order.status}`);
+        return isB2B && isPaid;
       });
       
-      console.log('Filtered completed B2B orders:', completedB2BOrders);
+      console.log('Filtered PAY_SUCCESS B2B orders:', completedB2BOrders);
       
       if (completedB2BOrders.length === 0) {
-        console.warn('No completed B2B orders found. Total orders loaded:', ordersList.length);
+        console.warn('No PAY_SUCCESS B2B orders found. Total orders loaded:', ordersList.length);
       }
       
       setOrders(completedB2BOrders);
@@ -246,6 +246,46 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
 
       alert(`Đã thêm ${selectedVehicles.length} xe vào kho thành công!`);
       
+      // Update order status to COMPLETED
+      if (selectedOrder?.id) {
+        try {
+          console.log('Updating order status to COMPLETED...');
+          
+          // Build order update payload with all required fields
+          const orderUpdateData = {
+            code: selectedOrder.code,
+            dealerId: selectedOrder.dealerId,
+            status: 'COMPLETED',
+            orderType: selectedOrder.orderType,
+          };
+          
+          // Add optional fields if they exist
+          if (selectedOrder.customerId) orderUpdateData.customerId = selectedOrder.customerId;
+          if (selectedOrder.quotationId) orderUpdateData.quotationId = selectedOrder.quotationId;
+          if (selectedOrder.handoverRecordId) orderUpdateData.handoverRecordId = selectedOrder.handoverRecordId;
+          if (selectedOrder.contractId) orderUpdateData.contractId = selectedOrder.contractId;
+          if (selectedOrder.depositId) orderUpdateData.depositId = selectedOrder.depositId;
+          if (selectedOrder.note) orderUpdateData.note = selectedOrder.note;
+          if (selectedOrder.totalAmount) orderUpdateData.totalAmount = selectedOrder.totalAmount;
+          if (selectedOrder.discountAmount) orderUpdateData.discountAmount = selectedOrder.discountAmount;
+          if (selectedOrder.finalAmount) orderUpdateData.finalAmount = selectedOrder.finalAmount;
+          if (selectedOrder.handoverDate) orderUpdateData.handoverDate = selectedOrder.handoverDate;
+          if (selectedOrder.expectedDeliveryAt) orderUpdateData.expectedDeliveryAt = selectedOrder.expectedDeliveryAt;
+          
+          console.log('Order update payload:', orderUpdateData);
+          
+          await axiosInstance.put(
+            endpoints.orders.update(selectedOrder.id),
+            orderUpdateData
+          );
+          
+          console.log('Order status updated to COMPLETED successfully');
+        } catch (orderError) {
+          console.error('Error updating order status:', orderError);
+          alert('Đã thêm xe vào kho nhưng không thể cập nhật trạng thái đơn hàng');
+        }
+      }
+      
       // Reset and close
       setSelectedOrder(null);
       setVehicles([]);
@@ -296,7 +336,7 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
           {/* Order Selection */}
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-700 mb-2">
-              Chọn đơn hàng (B2B - Hoàn thành) <span className="text-red-500">*</span>
+              Chọn đơn hàng (B2B - Đã thanh toán) <span className="text-red-500">*</span>
             </label>
             <select
               value={selectedOrder?.id || ''}

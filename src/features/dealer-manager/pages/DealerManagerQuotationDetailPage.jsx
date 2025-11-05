@@ -1,6 +1,6 @@
 // src/features/dealer-manager/pages/DealerManagerQuotationDetailPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Card,
   Descriptions,
@@ -33,22 +33,12 @@ const { Title, Text } = Typography;
 
 const DealerManagerQuotationDetailPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { id } = useParams();
   const { getQuotationById } = useDealerManagerQuotations();
 
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
-  const [orderId, setOrderId] = useState(null);
-
-  // Get orderId from navigation state if available
-  useEffect(() => {
-    if (location.state?.orderId) {
-      setOrderId(location.state.orderId);
-      console.log('Received orderId from navigation:', location.state.orderId);
-    }
-  }, [location.state]);
 
   useEffect(() => {
     const loadQuotation = async () => {
@@ -90,112 +80,33 @@ const DealerManagerQuotationDetailPage = () => {
 
     setAccepting(true);
     try {
-      // Build request body with all non-null fields
-      const requestBody = {
-        code: quotation.code,
-        status: 'ACCEPTED', // Change status to ACCEPTED
-      };
-
-      // Add optional fields only if they exist
-      if (quotation.customerId) {
-        requestBody.customerId = quotation.customerId;
-      }
-      if (quotation.note) {
-        requestBody.note = quotation.note;
-      }
-      if (quotation.validUntil) {
-        requestBody.validUntil = quotation.validUntil;
-      }
-      if (quotation.quotationDetails && quotation.quotationDetails.length > 0) {
-        requestBody.quotationDetails = quotation.quotationDetails.map(detail => ({
-          id: detail.id,
-          vehicleVariantId: detail.vehicleVariantId,
-          quantity: detail.quantity,
-          unitPrice: detail.unitPrice,
-          discount: detail.discount || 0,
-          note: detail.note || '',
-        }));
-      }
-
-      console.log('Accept quotation request:', requestBody);
+      console.log('Confirming quotation with ID:', id);
 
       const axiosInstance = (await import('../../../api/axiosInstance')).default;
       const endpoints = (await import('../../../api/endpoints')).default;
 
-      // Update quotation status
-      const response = await axiosInstance.put(
-        endpoints.quotations.update(id),
-        requestBody
+      // Call the confirm API - it will update both quotation and order status
+      const response = await axiosInstance.post(
+        endpoints.quotations.confirm(id)
       );
 
       if (response.success || response.data) {
         message.success('Đã chấp nhận báo giá thành công!');
+        message.info('Đã cập nhật trạng thái đơn hàng sang QUOTATION_ACCEPTED');
         
-        // Update order status if orderId is available (from navigation state or quotation)
-        const orderIdToUpdate = orderId || quotation.orderId || quotation.order?.id;
-        if (orderIdToUpdate) {
-          try {
-            console.log('Updating order status for orderId:', orderIdToUpdate);
-            
-            // Get order details
-            const orderResponse = await axiosInstance.get(
-              endpoints.orders.getById(orderIdToUpdate)
-            );
-            const order = orderResponse.data?.data || orderResponse.data;
-            
-            if (order) {
-              // Build order update payload
-              const orderUpdateData = {
-                code: order.code,
-                dealerId: order.dealerId,
-                status: 'QUOTATION_ACCEPTED',
-                quotationId: id,
-                orderType: order.orderType,
-              };
-              
-              // Add optional fields if they exist
-              if (order.customerId) orderUpdateData.customerId = order.customerId;
-              if (order.handoverRecordId) orderUpdateData.handoverRecordId = order.handoverRecordId;
-              if (order.contractId) orderUpdateData.contractId = order.contractId;
-              if (order.depositId) orderUpdateData.depositId = order.depositId;
-              if (order.note) orderUpdateData.note = order.note;
-              if (order.totalAmount) orderUpdateData.totalAmount = order.totalAmount;
-              if (order.discountAmount) orderUpdateData.discountAmount = order.discountAmount;
-              if (order.finalAmount) orderUpdateData.finalAmount = order.finalAmount;
-              if (order.handoverDate) orderUpdateData.handoverDate = order.handoverDate;
-              if (order.expectedDeliveryAt) orderUpdateData.expectedDeliveryAt = order.expectedDeliveryAt;
-              
-              console.log('Order update payload:', orderUpdateData);
-              
-              // Update order
-              await axiosInstance.put(
-                endpoints.orders.update(orderIdToUpdate),
-                orderUpdateData
-              );
-              
-              console.log('Order status updated to QUOTATION_ACCEPTED');
-              message.success('Đã cập nhật trạng thái đơn hàng thành công!');
-            }
-          } catch (orderError) {
-            console.error('Error updating order status:', orderError);
-            message.warning('Báo giá đã được chấp nhận nhưng không thể cập nhật trạng thái đơn hàng');
-          }
-        }
-        
-        // Wait 3 seconds then navigate to orders page
+        // Wait 2 seconds then navigate to orders page
         message.info('Đang chuyển về trang đơn hàng...', 2);
         setTimeout(() => {
           navigate('/dealer/orders');
-        }, 3000);
+        }, 2000);
       } else {
         throw new Error('Không thể chấp nhận báo giá');
       }
     } catch (error) {
-      console.error('Error accepting quotation:', error);
+      console.error('Error confirming quotation:', error);
       message.error('Lỗi khi chấp nhận báo giá: ' + (error.response?.data?.message || error.message));
       setAccepting(false);
     }
-    // Don't set accepting to false here, let navigation happen
   };
 
   const getStatusTag = (status) => {

@@ -65,6 +65,11 @@ const EvmStaffSidebar = () => {
           path: '/evm-staff/warehouses',
           icon: Package,
           label: 'Warehouses'
+        },
+        {
+          path: '/evm-staff/transports',
+          icon: Truck,
+          label: 'Transports'
         }
       ]
     },

@@ -86,6 +86,7 @@ const endpoints = {
     create: "/v1/Quotations",
     update: (id) => `/v1/Quotations/${id}`,
     delete: (id) => `/v1/Quotations/${id}`,
+    confirm: (id) => `/v1/Quotations/${id}/confirm`,
   },
   
   // Quotation Details endpoints

@@ -324,9 +324,6 @@ const AddTransportDetailsModal = ({ visible, transport, onClose, onSuccess }) =>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
                             Màu sắc
                           </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
-                            Giá
-                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -356,14 +353,10 @@ const AddTransportDetailsModal = ({ visible, transport, onClose, onSuccess }) =>
                               {vehicle.vin || "N/A"}
                             </td>
                             <td className="px-4 py-2 text-sm text-gray-900">
-                              {vehicle.vehicleVariant?.vehicleModel?.name ||
-                                "N/A"}
+                              {vehicle.variant?.vehicleModel?.name || "N/A"}
                             </td>
                             <td className="px-4 py-2 text-sm text-gray-900">
-                              {vehicle.vehicleVariant?.color || vehicle.color || "N/A"}
-                            </td>
-                            <td className="px-4 py-2 text-sm font-medium text-green-600">
-                              {(vehicle.vehicleVariant?.price || vehicle.price)?.toLocaleString() || "N/A"} ₫
+                              {vehicle.variant?.color || "N/A"}
                             </td>
                           </tr>
                         ))}
