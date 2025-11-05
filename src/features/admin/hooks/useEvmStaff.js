@@ -13,17 +13,28 @@ export function useEvmStaff(initialQuery = {}) {
     setError(null);
     try {
       const res = await evmStaffService.list({ ...query, ...params });
+      let staffArray = [];
+      
       // Support both array or paginated { items, total }
       if (Array.isArray(res)) {
-        setStaffList(res);
+        staffArray = res;
         setTotal(res.length);
       } else if (res?.data) {
-        setStaffList(res.data?.items || res.data || []);
+        staffArray = res.data?.items || res.data || [];
         setTotal(res.data?.total || 0);
       } else {
-        setStaffList(res.items || []);
+        staffArray = res.items || [];
         setTotal(res.total || 0);
       }
+      
+      // Map email từ account object vào mỗi staff item
+      const mappedStaff = staffArray.map(staff => ({
+        ...staff,
+        // Email có thể ở trong account object hoặc trực tiếp trong staff
+        email: staff.account?.email || staff.email || null
+      }));
+      
+      setStaffList(mappedStaff);
     } catch (e) {
       setError(e);
     } finally {

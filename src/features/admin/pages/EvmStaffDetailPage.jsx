@@ -26,6 +26,18 @@ export default function EvmStaffDetailPage() {
       try {
         const staffRes = await evmStaffService.getById(id);
         const staffData = staffRes?.data || staffRes;
+        // Email có thể ở trong account object hoặc trực tiếp trong staffData
+        // Đảm bảo email được hiển thị đúng
+        const email = staffData.account?.email || staffData.email;
+        if (email) {
+          staffData.email = email;
+        }
+        console.log("📧 [EVM STAFF DETAIL] Data from BE:", {
+          staffData,
+          account: staffData.account,
+          email: staffData.email,
+          hasAccount: !!staffData.account
+        });
         setStaff(staffData);
       } catch (err) {
         console.error("Error fetching staff:", err);
