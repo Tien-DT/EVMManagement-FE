@@ -14,6 +14,13 @@ const emptyForm = {
   password: "",
 };
 
+const emptyOriginal = {
+  fullName: "",
+  phone: "",
+  email: "",
+  cardId: "",
+};
+
 export default function EvmStaffFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -21,8 +28,10 @@ export default function EvmStaffFormPage() {
   const { showSuccess, showError } = useNotification();
 
   const [form, setForm] = useState(emptyForm);
+  const [originalForm, setOriginalForm] = useState(emptyOriginal); // Lưu dữ liệu gốc để so sánh
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [accountId, setAccountId] = useState(null);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -31,13 +40,37 @@ export default function EvmStaffFormPage() {
       try {
         const res = await evmStaffService.getById(id);
         const data = res?.data || res;
-        setForm({
+        // Email có thể ở trong account object hoặc trực tiếp trong data
+        const email = data.account?.email || data.email || "";
+        // Lấy accountId để dùng cho PATCH request
+        const accId = data.accountId || data.account?.id || data.id || null;
+        setAccountId(accId);
+        
+        console.log("📧 [EVM STAFF EDIT] Data from BE:", {
+          rawResponse: res,
+          data,
+          account: data.account,
+          email: email,
+          accountId: accId,
+          dataId: data.id,
+          dataAccountId: data.accountId,
+          accountObjId: data.account?.id,
+          hasAccount: !!data.account
+        });
+        const initialData = {
           fullName: data.fullName || "",
           phone: data.phone || "",
-          email: data.email || "",
+          email: email,
           cardId: data.cardId || "",
+        };
+        
+        setForm({
+          ...initialData,
           password: "", // Don't load password when editing
         });
+        
+        // Lưu dữ liệu gốc để so sánh khi submit
+        setOriginalForm(initialData);
       } catch (e) {
         setError(e);
       } finally {
@@ -57,9 +90,41 @@ export default function EvmStaffFormPage() {
     setError(null);
     try {
       if (isEdit) {
-        // Update existing staff
-        const payload = { ...form };
-        await evmStaffService.update(id, payload);
+        // Update existing staff - sử dụng PATCH với accountId
+        // PATCH method: CHỈ gửi các field đã thay đổi
+        const payload = {};
+        
+        if (form.fullName.trim() !== originalForm.fullName) {
+          payload.fullName = form.fullName.trim();
+        }
+        if (form.phone.trim() !== originalForm.phone) {
+          payload.phone = form.phone.trim();
+        }
+        if (form.cardId.trim() !== originalForm.cardId) {
+          payload.cardId = form.cardId.trim();
+        }
+        if (form.email.trim() !== originalForm.email) {
+          payload.email = form.email.trim();
+        }
+        
+        // Kiểm tra xem có field nào thay đổi không
+        if (Object.keys(payload).length === 0) {
+          showError("No changes detected");
+          setLoading(false);
+          return;
+        }
+        
+        console.log("📤 [EVM STAFF UPDATE] Payload:", payload);
+        console.log("📤 [EVM STAFF UPDATE] AccountId:", accountId);
+        console.log("📤 [EVM STAFF UPDATE] StaffId (UserProfile ID):", id);
+        
+        // Theo API docs: PATCH /v1/UserProfile/{accId} - phải dùng Account ID
+        if (!accountId) {
+          throw new Error("Account ID not found. Cannot update staff.");
+        }
+        
+        console.log("📤 [EVM STAFF UPDATE] Using PATCH with accountId:", accountId);
+        await evmStaffService.updateByAccountId(accountId, payload);
         showSuccess("EVM Staff updated successfully!");
       } else {
         // Register new staff with account creation
@@ -205,9 +270,15 @@ export default function EvmStaffFormPage() {
                       value={form.phone} 
                       onChange={handleChange} 
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" 
-                      placeholder="Enter phone number"
+                      placeholder="Enter phone number (10 digits)"
                       required
+                      maxLength={10}
+                      pattern="0[0-9]{9}"
+                      title="Phone must start with 0 and be exactly 10 digits"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Phone must start with 0 and be exactly 10 digits
+                    </p>
                   </div>
                   
                   <div>

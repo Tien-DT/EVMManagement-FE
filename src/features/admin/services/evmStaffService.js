@@ -30,7 +30,17 @@ export const evmStaffService = {
 
   update: async (id, payload) => {
     try {
-      return await axiosInstance.put(`${basePath}/${id}`, payload);
+      // Sử dụng PATCH thay vì PUT
+      return await axiosInstance.patch(`${basePath}/${id}`, payload);
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  // Update by account ID (sử dụng PATCH với accountId)
+  updateByAccountId: async (accountId, payload) => {
+    try {
+      return await axiosInstance.patch(endpoints.userProfile.update(accountId), payload);
     } catch (error) {
       throw error;
     }
