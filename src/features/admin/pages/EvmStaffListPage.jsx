@@ -19,7 +19,14 @@ export default function EvmStaffListPage() {
 
   // Filter staff based on search
   const filteredStaff = useMemo(() => {
-    return staffList.filter(staff => {
+    return staffList.map(staff => {
+      // Đảm bảo email được lấy từ account nếu có
+      const email = staff.account?.email || staff.email || null;
+      return {
+        ...staff,
+        email: email
+      };
+    }).filter(staff => {
       const matchesSearch = staff.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            staff.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            staff.phone?.toLowerCase().includes(searchTerm.toLowerCase());
