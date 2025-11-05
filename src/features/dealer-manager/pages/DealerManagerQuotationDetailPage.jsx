@@ -67,12 +67,13 @@ const DealerManagerQuotationDetailPage = () => {
   }, [id]); // Only depend on id to avoid infinite loop
 
   const formatCurrency = (amount) => {
-    if (!amount) return '0 ₫';
+    if (!amount && amount !== 0) return '0 ₫';
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND',
+      minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(Math.round(amount));
   };
 
   const handleAcceptQuotation = async () => {
@@ -183,24 +184,34 @@ const DealerManagerQuotationDetailPage = () => {
 
   const quotationDetails = quotation.quotationDetails || [];
 
+  // Tính tổng giảm giá từ tất cả các dòng
+  const totalDiscount = quotationDetails.reduce((sum, record) => {
+    const discountPercent = record.discountPercent || 0;
+    const unitPrice = record.unitPrice || 0;
+    const quantity = record.quantity || 0;
+    if (discountPercent > 0) {
+      const discountAmount = (discountPercent * unitPrice) / 100 * quantity;
+      return sum + discountAmount;
+    }
+    return sum;
+  }, 0);
+
   const columns = [
     {
-      title: 'Mẫu xe',
-      key: 'vehicleModel',
-      width: 200,
-      render: (_, record) => (
-        <Space>
-          <CarOutlined style={{ color: '#1890ff' }} />
-          <Text strong>{record.vehicleVariant?.vehicleModel?.name || 'N/A'}</Text>
-        </Space>
-      ),
-    },
-    {
       title: 'Biến thể',
-      dataIndex: ['vehicleVariant', 'color'],
-      key: 'color',
-      width: 150,
-      render: (text) => <Text>{text || '-'}</Text>,
+      key: 'variant',
+      width: 250,
+      render: (_, record) => {
+        const modelName = record.vehicleModelName || record.vehicleVariant?.vehicleModel?.name || '';
+        const color = record.vehicleVariantColor || record.vehicleVariant?.color || '';
+        const variantText = modelName && color ? `${modelName} (${color})` : modelName || color || '-';
+        return (
+          <Space>
+            <CarOutlined style={{ color: '#1890ff' }} />
+            <Text strong>{variantText}</Text>
+          </Space>
+        );
+      },
     },
     {
       title: 'Số lượng',
@@ -224,35 +235,38 @@ const DealerManagerQuotationDetailPage = () => {
     },
     {
       title: 'Giảm giá',
-      dataIndex: 'discount',
       key: 'discount',
-      width: 120,
+      width: 150,
       align: 'right',
-      render: (value) => (
-        <Text style={{ color: '#ff4d4f' }}>
-          {value ? formatCurrency(value) : '-'}
-        </Text>
-      ),
-    },
-    {
-      title: 'Thuế',
-      dataIndex: 'tax',
-      key: 'tax',
-      width: 120,
-      align: 'right',
-      render: (value) => <Text>{value ? formatCurrency(value) : '-'}</Text>,
+      render: (_, record) => {
+        const discountPercent = record.discountPercent || null;
+        const unitPrice = record.unitPrice || 0;
+        const quantity = record.quantity || 0;
+        if (discountPercent !== null && discountPercent !== undefined && discountPercent > 0) {
+          // Tính giảm giá = (discountPercent * unitPrice / 100) * quantity
+          const discountAmount = (discountPercent * unitPrice) / 100 * quantity;
+          return (
+            <Text style={{ color: '#ff4d4f' }}>
+              {formatCurrency(discountAmount)}
+            </Text>
+          );
+        }
+        return <Text>-</Text>;
+      },
     },
     {
       title: 'Tổng phụ',
-      dataIndex: 'subTotal',
-      key: 'subTotal',
+      key: 'lineTotal',
       width: 150,
       align: 'right',
-      render: (value) => (
-        <Text strong style={{ color: '#1890ff' }}>
-          {formatCurrency(value)}
-        </Text>
-      ),
+      render: (_, record) => {
+        const lineTotal = record.lineTotal || record.subTotal || 0;
+        return (
+          <Text strong style={{ color: '#1890ff' }}>
+            {formatCurrency(lineTotal)}
+          </Text>
+        );
+      },
     },
   ];
 
@@ -382,13 +396,47 @@ const DealerManagerQuotationDetailPage = () => {
               scroll={{ x: 1000 }}
               summary={() => (
                 <Table.Summary fixed>
+                  {totalDiscount > 0 && (
+                    <Table.Summary.Row>
+                      <Table.Summary.Cell index={0} colSpan={4} align="right">
+                        <Text strong style={{ fontSize: '16px' }}>Tổng giảm giá:</Text>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={4} align="right">
+                        <Text strong style={{ fontSize: '16px', color: '#ff4d4f' }}>
+                          {formatCurrency(totalDiscount)}
+                        </Text>
+                      </Table.Summary.Cell>
+                    </Table.Summary.Row>
+                  )}
                   <Table.Summary.Row>
-                    <Table.Summary.Cell index={0} colSpan={6} align="right">
+                    <Table.Summary.Cell index={0} colSpan={4} align="right">
+                      <Text strong style={{ fontSize: '16px' }}>Tổng phụ:</Text>
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={4} align="right">
+                      <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
+                        {formatCurrency(quotation.subtotal || 0)}
+                      </Text>
+                    </Table.Summary.Cell>
+                  </Table.Summary.Row>
+                  {quotation.tax && quotation.tax > 0 && (
+                    <Table.Summary.Row>
+                      <Table.Summary.Cell index={0} colSpan={4} align="right">
+                        <Text strong style={{ fontSize: '16px' }}>Thuế:</Text>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={4} align="right">
+                        <Text strong style={{ fontSize: '16px', color: '#722ed1' }}>
+                          {formatCurrency(quotation.tax)}
+                        </Text>
+                      </Table.Summary.Cell>
+                    </Table.Summary.Row>
+                  )}
+                  <Table.Summary.Row>
+                    <Table.Summary.Cell index={0} colSpan={4} align="right">
                       <Text strong style={{ fontSize: '16px' }}>Tổng cộng:</Text>
                     </Table.Summary.Cell>
-                    <Table.Summary.Cell index={6} align="right">
+                    <Table.Summary.Cell index={4} align="right">
                       <Text strong style={{ fontSize: '18px', color: '#52c41a' }}>
-                        {formatCurrency(quotation.total)}
+                        {formatCurrency(quotation.total || 0)}
                       </Text>
                     </Table.Summary.Cell>
                   </Table.Summary.Row>
@@ -409,13 +457,43 @@ const DealerManagerQuotationDetailPage = () => {
           >
             <Row gutter={16} align="middle">
               <Col flex="auto">
-                <Space direction="vertical" size={4}>
-                  <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px' }}>
-                    Tổng giá trị báo giá
-                  </Text>
-                  <Title level={2} style={{ color: 'white', margin: 0 }}>
-                    <DollarCircleOutlined /> {formatCurrency(quotation.total)}
-                  </Title>
+                <Space direction="vertical" size={8}>
+                  {totalDiscount > 0 && (
+                    <Space direction="vertical" size={2}>
+                      <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px' }}>
+                        Tổng giảm giá
+                      </Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', fontWeight: 500 }}>
+                        {formatCurrency(totalDiscount)}
+                      </Text>
+                    </Space>
+                  )}
+                  <Space direction="vertical" size={2}>
+                    <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px' }}>
+                      Tổng phụ
+                    </Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', fontWeight: 500 }}>
+                      {formatCurrency(quotation.subtotal || 0)}
+                    </Text>
+                  </Space>
+                  {quotation.tax && quotation.tax > 0 && (
+                    <Space direction="vertical" size={2}>
+                      <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px' }}>
+                        Thuế
+                      </Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', fontWeight: 500 }}>
+                        {formatCurrency(quotation.tax)}
+                      </Text>
+                    </Space>
+                  )}
+                  <Space direction="vertical" size={2}>
+                    <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px' }}>
+                      Tổng giá trị báo giá
+                    </Text>
+                    <Title level={2} style={{ color: 'white', margin: 0 }}>
+                      <DollarCircleOutlined /> {formatCurrency(quotation.total || 0)}
+                    </Title>
+                  </Space>
                 </Space>
               </Col>
               <Col>
