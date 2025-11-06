@@ -1,6 +1,6 @@
 // src/features/dealer-staff/pages/CreateContractPage.jsx
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Form,
   Input,
@@ -35,12 +35,16 @@ const { Option } = Select;
 const CreateContractPage = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [dealerWarningShown, setDealerWarningShown] = useState(false);
+  
+  // Lấy orderId từ URL query params
+  const orderIdFromUrl = searchParams.get("orderId");
   const storedUserProfile = useMemo(() => {
     try {
       const raw = localStorage.getItem("userProfile");
@@ -64,8 +68,8 @@ const CreateContractPage = () => {
     "";
   const staffPhone = user?.phone || storedUserProfile?.phone || "";
   const statusOptions = [
-    { value: "DRAFT", label: "Bản nháp" },
     { value: "PENDING_SIGNATURE", label: "Chờ ký" },
+    { value: "DRAFT", label: "Bản nháp" },
     { value: "ACTIVE", label: "Đang hoạt động" },
     { value: "CANCELED", label: "Đã hủy" },
   ];
@@ -98,6 +102,18 @@ const CreateContractPage = () => {
       form.setFieldsValue({ createdByUserId });
     }
   }, [createdByUserId, form]);
+
+  // Auto-select order nếu có orderId từ URL
+  useEffect(() => {
+    if (orderIdFromUrl && orders.length > 0) {
+      const order = orders.find((o) => o.id === orderIdFromUrl);
+      if (order) {
+        form.setFieldsValue({ orderId: orderIdFromUrl });
+        handleOrderChange(orderIdFromUrl);
+        message.success(`Đã tự động chọn đơn hàng: ${order.code}`);
+      }
+    }
+  }, [orderIdFromUrl, orders, form]);
 
   useEffect(() => {
     if (
@@ -363,6 +379,18 @@ const CreateContractPage = () => {
       const response = await contractService.createContract(formattedValues);
 
       if (response && (response.success || response.data)) {
+        // Cập nhật status order thành CREATED_CONTRACT
+        try {
+          await orderService.updateOrder(values.orderId, {
+            ...selectedOrder,
+            status: "CREATED_CONTRACT"
+          });
+          console.log("✅ Order status updated to CREATED_CONTRACT");
+        } catch (updateError) {
+          console.error("❌ Error updating order status:", updateError);
+          // Không block flow nếu update order lỗi
+        }
+
         message.success(
           "Tạo hợp đồng mới thành công. Vui lòng tải hợp đồng PDF, ký và tải lên sau."
         );
@@ -424,8 +452,9 @@ const CreateContractPage = () => {
           layout="vertical"
           onFinish={onFinish}
           initialValues={{
-            status: "DRAFT",
+            status: "PENDING_SIGNATURE", // Mặc định là Chờ ký
             createdByUserId: createdByUserId,
+            orderId: orderIdFromUrl || undefined, // Auto-fill nếu có từ URL
           }}
         >
           <Alert

@@ -320,10 +320,10 @@ const ContractDetailPage = () => {
           url ? "Đã upload PDF hợp đồng thành công!" : "Đã xoá tài liệu hợp đồng."
         );
         
-        // 2. Auto update order status to COMPLETED if PDF uploaded
+        // 2. Auto update order status to SIGNED_CONTRACT if PDF uploaded
         if (url && contract.orderId) {
           try {
-            console.log('📦 Updating order status to COMPLETED...');
+            console.log('📦 Updating order status to SIGNED_CONTRACT...');
             
             // Load current order data first
             const orderResponse = await axiosInstance.get(endpoints.orders.getById(contract.orderId));
@@ -334,7 +334,7 @@ const ContractDetailPage = () => {
               const orderUpdateData = {
                 code: currentOrder.code,
                 dealerId: currentOrder.dealerId,
-                status: 'COMPLETED', // Update status
+                status: 'SIGNED_CONTRACT', // Update status to SIGNED_CONTRACT
                 orderType: currentOrder.orderType,
               };
               
@@ -355,7 +355,7 @@ const ContractDetailPage = () => {
                 endpoints.orders.update(contract.orderId),
                 orderUpdateData
               );
-              message.success('Đã tự động cập nhật trạng thái order → Hoàn thành');
+              message.success('Đã tự động cập nhật trạng thái order → Đã ký hợp đồng');
             }
           } catch (statusError) {
             console.error('Error updating order status:', statusError);

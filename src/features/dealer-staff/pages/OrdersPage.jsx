@@ -1103,7 +1103,7 @@ const OrdersPage = () => {
                 handleStatusChange(record.id, nextStatus, record)
               }
               loading={updatingStatus[record.id]}
-              disabled={isSelectionDisabled}
+              disabled={true}
               size="middle"
               dropdownMatchSelectWidth={false}
               className="orders-status-control__select"

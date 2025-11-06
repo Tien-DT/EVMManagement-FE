@@ -18,7 +18,10 @@ import {
   ArrowLeftOutlined, 
   EditOutlined, 
   DeleteOutlined,
-  DollarOutlined 
+  DollarOutlined,
+  CheckOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined
 } from "@ant-design/icons";
 import { orderService } from "../services/orderService";
 import RemainingPaymentModal from "../components/RemainingPaymentModal";
@@ -89,9 +92,12 @@ const OrderDetailPage = () => {
 
   const getStatusTag = (status) => {
     const statusConfig = {
+      AWAITING_CONFIRM: { color: "orange", text: "Chờ xác nhận" },
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
+      CREATED_CONTRACT: { color: "purple", text: "Đã tạo hợp đồng" },
+      SIGNED_CONTRACT: { color: "geekblue", text: "Đã ký hợp đồng" },
       AWAITING_DEPOSIT: { color: "orange", text: "Chờ đặt cọc" },
-      IN_PROGRESS: { color: "green", text: "Đã ký" },
+      IN_PROGRESS: { color: "green", text: "Đang xử lý" },
       READY_FOR_HANDOVER: { color: "cyan", text: "Sẵn sàng bàn giao" },
       COMPLETED: { color: "success", text: "Hoàn thành" },
       CANCELED: { color: "error", text: "Đã hủy" },
@@ -138,6 +144,55 @@ const OrderDetailPage = () => {
     return (
       primaryOrder?.status === "IN_PROGRESS" || primaryOrder?.status === 2
     );
+  };
+
+  // Xác nhận order (AWAITING_CONFIRM -> CONFIRMED)
+  const handleConfirmOrder = async () => {
+    try {
+      setLoading(true);
+      const response = await orderService.updateOrder(id, {
+        ...primaryOrder,
+        status: "CONFIRMED"
+      });
+      if (response && (response.success || response.data)) {
+        message.success("Xác nhận đơn hàng thành công!");
+        fetchOrderDetails();
+      } else {
+        message.error("Không thể xác nhận đơn hàng");
+      }
+    } catch (error) {
+      console.error("❌ Error confirming order:", error);
+      message.error("Lỗi khi xác nhận đơn hàng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Tạo hợp đồng (CONFIRMED -> navigate to create contract)
+  const handleCreateContract = () => {
+    navigate(`/dealer-staff/contracts/create?orderId=${id}`);
+  };
+
+  // Hoàn thành order (SIGNED_CONTRACT -> COMPLETED)
+  const handleCompleteOrder = async () => {
+    try {
+      setLoading(true);
+      const response = await orderService.updateOrder(id, {
+        ...primaryOrder,
+        status: "COMPLETED"
+      });
+      if (response && (response.success || response.data)) {
+        message.success("Đơn hàng đã hoàn thành!");
+        fetchOrderDetails();
+      } else {
+        message.error("Không thể hoàn thành đơn hàng");
+      }
+    } catch (error) {
+      console.error("❌ Error completing order:", error);
+      message.error("Lỗi khi hoàn thành đơn hàng");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -187,6 +242,43 @@ const OrderDetailPage = () => {
               >
                 Quay lại
               </Button>
+
+              {/* Nút Xác nhận - Hiện khi status = AWAITING_CONFIRM */}
+              {primaryOrder.status === "AWAITING_CONFIRM" && (
+                <Button 
+                  type="primary"
+                  icon={<CheckOutlined />}
+                  onClick={handleConfirmOrder}
+                  style={{ backgroundColor: "#1890ff", borderColor: "#1890ff" }}
+                >
+                  Xác nhận
+                </Button>
+              )}
+
+              {/* Nút Tạo hợp đồng - Hiện khi status = CONFIRMED */}
+              {primaryOrder.status === "CONFIRMED" && (
+                <Button 
+                  type="primary"
+                  icon={<FileTextOutlined />}
+                  onClick={handleCreateContract}
+                  style={{ backgroundColor: "#722ed1", borderColor: "#722ed1" }}
+                >
+                  Tạo hợp đồng
+                </Button>
+              )}
+
+              {/* Nút Hoàn thành - Hiện khi status = SIGNED_CONTRACT */}
+              {primaryOrder.status === "SIGNED_CONTRACT" && (
+                <Button 
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  onClick={handleCompleteOrder}
+                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                >
+                  Hoàn thành
+                </Button>
+              )}
+
               {canShowPaymentButton() && (
                 <Button 
                   type="primary"

@@ -659,7 +659,7 @@ const DealerManagerOrdersPage = () => {
               handleStatusChange(record.id, newStatus, record)
             }
             loading={updatingStatus[record.id]}
-            disabled={selectDisabled}
+            disabled={true}
             style={{ width: "100%" }}
             size="middle"
             dropdownStyle={{
