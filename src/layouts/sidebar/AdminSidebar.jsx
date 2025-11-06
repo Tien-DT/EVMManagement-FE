@@ -49,6 +49,11 @@ const AdminSidebar = () => {
           label: "EVM Staff",
         },
         {
+          path: "/admin/register-dealer-manager",
+          icon: UserCog,
+          label: "Dealer Manager",
+        },
+        {
           path: "/admin/vehiclemodels",
           icon: Car,
           label: "Vehicles",
@@ -62,11 +67,6 @@ const AdminSidebar = () => {
           path: "/admin/warehouses",
           icon: Package,
           label: "Warehouses",
-        },
-        {
-          path: "/admin/register-dealer-manager",
-          icon: UserCog,
-          label: "Register Dealer Manager",
         },
       ],
     },

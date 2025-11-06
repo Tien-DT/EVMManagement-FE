@@ -26,7 +26,14 @@ export default function EvmStaffDetailPage() {
       try {
         const staffRes = await evmStaffService.getById(id);
         const staffData = staffRes?.data || staffRes;
-        setStaff(staffData);
+        
+        // Extract email from account object if available
+        const staffWithEmail = {
+          ...staffData,
+          email: staffData.email || staffData.account?.email || staffData.accountEmail || null
+        };
+        
+        setStaff(staffWithEmail);
       } catch (err) {
         console.error("Error fetching staff:", err);
         setError(err);

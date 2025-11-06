@@ -7,7 +7,8 @@ import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import { useNotification } from "../../../context/NotificationContext";
 
-export const useRegisterDealerManager = () => {
+export const useRegisterDealerManager = (options = {}) => {
+  const { skipNavigation = false } = options;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -49,10 +50,13 @@ export const useRegisterDealerManager = () => {
       showSuccess("Đăng ký dealer manager thành công!");
       form.reset();
 
-      // Redirect to dealer detail page to see the new manager
-      setTimeout(() => {
-        navigate(`/admin/dealers/${data.dealerId}`, { replace: true });
-      }, 1500);
+      // Only navigate if skipNavigation is false (when used in modal, skipNavigation should be true)
+      if (!skipNavigation) {
+        // Redirect to dealer detail page to see the new manager
+        setTimeout(() => {
+          navigate(`/admin/dealers/${data.dealerId}`, { replace: true });
+        }, 1500);
+      }
     } catch (err) {
       console.error("❌ Register dealer manager error:", err);
       const errorMessage =

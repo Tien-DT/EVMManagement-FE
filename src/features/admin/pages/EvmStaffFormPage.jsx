@@ -31,10 +31,14 @@ export default function EvmStaffFormPage() {
       try {
         const res = await evmStaffService.getById(id);
         const data = res?.data || res;
+        
+        // Extract email from account object if available
+        const email = data.email || data.account?.email || data.accountEmail || "";
+        
         setForm({
           fullName: data.fullName || "",
           phone: data.phone || "",
-          email: data.email || "",
+          email: email,
           cardId: data.cardId || "",
           password: "", // Don't load password when editing
         });
@@ -57,9 +61,34 @@ export default function EvmStaffFormPage() {
     setError(null);
     try {
       if (isEdit) {
-        // Update existing staff
-        const payload = { ...form };
-        await evmStaffService.update(id, payload);
+        // Update existing staff using PATCH /v1/UserProfile/{accId}
+        // Need to get accountId first
+        try {
+          const staffRes = await evmStaffService.getById(id);
+          const staffData = staffRes?.data || staffRes;
+          const accountId = staffData.accountId || staffData.account?.id;
+          
+          if (accountId) {
+            // Use PATCH with accId (correct API endpoint)
+            const payload = {
+              fullName: form.fullName,
+              phone: form.phone,
+              cardId: form.cardId,
+              email: form.email,
+            };
+            await axiosInstance.patch(endpoints.userProfile.updateByAccount(accountId), payload);
+          } else {
+            // Fallback to PUT with id
+            const payload = { ...form };
+            delete payload.password; // Don't send password in update
+            await evmStaffService.update(id, payload);
+          }
+        } catch (updateError) {
+          // Fallback to original update method
+          const payload = { ...form };
+          delete payload.password; // Don't send password in update
+          await evmStaffService.update(id, payload);
+        }
         showSuccess("EVM Staff updated successfully!");
       } else {
         // Register new staff with account creation
