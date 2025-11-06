@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Button, Table, Tag, Space, Spin, message } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { Button, Table, Tag, Space, Spin, message, Input, Select } from "antd";
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { useTestDriveVehicles } from "../hooks/useTestDriveVehicles";
 import { formatDate } from "../../../utils/dateUtils";
+
+const { Search } = Input;
 
 export const TestDriveVehiclesPage = () => {
   const {
@@ -15,6 +17,21 @@ export const TestDriveVehiclesPage = () => {
     isDeleting,
   } = useTestDriveVehicles();
   const [messageApi, contextHolder] = message.useMessage();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
+  // Filter vehicles
+  const filteredVehicles = useMemo(() => {
+    if (!vehicles) return [];
+    return vehicles.filter(vehicle => {
+      const matchesSearch = 
+        vehicle.vehicleName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle.slotName?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = 
+        statusFilter === "ALL" || vehicle.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [vehicles, searchTerm, statusFilter]);
 
   const handleStatusChange = async (vehicleId, newStatus) => {
     try {
@@ -112,6 +129,27 @@ export const TestDriveVehiclesPage = () => {
         </Link>
       </div>
 
+      {/* Filter Section */}
+      <div style={{ marginBottom: 16, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+        <Search
+          placeholder="Tìm kiếm theo tên xe hoặc slot"
+          allowClear
+          enterButton={<SearchOutlined />}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onSearch={(value) => setSearchTerm(value)}
+          style={{ flex: 1, minWidth: 250, maxWidth: 400 }}
+        />
+        <Select
+          value={statusFilter}
+          onChange={setStatusFilter}
+          style={{ minWidth: 150 }}
+        >
+          <Select.Option value="ALL">Tất cả trạng thái</Select.Option>
+          <Select.Option value="AVAILABLE">Có sẵn</Select.Option>
+          <Select.Option value="BOOKED">Đã đặt</Select.Option>
+        </Select>
+      </div>
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <Spin size="large" />
@@ -119,12 +157,18 @@ export const TestDriveVehiclesPage = () => {
       ) : (
         <Table
           columns={columns}
-          dataSource={vehicles?.map((vehicle) => ({
+          dataSource={filteredVehicles?.map((vehicle) => ({
             ...vehicle,
             key: vehicle.id,
           }))}
-          pagination={{ pageSize: 10 }}
+          pagination={{ 
+            pageSize: 10,
+            showTotal: (total) => `Tổng ${total} xe`,
+          }}
           bordered
+          locale={{
+            emptyText: searchTerm || statusFilter !== "ALL" ? "Không tìm thấy xe phù hợp" : "Không có xe nào",
+          }}
         />
       )}
     </div>

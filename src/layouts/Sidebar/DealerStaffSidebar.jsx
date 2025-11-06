@@ -1,172 +1,179 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { FileText, FileSignature } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { 
+  Car,
+  Users,
+  ShoppingBag,
+  FileText,
+  FileCheck,
+  Menu,
+  X,
+  User,
+} from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import axiosInstance from "../../api/axiosInstance";
+import endpoints from "../../api/endpoints";
 
-const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
+const DealerStaffSidebar = () => {
+  const location = useLocation();
   const { user } = useAuth();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
-    const menuItems = [
-      {
-        name: "Xe",
-        path: "/dealer-staff/vehicles",
-        icon: (
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-        ),
-      },
-      {
-        name: "Khách hàng",
-        path: "/dealer-staff/customers",
-        icon: (
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-        ),
-      },
-      {
-        name: "Đơn hàng",
-        path: "/dealer-staff/orders",
-        icon: (
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-            />
-          </svg>
-        ),
-      },
-      {
-        name: "Báo giá",
-        path: "/dealer-staff/quotations",
-        icon: <FileText size={20} />,
-      },
-      {
-        name: "Hợp đồng",
-        path: "/dealer-staff/contracts",
-        icon: <FileSignature size={20} />,
-      },
-    ];
+  // Fetch user profile
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+
+      try {
+        const response = await axiosInstance.get(
+          endpoints.userProfile.getByAccount(user.id)
+        );
+
+        if (response.success && response.data) {
+          setUserProfile(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user?.id]);
+
+  const menuItems = [
+    {
+      path: "/dealer-staff/vehicles",
+      icon: Car,
+      label: "Xe",
+    },
+    {
+      path: "/dealer-staff/customers",
+      icon: Users,
+      label: "Khách hàng",
+    },
+    {
+      path: "/dealer-staff/orders",
+      icon: ShoppingBag,
+      label: "Đơn hàng",
+    },
+    {
+      path: "/dealer-staff/quotations",
+      icon: FileText,
+      label: "Báo giá",
+    },
+    {
+      path: "/dealer-staff/contracts",
+      icon: FileCheck,
+      label: "Hợp đồng",
+    },
+  ];
+
+  const isActive = (path) => {
+    return location.pathname === path || location.pathname.startsWith(path + "/");
+  };
 
   return (
-    <div
-      className={`bg-gray-800 text-white transition-all duration-300 ease-in-out ${
-        collapsed ? "w-16" : "w-64"
-      } min-h-screen`}
-    >
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        <div className="flex items-center">
-          <div className="bg-teal-500 text-white p-2 rounded">
-            <span className="font-bold">DS</span>
-          </div>
-          {!collapsed && (
-            <span className="ml-3 font-medium text-lg">Dealer Staff</span>
-          )}
-        </div>
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-400 hover:text-white focus:outline-none"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            {collapsed ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 5l7 7-7 7M5 5l7 7-7 7"
-              />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-              />
-            )}
-          </svg>
-        </button>
-      </div>
+    <>
+      {/* Mobile Toggle Button */}
+      <button
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+      >
+        {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
 
-      <div className="py-4">
-        <div className="px-4 py-2">
-          {!collapsed && (
-            <div className="text-xs uppercase text-gray-400 tracking-wider">
-              MAIN MENU
+      {/* Overlay for Mobile */}
+      {isMobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-screen bg-white
+          text-gray-800 transition-transform duration-300 ease-in-out z-40
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 lg:fixed
+          w-64 shadow-lg overflow-y-auto border-r border-gray-200
+        `}
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">DS</span>
             </div>
-          )}
-          <nav className="mt-2">
-            {menuItems.map((item) => (
-              <NavLink
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Dealer System</h2>
+              <p className="text-xs text-gray-500">Staff Portal</p>
+            </div>
+          </div>
+
+          {/* User Greeting */}
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <div className="flex items-center space-x-2 mb-1">
+              <User size={16} className="text-gray-600" />
+              <p className="text-xs text-gray-600 font-medium">Xin chào,</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {userProfile?.fullName ||
+                  user?.fullName ||
+                  user?.username ||
+                  "User"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className="p-4 space-y-1">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3">
+            Menu Chính
+          </p>
+
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+
+            return (
+              <Link
                 key={item.path}
                 to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-3 transition-colors ${
-                    isActive
-                      ? "bg-teal-500 text-white"
-                      : "text-gray-300 hover:bg-gray-700"
-                  } ${collapsed ? "justify-center" : ""}`
-                }
+                onClick={() => setIsMobileOpen(false)}
+                className={`
+                  flex items-center space-x-3 px-4 py-3 rounded-lg
+                  transition-all duration-200 group
+                  ${
+                    active
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }
+                `}
               >
-                <span className="inline-flex">{item.icon}</span>
-                {!collapsed && <span className="ml-3">{item.name}</span>}
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {!collapsed && (
-        <div className="absolute bottom-0 w-full p-4 border-gray-700">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium">
-              {user?.fullName?.charAt(0) || user?.email?.charAt(0) || "U"}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-white">
-                {user?.fullName || "User"}
-              </p>
-              <p className="text-xs text-gray-400">{user?.email}</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+                <Icon
+                  size={20}
+                  className={
+                    active
+                      ? "text-emerald-600"
+                      : "text-gray-400 group-hover:text-gray-600"
+                  }
+                />
+                <span
+                  className={`font-medium flex-1 ${
+                    active ? "text-emerald-700" : "text-gray-700"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+    </>
   );
 };
 

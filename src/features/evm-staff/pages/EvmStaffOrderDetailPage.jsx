@@ -14,11 +14,16 @@ import {
   XCircle,
   AlertCircle,
   FileText,
-  Package
+  Package,
+  Plus,
+  Car
 } from 'lucide-react';
 import useOrders from '../hooks/useOrders';
 import { useNotification } from '../../../context/NotificationContext';
 import orderService from '../services/orderService';
+import CreateContractModal from '../components/CreateContractModal';
+import axiosInstance from '../../../api/axiosInstance';
+import endpoints from '../../../api/endpoints';
 
 const EvmStaffOrderDetailPage = () => {
   const { id } = useParams();
@@ -29,6 +34,11 @@ const EvmStaffOrderDetailPage = () => {
   const [order, setOrder] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  // Action modals
+  const [showQuotationModal, setShowQuotationModal] = useState(false);
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState(null);
 
   useEffect(() => {
     fetchOrderDetails();
@@ -145,7 +155,30 @@ const EvmStaffOrderDetailPage = () => {
     }
   };
 
-  // Helper function to build order update data with all non-null fields
+  // Action handlers - giữ nguyên logic từ trang danh sách
+  const handleCreateQuotation = () => {
+    if (!order) return;
+    navigate(`/evm-staff/quotations/create?orderId=${order.id}`);
+  };
+
+  const handleCreateContract = async () => {
+    if (!order) return;
+    try {
+      const quotationResponse = await axiosInstance.get(endpoints.quotations.getById(order.quotationId));
+      setSelectedQuotation(quotationResponse.data);
+      setShowContractModal(true);
+    } catch (error) {
+      console.error('Error loading quotation:', error);
+      showError('Không thể tải thông tin báo giá');
+    }
+  };
+
+  const handleContractCreated = () => {
+    setShowContractModal(false);
+    setSelectedQuotation(null);
+    fetchOrderDetails();
+  };
+
   const buildOrderUpdateData = (order, newStatus) => {
     const updateData = {
       code: order.code,
@@ -154,7 +187,6 @@ const EvmStaffOrderDetailPage = () => {
       orderType: order.orderType,
     };
     
-    // Add optional fields if they exist
     if (order.customerId) updateData.customerId = order.customerId;
     if (order.quotationId) updateData.quotationId = order.quotationId;
     if (order.handoverRecordId) updateData.handoverRecordId = order.handoverRecordId;
@@ -167,6 +199,50 @@ const EvmStaffOrderDetailPage = () => {
     if (order.handoverDate) updateData.handoverDate = order.handoverDate;
     
     return updateData;
+  };
+
+  const handleUpdateStatusToAwaitingDeposit = async () => {
+    if (!order) return;
+    try {
+      const updateData = buildOrderUpdateData(order, 'AWAITING_DEPOSIT');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
+      showSuccess('Đã cập nhật trạng thái → Chờ đặt cọc');
+      fetchOrderDetails();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      showError('Lỗi khi cập nhật trạng thái');
+    }
+  };
+
+  const handleConfirmDepositReceived = async () => {
+    if (!order) return;
+    try {
+      const updateData = buildOrderUpdateData(order, 'DEPOSIT_SUCCESS');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
+      showSuccess('Đã xác nhận nhận tiền đặt cọc');
+      fetchOrderDetails();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      showError('Lỗi khi xác nhận nhận tiền');
+    }
+  };
+
+  const handlePrepareVehicle = async () => {
+    if (!order) return;
+    try {
+      const updateData = buildOrderUpdateData(order, 'IN_PROGRESS');
+      await axiosInstance.put(endpoints.orders.update(order.id), updateData);
+      showSuccess('Đã chuyển sang trạng thái Đang chuẩn bị xe');
+      fetchOrderDetails();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      showError('Lỗi khi cập nhật trạng thái');
+    }
+  };
+
+  const handleCreateTransport = () => {
+    if (!order) return;
+    navigate(`/evm-staff/transports?orderId=${order.id}`);
   };
 
   // Confirm order: AWAITING_CONFIRM → CONFIRMED
@@ -214,16 +290,7 @@ const EvmStaffOrderDetailPage = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          {order.status?.toUpperCase() === 'AWAITING_CONFIRM' && (
-            <button
-              onClick={handleConfirmOrder}
-              disabled={isConfirming}
-              className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <CheckCircle size={16} />
-              {isConfirming ? 'Đang xác nhận...' : 'Xác nhận đơn hàng'}
-            </button>
-          )}
+          {/* Edit and Delete buttons - always available */}
           <button
             onClick={() => navigate(`/evm-staff/orders/${id}/edit`)}
             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 flex items-center gap-2"
@@ -238,6 +305,132 @@ const EvmStaffOrderDetailPage = () => {
             <Trash2 size={16} />
             Xóa
           </button>
+        </div>
+      </div>
+
+      {/* Action Buttons Section - Based on Order Status */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Thao tác theo trạng thái</h3>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* 1. AWAITING_CONFIRM → Xác nhận đơn hàng */}
+          {order.status?.toUpperCase() === 'AWAITING_CONFIRM' && (
+            <button
+              onClick={handleConfirmOrder}
+              disabled={isConfirming}
+              className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <CheckCircle size={16} />
+              {isConfirming ? 'Đang xác nhận...' : 'Xác nhận đơn hàng'}
+            </button>
+          )}
+
+          {/* 2. CONFIRMED → Tạo báo giá */}
+          {order.status?.toUpperCase() === 'CONFIRMED' && !order.quotationId && (
+            <button
+              onClick={() => setShowQuotationModal(true)}
+              className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Tạo báo giá
+            </button>
+          )}
+
+          {/* 3. QUOTATION_RECEIVED → Badge */}
+          {order.status?.toUpperCase() === 'QUOTATION_RECEIVED' && (
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-50 text-purple-700 border-2 border-purple-200">
+              <FileText size={16} />
+              <span className="text-sm font-medium">Đã gửi báo giá - Chờ dealer chấp nhận</span>
+            </span>
+          )}
+
+          {/* 4. QUOTATION_ACCEPTED → Tạo hợp đồng */}
+          {order.status?.toUpperCase() === 'QUOTATION_ACCEPTED' && !order.contractId && (
+            <button
+              onClick={handleCreateContract}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 flex items-center gap-2"
+            >
+              <FileText size={16} />
+              Tạo hợp đồng
+            </button>
+          )}
+
+          {/* 5. CREATED_CONTRACT → Upload PDF */}
+          {order.status?.toUpperCase() === 'CREATED_CONTRACT' && order.contractId && (
+            <button
+              onClick={() => navigate(`/evm-staff/contracts/${order.contractId}`)}
+              className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 flex items-center gap-2"
+            >
+              <FileText size={16} />
+              Upload PDF hợp đồng
+            </button>
+          )}
+
+          {/* 6. SIGNED_CONTRACT → Cập nhật → Chờ đặt cọc */}
+          {order.status?.toUpperCase() === 'SIGNED_CONTRACT' && (
+            <button
+              onClick={handleUpdateStatusToAwaitingDeposit}
+              className="px-4 py-2 bg-cyan-600 text-white text-sm rounded-md hover:bg-cyan-700 flex items-center gap-2"
+            >
+              <CheckCircle size={16} />
+              Chuyển → Chờ đặt cọc
+            </button>
+          )}
+
+          {/* 7. AWAITING_DEPOSIT → Badge + Confirm */}
+          {order.status?.toUpperCase() === 'AWAITING_DEPOSIT' && (
+            <>
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border-2 border-orange-200">
+                <Clock size={16} />
+                <span className="text-sm font-medium">Chờ dealer thanh toán đặt cọc</span>
+              </span>
+              <button
+                onClick={handleConfirmDepositReceived}
+                className="px-4 py-2 bg-teal-600 text-white text-sm rounded-md hover:bg-teal-700 flex items-center gap-2"
+              >
+                <CheckCircle size={16} />
+                Xác nhận đã nhận tiền
+              </button>
+            </>
+          )}
+
+          {/* 8. DEPOSIT_SUCCESS → Chuẩn bị xe */}
+          {order.status?.toUpperCase() === 'DEPOSIT_SUCCESS' && (
+            <button
+              onClick={handlePrepareVehicle}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 flex items-center gap-2"
+            >
+              <Car size={16} />
+              Bắt đầu chuẩn bị xe
+            </button>
+          )}
+
+          {/* 9. IN_PROGRESS → Tạo vận chuyển */}
+          {order.status?.toUpperCase() === 'IN_PROGRESS' && (
+            <button
+              onClick={handleCreateTransport}
+              className="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 flex items-center gap-2"
+            >
+              <Car size={16} />
+              Tạo vận chuyển
+            </button>
+          )}
+
+          {/* 10. IN_TRANSIT → Badge */}
+          {order.status?.toUpperCase() === 'IN_TRANSIT' && (
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-50 text-sky-700 border-2 border-sky-200">
+              <Car size={16} />
+              <span className="text-sm font-medium">Đang vận chuyển đến dealer</span>
+            </span>
+          )}
+
+          {/* If no action available */}
+          {!['AWAITING_CONFIRM', 'CONFIRMED', 'QUOTATION_RECEIVED', 'QUOTATION_ACCEPTED', 
+              'CREATED_CONTRACT', 'SIGNED_CONTRACT', 'AWAITING_DEPOSIT', 'DEPOSIT_SUCCESS',
+              'IN_PROGRESS', 'IN_TRANSIT'].includes(order.status?.toUpperCase()) && (
+            <span className="text-sm text-gray-500 italic">
+              Không có thao tác khả dụng cho trạng thái hiện tại
+            </span>
+          )}
         </div>
       </div>
 
@@ -508,6 +701,96 @@ const EvmStaffOrderDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Create Quotation Modal */}
+      {showQuotationModal && order && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-100 rounded-full">
+                  <Plus size={24} className="text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Tạo Báo Giá B2B</h3>
+                  <p className="text-sm text-gray-500">
+                    Đơn hàng: <span className="font-mono font-medium">{order.code}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowQuotationModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-900 mb-2">Thông tin đơn hàng</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-blue-700">Dealer:</span>
+                    <p className="font-medium text-blue-900">
+                      {order.dealer?.name || order.dealerName || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-blue-700">Ngày đặt:</span>
+                    <p className="font-medium text-blue-900">
+                      {formatDate(order.createdDate || order.createdAt)}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-blue-700">Loại:</span>
+                    <p className="font-medium text-blue-900">
+                      Đơn hàng B2B (Dealer đặt xe từ hãng)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 mb-3">
+                  <strong>Lưu ý:</strong> Bạn sẽ được chuyển đến trang tạo báo giá chi tiết với đầy đủ thông tin đơn hàng.
+                  Sau khi tạo báo giá thành công, trạng thái đơn hàng sẽ tự động chuyển sang "Chờ Dealer chấp nhận".
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  onClick={() => setShowQuotationModal(false)}
+                  className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleCreateQuotation}
+                  className="px-4 py-2 text-sm text-white bg-emerald-600 rounded-md hover:bg-emerald-700 flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Tạo Báo Giá
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Contract Modal */}
+      {showContractModal && order && selectedQuotation && (
+        <CreateContractModal
+          visible={showContractModal}
+          onClose={() => {
+            setShowContractModal(false);
+            setSelectedQuotation(null);
+          }}
+          order={order}
+          quotation={selectedQuotation}
+          onSuccess={handleContractCreated}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

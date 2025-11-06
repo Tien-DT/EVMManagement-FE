@@ -151,12 +151,17 @@ const DealerManagerQuotationsPage = () => {
       render: (_, record) => (
         <Space>
           <Button
-            type="text"
+            type="primary"
             icon={<EyeOutlined />}
             onClick={() => navigate(`/dealer/quotations/${record.id}`)}
             size="small"
             title="Xem chi tiết"
-            style={{ color: '#1890ff' }}
+            style={{
+              backgroundColor: '#1890ff',
+              borderColor: '#1890ff',
+              color: '#ffffff',
+              opacity: 1,
+            }}
           />
         </Space>
       ),
