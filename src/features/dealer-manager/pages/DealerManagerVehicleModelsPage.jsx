@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Row, Col, Spin, Empty, Card, Breadcrumb, Badge, Button } from "antd";
-import { HomeOutlined, CarOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import React, { useEffect, useState, useMemo } from "react";
+import { Row, Col, Spin, Empty, Card, Breadcrumb, Badge, Button, Input } from "antd";
+import { HomeOutlined, CarOutlined, ShoppingCartOutlined, SearchOutlined } from "@ant-design/icons";
 import { useAuth } from "../../../context/AuthContext";
 import { useDealerVehicleModels } from "../../dealer-staff/hooks/useDealerVehicleModels";
 import VehicleModelCard from "../../dealer-staff/components/VehicleModelCard";
 import OrderCartB2B from "../components/OrderCartB2B";
+
+const { Search } = Input;
 
 const DealerManagerVehicleModelsPage = () => {
   const { user } = useAuth();
@@ -12,6 +14,7 @@ const DealerManagerVehicleModelsPage = () => {
   const [userId, setUserId] = useState(null);
   const [cartVisible, setCartVisible] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     console.log("=== DealerManagerVehicleModelsPage Debug ===");
@@ -81,6 +84,15 @@ const DealerManagerVehicleModelsPage = () => {
 
   const { models, loading } = useDealerVehicleModels(dealerId);
 
+  // Filter models
+  const filteredModels = useMemo(() => {
+    if (!searchTerm) return models;
+    return models.filter(model => 
+      model.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      model.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [models, searchTerm]);
+
   return (
     <div style={{ padding: "24px" }}>
       <Breadcrumb style={{ marginBottom: 24 }}>
@@ -94,10 +106,11 @@ const DealerManagerVehicleModelsPage = () => {
       </Breadcrumb>
 
       <Card>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>
-            Danh sách mẫu xe (B2B)
-          </h2>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>
+              Danh sách mẫu xe (B2B)
+            </h2>
           <Badge count={cartItems.length} showZero>
             <Button
               type="primary"
@@ -113,17 +126,29 @@ const DealerManagerVehicleModelsPage = () => {
               Giỏ hàng B2B
             </Button>
           </Badge>
+          </div>
+
+          {/* Search Filter */}
+          <Search
+            placeholder="Tìm kiếm mẫu xe theo tên..."
+            allowClear
+            enterButton={<SearchOutlined />}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onSearch={(value) => setSearchTerm(value)}
+            style={{ maxWidth: 400 }}
+          />
         </div>
 
         {loading ? (
           <div style={{ textAlign: "center", padding: "50px 0" }}>
             <Spin size="large" />
           </div>
-        ) : models.length === 0 ? (
-          <Empty description="Không có mẫu xe nào trong kho" />
+        ) : filteredModels.length === 0 ? (
+          <Empty description={searchTerm ? "Không tìm thấy mẫu xe phù hợp" : "Không có mẫu xe nào trong kho"} />
         ) : (
           <Row gutter={[16, 16]}>
-            {models.map((model) => (
+            {filteredModels.map((model) => (
               <Col key={model.id} xs={24} sm={12} md={8} lg={6}>
                 <VehicleModelCard model={model} basePath="/dealer/vehicles" />
               </Col>

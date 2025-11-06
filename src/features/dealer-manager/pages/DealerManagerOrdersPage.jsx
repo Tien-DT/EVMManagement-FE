@@ -11,14 +11,12 @@ import {
   Spin,
   Select,
   Badge,
-  Popconfirm,
-  Tooltip,
   Tabs,
+  Input,
+  Typography,
 } from "antd";
 import {
   EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
   ShoppingCartOutlined,
   PlusOutlined,
   FileTextOutlined,
@@ -32,7 +30,6 @@ import {
 import { useAuth } from "../../../hooks/useAuth";
 import { useDealerManagerOrders } from "../hooks/useDealerManagerOrders";
 import OrderCartB2B from "../components/OrderCartB2B";
-import OrderDetailModal from "../components/OrderDetailModal";
 import AcceptQuotationModal from "../components/AcceptQuotationModal";
 import DepositModal from "../components/DepositModal";
 import FinalPaymentModal from "../components/FinalPaymentModal";
@@ -95,10 +92,10 @@ const DealerManagerOrdersPage = () => {
   const [cartVisible, setCartVisible] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [userId, setUserId] = useState(null);
-  const [activeTab, setActiveTab] = useState("B2B");
+  const [activeTab, setActiveTab] = useState("B2B"); // B2B, PREORDER, AVAILABLE
   const [updatingStatus, setUpdatingStatus] = useState({});
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
   const [quotationModalVisible, setQuotationModalVisible] = useState(false);
   const [selectedOrderForQuotation, setSelectedOrderForQuotation] = useState(null);
   const [depositModalVisible, setDepositModalVisible] = useState(false);
@@ -272,6 +269,12 @@ const DealerManagerOrdersPage = () => {
       localStorage.removeItem("dealerManagerB2BCart");
     }
   }, [cartItems]);
+
+  // Reset filters when tab changes
+  useEffect(() => {
+    setStatusFilter("ALL");
+    setSearchTerm("");
+  }, [activeTab]);
 
   const {
     orders,
@@ -479,13 +482,7 @@ const DealerManagerOrdersPage = () => {
   };
 
   const handleViewDetail = (orderId) => {
-    setSelectedOrderId(orderId);
-    setDetailModalVisible(true);
-  };
-
-  const handleCloseDetailModal = () => {
-    setDetailModalVisible(false);
-    setSelectedOrderId(null);
+    navigate(`/dealer/orders/${orderId}`);
   };
 
   const handleAcceptQuotation = (order) => {
@@ -530,34 +527,110 @@ const DealerManagerOrdersPage = () => {
     [orders]
   );
 
-  const customerOrders = useMemo(
+  const preorderOrders = useMemo(
     () =>
       (orders || []).filter(
-        (order) =>
-          order.orderType === 0 ||
-          order.orderType === "B2C" ||
-          order.orderType === 2 ||
-          order.orderType === "B2C_P"
+        (order) => order.orderType === 2 || order.orderType === "B2C_P"
       ),
     [orders]
   );
 
-  const displayedOrders = activeTab === "B2B" ? b2bOrders : customerOrders;
+  const availableOrders = useMemo(
+    () =>
+      (orders || []).filter(
+        (order) => order.orderType === 0 || order.orderType === "B2C"
+      ),
+    [orders]
+  );
+
+  // Get orders for current tab
+  const ordersForCurrentTab = 
+    activeTab === "B2B" 
+      ? b2bOrders 
+      : activeTab === "PREORDER"
+      ? preorderOrders
+      : availableOrders;
+
+  // Count orders by status for filter options
+  const statusCounts = useMemo(() => {
+    const counts = {};
+    ordersForCurrentTab.forEach((order) => {
+      const status = (order.status || "CONFIRMED").toUpperCase();
+      counts[status] = (counts[status] || 0) + 1;
+    });
+    return counts;
+  }, [ordersForCurrentTab]);
+
+  // Status filter options with counts
+  const statusFilterOptions = useMemo(() => {
+    const allCount = ordersForCurrentTab.length;
+    const options = [
+      {
+        value: "ALL",
+        label: `Tất cả (${allCount})`,
+      },
+    ];
+
+    Object.keys(statusConfig).forEach((status) => {
+      const count = statusCounts[status] || 0;
+      if (count > 0) {
+        options.push({
+          value: status,
+          label: `${statusConfig[status].text} (${count})`,
+        });
+      }
+    });
+
+    return options;
+  }, [statusCounts, ordersForCurrentTab.length]);
+
+  // Filter orders by status and search term
+  const filteredOrders = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return ordersForCurrentTab.filter((order) => {
+      // Status filter
+      const normalizedStatus = (order.status || "CONFIRMED").toUpperCase();
+      const matchesStatus =
+        statusFilter === "ALL" || normalizedStatus === statusFilter;
+
+      if (!normalizedSearch) {
+        return matchesStatus;
+      }
+
+      // Search filter
+      const code = (order.code || "").toLowerCase();
+      const customerName = (order.customer?.fullName || "").toLowerCase();
+      
+      const matchesSearch =
+        code.includes(normalizedSearch) ||
+        customerName.includes(normalizedSearch);
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [ordersForCurrentTab, statusFilter, searchTerm]);
+
+  const displayedOrders = filteredOrders;
 
   const tabItems = useMemo(
     () => [
       {
         key: "B2B",
-        label: `Đơn hàng hãng (${b2bOrders.length})`,
+        label: `Đơn với hãng (${b2bOrders.length})`,
         children: null,
       },
       {
-        key: "CUSTOMER",
-        label: `Đơn hàng khách (${customerOrders.length})`,
+        key: "PREORDER",
+        label: `Đặt trước (${preorderOrders.length})`,
+        children: null,
+      },
+      {
+        key: "AVAILABLE",
+        label: `Có sẵn (${availableOrders.length})`,
         children: null,
       },
     ],
-    [b2bOrders.length, customerOrders.length]
+    [b2bOrders.length, preorderOrders.length, availableOrders.length]
   );
 
   const columns = [
@@ -763,155 +836,23 @@ const DealerManagerOrdersPage = () => {
     {
       title: "Thao tác",
       key: "actions",
-      width: 300,
+      width: 120,
       fixed: "right",
       render: (_, record) => (
-        <Space size={2} wrap>
-          <Tooltip title="Xem chi tiết">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetail(record.id)}
-              size="small"
-              style={{ color: "#1890ff", padding: "4px 8px" }}
-            />
-          </Tooltip>
-
-          <Tooltip title="Chỉnh sửa">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/dealer/orders/${record.id}/edit`)}
-              size="small"
-              style={{ color: "#52c41a", padding: "4px 8px" }}
-            />
-          </Tooltip>
-
-          {/* B2B Orders with Quotation - View Quotation Button */}
-          {(record.orderType === 1 || record.orderType === "B2B") &&
-           record.quotationId &&
-           record.status === "QUOTATION_RECEIVED" && (
-            <Tooltip title="Xem chi tiết báo giá">
-              <Button
-                type="primary"
-                size="small"
-                icon={<FileTextOutlined />}
-                onClick={() => navigate(`/dealer/quotations/${record.quotationId}`, {
-                  state: { orderId: record.id }
-                })}
-                style={{
-                  padding: "4px 8px",
-                  fontSize: "12px",
-                  backgroundColor: "#722ed1",
-                  borderColor: "#722ed1"
-                }}
-              >
-                Xem báo giá
-              </Button>
-            </Tooltip>
-          )}
-
-          {/* Deposit Button - Show for AWAITING_DEPOSIT status and no PAID deposits */}
-          {record.status === "AWAITING_DEPOSIT" && (() => {
-            // Check if there are any PAID deposits
-            const hasPaidDeposit = record.deposits && Array.isArray(record.deposits)
-              ? record.deposits.some(d => d.status === "PAID" || d.status === 1)
-              : false;
-
-            // Only show button if no PAID deposit exists
-            return !hasPaidDeposit && (
-              <Tooltip title="Đặt cọc 10%">
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<DollarCircleOutlined />}
-                  onClick={() => handleCreateDeposit(record)}
-                  style={{
-                    padding: "4px 8px",
-                    fontSize: "12px",
-                    backgroundColor: "#fa8c16",
-                    borderColor: "#fa8c16"
-                  }}
-                >
-                  Đặt cọc
-                </Button>
-              </Tooltip>
-            );
-          })()}
-
-          {/* Final Payment Button - Show for READY_FOR_HANDOVER status */}
-          {(record.status === "READY_FOR_HANDOVER" || record.status?.toUpperCase() === "READY_FOR_HANDOVER") && (
-            <Tooltip title="Trả phần tiền còn lại (90%)">
-              <Button
-                type="primary"
-                size="small"
-                icon={<DollarCircleOutlined />}
-                onClick={() => handleFinalPayment(record)}
-                style={{
-                  padding: "4px 8px",
-                  fontSize: "12px",
-                  backgroundColor: "#52c41a",
-                  borderColor: "#52c41a"
-                }}
-              >
-                Trả tiền còn lại
-              </Button>
-            </Tooltip>
-          )}
-
-          {(record.orderType === 2 || record.orderType === "B2C_P") && (
-            <Tooltip title="Thêm xe vào giỏ B2B">
-              <Button
-                type="primary"
-                size="small"
-                icon={<PlusOutlined />}
-                onClick={() => handleAddPreOrderToCart(record)}
-                style={{ padding: "4px 8px", fontSize: "12px" }}
-              >
-                Giỏ B2B
-              </Button>
-            </Tooltip>
-          )}
-
-          {(record.orderType === 0 || record.orderType === "B2C") && (
-            <Tooltip title="Tạo hợp đồng">
-              <Button
-                type="default"
-                size="small"
-                icon={<FileTextOutlined />}
-                onClick={() => handleCreateContract(record)}
-                style={{ 
-                  padding: "4px 8px", 
-                  fontSize: "12px",
-                  backgroundColor: "#fff",
-                  borderColor: "#d9d9d9",
-                  color: "#000"
-                }}
-              >
-                Hợp đồng
-              </Button>
-            </Tooltip>
-          )}
-
-          <Tooltip title="Xóa đơn hàng">
-            <Popconfirm
-              title="Xác nhận xóa"
-              description="Bạn có chắc chắn muốn xóa đơn hàng này?"
-              onConfirm={() => handleDelete(record.id)}
-              okText="Xóa"
-              cancelText="Hủy"
-              okButtonProps={{ danger: true }}
-            >
-              <Button
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-                size="small"
-                style={{ padding: "4px 8px" }}
-              />
-            </Popconfirm>
-          </Tooltip>
-        </Space>
+        <Button
+          type="primary"
+          icon={<EyeOutlined />}
+          onClick={() => handleViewDetail(record.id)}
+          size="small"
+          style={{
+            backgroundColor: '#1890ff',
+            borderColor: '#1890ff',
+            color: '#ffffff',
+            opacity: 1,
+          }}
+        >
+          Xem chi tiết
+        </Button>
       ),
     },
   ];
@@ -1009,6 +950,54 @@ const DealerManagerOrdersPage = () => {
               items={tabItems}
               style={{ marginBottom: 16 }}
             />
+
+            {/* Filter and Search Toolbar */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: 16,
+              gap: 16,
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+                <Typography.Text strong style={{ fontSize: '15px', color: '#1f2937', whiteSpace: 'nowrap' }}>
+                  Trạng thái:
+                </Typography.Text>
+                <Select
+                  value={statusFilter}
+                  onChange={(value) => setStatusFilter(value)}
+                  style={{ minWidth: 220 }}
+                  size="large"
+                >
+                  {statusFilterOptions.map((option) => (
+                    <Select.Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Typography.Text type="secondary" style={{ fontSize: '13px', whiteSpace: 'nowrap' }}>
+                  {statusFilter === "ALL"
+                    ? `Hiển thị ${filteredOrders.length}/${ordersForCurrentTab.length} đơn`
+                    : `Có ${filteredOrders.length} đơn ${
+                        statusConfig[statusFilter]?.text?.toLowerCase() || ""
+                      }`}
+                </Typography.Text>
+                <Input.Search
+                  allowClear
+                  placeholder="Tìm theo mã hoặc khách hàng"
+                  style={{ width: 280 }}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  onSearch={(value) => setSearchTerm(value)}
+                  enterButton
+                  size="large"
+                />
+              </div>
+            </div>
+
             <Table
               columns={columns}
               dataSource={displayedOrders}
@@ -1050,12 +1039,6 @@ const DealerManagerOrdersPage = () => {
         setCartItems={setCartItems}
         dealerId={dealerId}
         userId={userId}
-      />
-
-      <OrderDetailModal
-        visible={detailModalVisible}
-        onClose={handleCloseDetailModal}
-        orderId={selectedOrderId}
       />
 
       <AcceptQuotationModal

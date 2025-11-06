@@ -328,14 +328,16 @@ const DealerManagerContractsPage = () => {
       render: (_, record) => (
         <Space size="small" style={{ justifyContent: "flex-end" }}>
           <Button
-            type="text"
+            type="primary"
             icon={<EyeOutlined />}
             onClick={() => navigate(`/dealer/contracts/${record.id}`)}
             size="small"
             title="Xem chi tiết"
             style={{
-              color: "#1890ff",
-              padding: "4px 8px",
+              backgroundColor: '#1890ff',
+              borderColor: '#1890ff',
+              color: '#ffffff',
+              opacity: 1,
             }}
           />
         </Space>

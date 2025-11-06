@@ -15,7 +15,7 @@ import {
   Input,
   Row,
   Col,
-  Segmented,
+  Tabs,
 } from "antd";
 import {
   PlusOutlined,
@@ -149,6 +149,10 @@ const pageStyles = `
       justify-content: space-between;
       align-items: center;
     }
+  }
+
+  .orders-card__status-filter {
+    min-width: 220px;
   }
 
   .orders-card__filters {
@@ -418,6 +422,7 @@ const OrdersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [depositModalVisible, setDepositModalVisible] = useState(false);
   const [selectedOrderForDeposit, setSelectedOrderForDeposit] = useState(null);
+  const [activeTab, setActiveTab] = useState("PREORDER"); // B2C_P = Đặt trước, B2C = Có sẵn
 
   const statusSequence = useMemo(
     () => [
@@ -833,20 +838,51 @@ const OrdersPage = () => {
     return baseOptions;
   }, [statusCounts, statusConfig, statusSequence]);
 
+  // Filter orders by tab (Đặt trước or Có sẵn)
+  const preorderOrders = useMemo(
+    () =>
+      (orders || []).filter(
+        (order) => order.orderType === 2 || order.orderType === "B2C_P"
+      ),
+    [orders]
+  );
+
+  const availableOrders = useMemo(
+    () =>
+      (orders || []).filter(
+        (order) => order.orderType === 0 || order.orderType === "B2C"
+      ),
+    [orders]
+  );
+
+  const ordersForCurrentTab = activeTab === "PREORDER" ? preorderOrders : availableOrders;
+
+  const tabItems = useMemo(
+    () => [
+      {
+        key: "PREORDER",
+        label: `Đặt trước (${preorderOrders.length})`,
+        children: null,
+      },
+      {
+        key: "AVAILABLE",
+        label: `Có sẵn (${availableOrders.length})`,
+        children: null,
+      },
+    ],
+    [preorderOrders.length, availableOrders.length]
+  );
+
   const filteredOrders = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    return orders.filter((order) => {
+    return ordersForCurrentTab.filter((order) => {
       const normalizedStatus = getNormalizedStatus(order.status);
       const matchesStatus =
         statusFilter === "ALL" || normalizedStatus === statusFilter;
 
-      const normalizedType = getOrderTypeKey(order.orderType);
-      const matchesType =
-        orderTypeFilter === "ALL" || normalizedType === orderTypeFilter;
-
       if (!normalizedSearch) {
-        return matchesStatus && matchesType;
+        return matchesStatus;
       }
 
       const code = (order.code || "").toLowerCase();
@@ -857,9 +893,9 @@ const OrdersPage = () => {
         code.includes(normalizedSearch) ||
         customerName.includes(normalizedSearch);
 
-      return matchesStatus && matchesType && matchesSearch;
+      return matchesStatus && matchesSearch;
     });
-  }, [orders, statusFilter, orderTypeFilter, searchTerm]);
+  }, [ordersForCurrentTab, statusFilter, searchTerm]);
 
   const { Title, Text } = Typography;
   const { Search } = Input;
@@ -1347,20 +1383,27 @@ const OrdersPage = () => {
             {!isAwaitingConfirm && !isQuotationReceived && !isQuotationAccepted && !isDepositSuccess && !isReadyForHandover && (
               <>
                 <Button
-                  type="text"
+                  type="primary"
                   icon={<EyeOutlined />}
                   onClick={() => navigate(`/dealer-staff/orders/${record.id}`)}
                   size="small"
                   title="Xem chi tiết"
-                  style={{ color: "#1890ff", padding: "4px 8px" }}
+                  style={{
+                    backgroundColor: '#1890ff',
+                    borderColor: '#1890ff',
+                    color: '#ffffff',
+                    opacity: 1,
+                  }}
                 />
                 <Button
-                  type="text"
+                  type="default"
                   icon={<EditOutlined />}
                   onClick={() => navigate(`/dealer-staff/orders/edit/${record.id}`)}
                   size="small"
                   title="Chỉnh sửa"
-                  style={{ color: "#52c41a", padding: "4px 8px" }}
+                  style={{
+                    opacity: 1,
+                  }}
                 />
                 <Popconfirm
                   title="Xác nhận xóa"
@@ -1371,12 +1414,13 @@ const OrdersPage = () => {
                   okButtonProps={{ danger: true }}
                 >
                   <Button
-                    type="text"
                     danger
                     icon={<DeleteOutlined />}
                     size="small"
                     title="Xóa"
-                    style={{ padding: "4px 8px" }}
+                    style={{
+                      opacity: 1,
+                    }}
                   />
                 </Popconfirm>
               </>
@@ -1489,35 +1533,42 @@ const OrdersPage = () => {
         ))}
       </Row>
 
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={tabItems}
+        size="large"
+        style={{ marginBottom: 16 }}
+      />
+
       <Card className="orders-card" bordered={false}>
         <div className="orders-card__toolbar">
-          <Segmented
-            value={statusFilter}
-            onChange={(value) => setStatusFilter(value)}
-            options={statusFilterOptions}
-            size="large"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+            <Typography.Text strong style={{ fontSize: '15px', color: '#1f2937', whiteSpace: 'nowrap' }}>
+              Trạng thái:
+            </Typography.Text>
+            <Select
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value)}
+              className="orders-card__status-filter"
+              size="large"
+            >
+              {statusFilterOptions.map((option) => (
+                <Select.Option key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
 
           <div className="orders-card__filters">
             <Text type="secondary" className="orders-card__count">
               {statusFilter === "ALL"
-                ? `Hiển thị ${filteredOrders.length}/${orders.length} đơn`
+                ? `Hiển thị ${filteredOrders.length}/${ordersForCurrentTab.length} đơn`
                 : `Có ${filteredOrders.length} đơn ${
                     statusConfig[statusFilter]?.text?.toLowerCase() || ""
                   }`}
             </Text>
-            <Select
-              value={orderTypeFilter}
-              onChange={setOrderTypeFilter}
-              className="orders-card__type-filter"
-              size="middle"
-            >
-              {orderTypeFilterOptions.map((option) => (
-                <Option key={option.value} value={option.value}>
-                  {option.label}
-                </Option>
-              ))}
-            </Select>
             <Search
               allowClear
               placeholder="Tìm theo mã hoặc khách hàng"

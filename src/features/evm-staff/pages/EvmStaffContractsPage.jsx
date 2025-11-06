@@ -295,26 +295,25 @@ const EvmStaffContractsPage = () => {
       render: (_, record) => (
         <Space size="small" style={{ justifyContent: "flex-end" }}>
           <Button
-            type="text"
+            type="primary"
             icon={<EyeOutlined />}
             onClick={() => navigate(`/evm-staff/contracts/${record.id}`)}
             size="small"
             title="Xem chi tiết"
             style={{
-              color: "#1890ff",
-              padding: "4px 8px",
+              backgroundColor: '#1890ff',
+              borderColor: '#1890ff',
+              color: '#ffffff',
+              opacity: 1,
             }}
           />
           <Button
-            type="text"
+            type="default"
             icon={<EditOutlined />}
             onClick={() => navigate(`/evm-staff/contracts/edit/${record.id}`)}
             size="small"
             title="Chỉnh sửa"
-            style={{
-              color: "#52c41a",
-              padding: "4px 8px",
-            }}
+            style={{ opacity: 1 }}
           />
           <Popconfirm
             title="Xác nhận xóa"
@@ -325,12 +324,11 @@ const EvmStaffContractsPage = () => {
             okButtonProps={{ danger: true }}
           >
             <Button
-              type="text"
               danger
               icon={<DeleteOutlined />}
               size="small"
               title="Xóa"
-              style={{ padding: "4px 8px" }}
+              style={{ opacity: 1 }}
             />
           </Popconfirm>
         </Space>

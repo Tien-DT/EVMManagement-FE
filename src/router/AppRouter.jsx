@@ -58,6 +58,7 @@ import UserProfileTestPage from "../features/auth/pages/UserProfileTestPage";
 // Dealer Manager Pages
 import DealerManagerDashboardPage from "../features/dealer-manager/pages/DealerManagerDashboardPage";
 import DealerManagerOrdersPage from "../features/dealer-manager/pages/DealerManagerOrdersPage";
+import DealerManagerOrderDetailPage from "../features/dealer-manager/pages/DealerManagerOrderDetailPage";
 import DealerManagerQuotationsPage from "../features/dealer-manager/pages/DealerManagerQuotationsPage";
 import DealerManagerQuotationDetailPage from "../features/dealer-manager/pages/DealerManagerQuotationDetailPage";
 import DealerManagerCreateContractPage from "../features/dealer-manager/pages/CreateContractPage";
@@ -278,6 +279,10 @@ const AppRouter = () => (
             <Route
               path="/dealer/orders"
               element={<DealerManagerOrdersPage />}
+            />
+            <Route
+              path="/dealer/orders/:id"
+              element={<DealerManagerOrderDetailPage />}
             />
 
             {/* Quotations Management */}

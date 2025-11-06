@@ -7,7 +7,6 @@ import {
   Space,
   Modal,
   Form,
-  DatePicker,
   message,
   Collapse,
   Tag,
@@ -135,7 +134,7 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
         totalAmount: 0, // Will be set after quotation is accepted
         discountAmount: 0,
         finalAmount: 0, // Will be set after quotation is accepted
-        expectedDeliveryAt: values.expectedDeliveryAt ? values.expectedDeliveryAt.toISOString() : null,
+        expectedDeliveryAt: null, // Will be set after quotation by EVM Staff
         orderType: 1, // B2B
         isFinanced: false,
         orderDetails: orderDetails,
@@ -324,19 +323,6 @@ const OrderCartB2B = ({ visible, onClose, cartItems, setCartItems, dealerId, use
           </div>
 
           <Divider>Thông tin bổ sung</Divider>
-
-          <Form.Item
-            label="Ngày giao dự kiến"
-            name="expectedDeliveryAt"
-          >
-            <DatePicker
-              style={{ width: "100%" }}
-              size="large"
-              format="DD/MM/YYYY"
-              disabledDate={(current) => current && current < moment().startOf("day")}
-              placeholder="Chọn ngày giao dự kiến (tùy chọn)"
-            />
-          </Form.Item>
 
           <Form.Item label="Ghi chú đơn hàng" name="note">
             <TextArea 

@@ -399,10 +399,15 @@ const EvmStaffQuotationDetailPage = () => {
                             </div>
                             <div>
                               <p className="text-sm font-bold text-gray-900">
-                                {detail.vehicleVariantName || "N/A"}
+                                {detail.vehicleModelName || "N/A"}
                               </p>
+                              {detail.vehicleVariantColor && (
+                                <p className="text-xs text-gray-600 font-medium">
+                                  Màu: {detail.vehicleVariantColor}
+                                </p>
+                              )}
                               {detail.note && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 mt-1">
                                   {detail.note}
                                 </p>
                               )}

@@ -1,5 +1,5 @@
 // src/features/dealer-manager/pages/DealerContractsPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -10,24 +10,30 @@ import {
   Spin,
   Typography,
   message,
+  Input,
+  Select,
 } from "antd";
 import {
   EyeOutlined,
   FileTextOutlined,
   SafetyOutlined,
   CheckCircleOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
 
 const { Title } = Typography;
+const { Search } = Input;
 
 const DealerContractsPage = () => {
   const navigate = useNavigate();
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dealerId, setDealerId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
     // Get dealerId from sessionStorage
@@ -79,6 +85,17 @@ const DealerContractsPage = () => {
     const config = statusConfig[status] || { color: "default", text: status };
     return <Tag color={config.color}>{config.text}</Tag>;
   };
+
+  // Filter contracts
+  const filteredContracts = useMemo(() => {
+    return contracts.filter(contract => {
+      const matchesSearch = 
+        contract.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contract.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "ALL" || contract.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [contracts, searchTerm, statusFilter]);
 
   const columns = [
     {
@@ -147,14 +164,41 @@ const DealerContractsPage = () => {
           </div>
         </div>
 
+        {/* Filter Section */}
+        <div style={{ marginBottom: 16, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <Search
+            placeholder="Tìm kiếm theo mã hợp đồng hoặc khách hàng"
+            allowClear
+            enterButton={<SearchOutlined />}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onSearch={(value) => setSearchTerm(value)}
+            style={{ flex: 1, minWidth: 250, maxWidth: 400 }}
+          />
+          <Select
+            value={statusFilter}
+            onChange={setStatusFilter}
+            style={{ minWidth: 200 }}
+          >
+            <Select.Option value="ALL">Tất cả trạng thái</Select.Option>
+            <Select.Option value="DRAFT">Bản nháp</Select.Option>
+            <Select.Option value="PENDING_SIGNATURE">Chờ ký</Select.Option>
+            <Select.Option value="SIGNED">Đã ký</Select.Option>
+            <Select.Option value="ACTIVE">Đang hoạt động</Select.Option>
+            <Select.Option value="CANCELED">Đã hủy</Select.Option>
+          </Select>
+        </div>
+
         <Table
           columns={columns}
-          dataSource={contracts}
+          dataSource={filteredContracts}
           rowKey="id"
           loading={loading}
           pagination={{
             pageSize: 10,
             showTotal: (total) => `Tổng ${total} hợp đồng`,
+          }}
+          locale={{
+            emptyText: searchTerm || statusFilter !== "ALL" ? "Không tìm thấy hợp đồng phù hợp" : "Không có hợp đồng nào",
           }}
         />
       </Card>
