@@ -50,24 +50,78 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
   const handleFinish = async (values) => {
     setLoading(true);
     try {
+      // Validate vehicles data before sending
+      if (!values.vehicles || values.vehicles.length === 0) {
+        message.error('Vui lòng thêm ít nhất một xe');
+        setLoading(false);
+        return;
+      }
+
+      // Filter out invalid vehicles (missing required fields)
+      const validVehicles = values.vehicles.filter(v => {
+        const hasVariantId = v.variantId && v.variantId !== '';
+        const hasVin = v.vin && v.vin.trim() !== '';
+        const hasStatus = v.status && v.status !== '';
+        const hasPurpose = v.purpose && v.purpose !== '';
+        
+        return hasVariantId && hasVin && hasStatus && hasPurpose;
+      });
+
+      if (validVehicles.length === 0) {
+        message.error('Vui lòng điền đầy đủ thông tin cho ít nhất một xe (Variant, VIN, Trạng thái, Mục đích)');
+        setLoading(false);
+        return;
+      }
+
       const body = {
         warehouseId: values.warehouseId,
-        vehicles: values.vehicles.map((v) => ({
+        vehicles: validVehicles.map((v) => ({
           variantId: v.variantId,
-          vin: v.vin,
+          vin: v.vin?.trim(),
           status: v.status,
           purpose: v.purpose,
-          imageUrl: v.imageUrl,
+          imageUrl: v.imageUrl || null,
         })),
       };
+
+      console.log('Sending vehicle data:', body);
       
-      const vehicleCount = values.vehicles.length;
+      const vehicleCount = validVehicles.length;
       const selectedWarehouse = warehouses.find(w => w.id === values.warehouseId);
       const warehouseName = selectedWarehouse?.name || 'kho EVM';
       
-      await axiosInstance.post(endpoints.warehouses.evm.addVehicles, body);
+      const response = await axiosInstance.post(endpoints.warehouses.evm.addVehicles, body);
       
-      // Hiển thị thông báo thành công với thông tin chi tiết
+      // Check response from server
+      const responseData = response?.data || response;
+      const successCount = responseData?.data?.length || 0;
+      const serverMessage = responseData?.message || '';
+      
+      // If server says 0 vehicles were added, show error
+      if (successCount === 0 && serverMessage.includes('0')) {
+        message.warning({
+          content: (
+            <div>
+              <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+                Không có xe nào được thêm vào kho
+              </div>
+              <div style={{ fontSize: '13px', color: '#666' }}>
+                {serverMessage || 'Có thể VIN đã tồn tại hoặc dữ liệu không hợp lệ'}
+              </div>
+              {responseData?.errors && responseData.errors.length > 0 && (
+                <div style={{ fontSize: '12px', color: '#ff4d4f', marginTop: '4px' }}>
+                  Lỗi: {responseData.errors.join(', ')}
+                </div>
+              )}
+            </div>
+          ),
+          duration: 6,
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // Success case
       message.success({
         content: (
           <div>
@@ -75,11 +129,11 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
               Thêm xe vào kho thành công!
             </div>
             <div style={{ fontSize: '13px', color: '#666' }}>
-              Đã thêm {vehicleCount} {vehicleCount === 1 ? 'xe' : 'xe'} vào {warehouseName}
+              {serverMessage || `Đã thêm ${successCount || vehicleCount} ${successCount === 1 ? 'xe' : 'xe'} vào ${warehouseName}`}
             </div>
-            {values.vehicles.length > 0 && values.vehicles[0].vin && (
+            {validVehicles.length > 0 && validVehicles[0].vin && (
               <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-                VIN: {values.vehicles.map(v => v.vin).filter(Boolean).join(', ')}
+                VIN: {validVehicles.map(v => v.vin).filter(Boolean).join(', ')}
               </div>
             )}
           </div>
@@ -107,6 +161,10 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
       if (typeof window.handleCloseAddVehicleModal==='function') window.handleCloseAddVehicleModal();
       }, 500);
     } catch (err) {
+      console.error('Error adding vehicles:', err);
+      const errorMessage = err?.response?.data?.message || err?.message || 'Lỗi không xác định';
+      const errorDetails = err?.response?.data?.errors || [];
+      
       message.error({
         content: (
           <div>
@@ -114,11 +172,16 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
               Không thể thêm xe vào kho
             </div>
             <div style={{ fontSize: '13px', color: '#666' }}>
-              {err?.message || 'Lỗi không xác định'}
+              {errorMessage}
             </div>
+            {errorDetails.length > 0 && (
+              <div style={{ fontSize: '12px', color: '#ff4d4f', marginTop: '4px' }}>
+                Chi tiết: {Array.isArray(errorDetails) ? errorDetails.join(', ') : errorDetails}
+              </div>
+            )}
           </div>
         ),
-        duration: 5,
+        duration: 6,
       });
     } finally {
       setLoading(false);
@@ -253,97 +316,28 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
                                 if (variantId) {
                                   const selectedVariant = variants.find(v => v.id === variantId);
                                   
-                                  // Fetch variant detail để lấy VIN từ variant
-                                  axiosInstance.get(endpoints.vehicleVariants.getById(variantId))
-                                    .then((variantRes) => {
-                                      const variantDetail = variantRes.data || variantRes || selectedVariant;
-                                      
-                                      setSelectedVariantsInfo(prev => ({
-                                        ...prev,
-                                        [name]: variantDetail
-                                      }));
-                                      
-                                      // Lấy VIN từ variant (mỗi variant có VIN riêng)
-                                      const vinFromVariant = variantDetail.vin || variantDetail.VIN || variantDetail.vehicleVin || '';
-                                      
-                                      if (vinFromVariant) {
-                                        form.setFieldValue(['vehicles', name, 'vin'], vinFromVariant);
-                                        setAvailableVehiclesByField(prev => ({
-                                          ...prev,
-                                          [name]: []
-                                        }));
-                                      } else {
-                                        // Nếu variant không có VIN, thử fetch từ vehicles
-                                        const warehouseIdValue = form.getFieldValue('warehouseId');
-                                        const params = {
-                                          variantId: variantId,
-                                          status: 'IN_STOCK',
-                                          pageSize: 100
-                                        };
-                                        
-                                        if (warehouseIdValue) {
-                                          params.warehouseId = warehouseIdValue;
-                                        }
-                                        
-                                        axiosInstance.get(endpoints.vehicles.getAll, { params })
-                                          .then((res) => {
-                                            let vehicles = [];
-                                            if (Array.isArray(res)) {
-                                              vehicles = res;
-                                            } else if (res?.data) {
-                                              vehicles = res.data?.items || res.data?.data || (Array.isArray(res.data) ? res.data : []);
-                                            } else if (res?.items) {
-                                              vehicles = res.items;
-                                            }
-                                            
-                                            if (vehicles.length > 0) {
-                                              vehicles = vehicles.filter(v => 
-                                                v.variantId === variantId || 
-                                                v.vehicleVariantId === variantId ||
-                                                v.variant?.id === variantId ||
-                                                v.vehicleVariant?.id === variantId
-                                              );
-                                            }
-                                            
-                                            setAvailableVehiclesByField(prev => ({
-                                              ...prev,
-                                              [name]: vehicles
-                                            }));
-                                            
-                                            if (vehicles.length > 0) {
-                                              const firstVehicle = vehicles[0];
-                                              const vinValue = firstVehicle.vin || firstVehicle.VIN || '';
-                                              form.setFieldValue(['vehicles', name, 'vin'], vinValue);
-                                            } else {
-                                              form.setFieldValue(['vehicles', name, 'vin'], '');
-                                            }
-                                          })
-                                          .catch((err) => {
-                                            console.error('Error fetching vehicles:', err);
-                                            form.setFieldValue(['vehicles', name, 'vin'], '');
-                                            setAvailableVehiclesByField(prev => ({
-                                              ...prev,
-                                              [name]: []
-                                            }));
-                                          });
-                                      }
-                                    })
-                                    .catch((err) => {
-                                      console.error('Error fetching variant detail:', err);
-                                      if (selectedVariant) {
-                                        const vinFromVariant = selectedVariant.vin || selectedVariant.VIN || selectedVariant.vehicleVin || '';
-                                        if (vinFromVariant) {
-                                          form.setFieldValue(['vehicles', name, 'vin'], vinFromVariant);
-                                        }
-                                      }
-                                      setSelectedVariantsInfo(prev => ({
-                                        ...prev,
-                                        [name]: selectedVariant
-                                      }));
-                                    });
+                                  // Chỉ lưu variant info, không tự động điền VIN
+                                  setSelectedVariantsInfo(prev => ({
+                                    ...prev,
+                                    [name]: selectedVariant
+                                  }));
+                                  
+                                  // Xóa danh sách vehicles có sẵn khi chọn variant mới
+                                  setAvailableVehiclesByField(prev => {
+                                    const newState = { ...prev };
+                                    delete newState[name];
+                                    return newState;
+                                  });
+                                  
+                                  // Không tự động điền VIN, để người dùng tự nhập
                                 } else {
                                   form.setFieldValue(['vehicles', name, 'vin'], '');
                                   setAvailableVehiclesByField(prev => {
+                                    const newState = { ...prev };
+                                    delete newState[name];
+                                    return newState;
+                                  });
+                                  setSelectedVariantsInfo(prev => {
                                     const newState = { ...prev };
                                     delete newState[name];
                                     return newState;
@@ -376,22 +370,24 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
                           <Form.Item 
                             {...restField} 
                             name={[name, 'status']} 
+                            initialValue="IN_STOCK"
                             label={
                               <div>
                                 <span className="block text-sm font-medium text-slate-900 mb-1">
-                                  Trạng thái <span className="text-red-500">*</span>
+                                  Trạng thái
                                 </span>
-                                <p className="text-xs text-slate-500">Trạng thái hiện tại của xe</p>
+                                <p className="text-xs text-slate-500">Trạng thái mặc định khi thêm xe vào kho</p>
                               </div>
                             }
-                            rules={[{ required: true }]} 
                             style={{ marginBottom: 0 }}
                           >
-                            <Select size="large" placeholder="Chọn trạng thái">
+                            <Select 
+                              size="large" 
+                              disabled={true}
+                              value="IN_STOCK"
+                              className="bg-slate-50"
+                            >
                               <Option value="IN_STOCK">In Stock</Option>
-                              <Option value="RESERVED">Reserved</Option>
-                              <Option value="IN_TRANSIT">In Transit</Option>
-                              <Option value="SOLD">Sold</Option>
                         </Select>
                       </Form.Item>
                         </div>
@@ -405,48 +401,22 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
                               <span className="block text-sm font-medium text-slate-900 mb-1">
                                 Mã VIN <span className="text-red-500">*</span>
                               </span>
-                              <p className="text-xs text-slate-500">Số định danh xe (ID riêng cho từng xe)</p>
+                              <p className="text-xs text-slate-500">
+                                Nhập mã VIN của xe (số định danh riêng cho từng xe)
+                              </p>
                             </div>
                           }
                           rules={[{ required: true, message: 'VIN là bắt buộc' }]}
                           style={{ marginBottom: 0 }}
                         >
-                          {availableVehiclesByField[name]?.length > 1 ? (
-                            <Select
-                              placeholder="Chọn VIN từ danh sách"
-                              showSearch
+                          <Input 
+                              placeholder="Nhập mã VIN" 
                               size="large"
-                              value={form.getFieldValue(['vehicles', name, 'vin'])}
-                              filterOption={(input, option) =>
-                                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                              }
-                              onChange={(vin) => {
-                                form.setFieldValue(['vehicles', name, 'vin'], vin);
-                              }}
-                            >
-                              {availableVehiclesByField[name].map((vehicle) => {
-                                const vin = vehicle.vin || vehicle.VIN || '';
-                                return (
-                                  <Option key={vehicle.id || vin} value={vin} label={vin}>
-                                    {vin}
-                                  </Option>
-                                );
-                              })}
-                        </Select>
-                          ) : (
-                            <Input 
-                              placeholder="Nhập mã VIN hoặc chọn variant để tự động điền" 
-                              size="large"
-                              readOnly={!!availableVehiclesByField[name]?.length}
                               value={form.getFieldValue(['vehicles', name, 'vin']) || ''}
                               onChange={(e) => {
-                                if (!availableVehiclesByField[name]?.length) {
-                                  form.setFieldValue(['vehicles', name, 'vin'], e.target.value);
-                                }
+                                form.setFieldValue(['vehicles', name, 'vin'], e.target.value);
                               }}
-                              className={availableVehiclesByField[name]?.length ? 'bg-slate-50' : ''}
                             />
-                          )}
                       </Form.Item>
 
                         {/* Purpose Row */}
@@ -461,12 +431,12 @@ const AddEvmVehicleToWarehouseForm = ({ warehouseId, onSuccess }) => {
                               <p className="text-xs text-slate-500">Lý do đăng ký xe này</p>
                             </div>
                           }
-                          rules={[{ required: true }]} 
+                          rules={[{ required: true, message: 'Vui lòng chọn mục đích' }]} 
                           style={{ marginBottom: 0 }}
                         >
                           <Select size="large" placeholder="Chọn mục đích">
-                            <Option value="FOR_SALE">For Sale</Option>
-                            <Option value="TEST_DRIVE">Test Drive</Option>
+                            <Option value="FOR_SALE">Để bán</Option>
+                            <Option value="FOR_TEST_DRIVE">Cho lái thử</Option>
                         </Select>
                       </Form.Item>
 

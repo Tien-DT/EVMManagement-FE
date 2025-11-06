@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useEvmStaff, useEvmStaffMutations } from "../hooks/useEvmStaff";
+import { message } from "antd";
 import { 
   Search, 
   Plus, 
@@ -35,13 +36,31 @@ export default function EvmStaffListPage() {
     });
   }, [staffList, searchTerm]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (staff) => {
     if (!window.confirm("Are you sure you want to delete this EVM staff? This action cannot be undone.")) return;
     try {
-      await deleteStaff(id);
+      const staffId = staff.id;
+      let accountId = staff.accountId || staff.account?.id;
+      
+      // If accountId is not available, fetch staff detail to get it
+      if (!accountId) {
+        try {
+          const { default: evmStaffService } = await import("../services/evmStaffService");
+          const staffDetail = await evmStaffService.getById(staffId);
+          const staffData = staffDetail?.data || staffDetail;
+          accountId = staffData.accountId || staffData.account?.id;
+        } catch (fetchError) {
+          console.warn("Could not fetch staff detail for accountId:", fetchError);
+        }
+      }
+      
+      await deleteStaff(staffId, accountId);
+      message.success("Xóa EVM staff thành công");
       reload();
     } catch (err) {
       console.error("Delete failed:", err);
+      const errorMessage = err?.response?.data?.message || err?.message || "Không thể xóa EVM staff";
+      message.error(errorMessage);
     }
   };
 
@@ -180,7 +199,7 @@ export default function EvmStaffListPage() {
                       Edit
                     </Link>
                     <button
-                      onClick={() => handleDelete(staff.id)}
+                      onClick={() => handleDelete(staff)}
                       className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                     >
                       <Trash2 size={16} className="mr-2" />

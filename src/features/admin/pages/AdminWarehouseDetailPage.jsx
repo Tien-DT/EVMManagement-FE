@@ -1,49 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { 
   Package, 
   MapPin, 
   Building, 
   ArrowLeft,
   Edit,
-  Plus
+  Plus,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
-import axiosInstance from '../../../api/axiosInstance';
-import endpoints from '../../../api/endpoints';
-import { Table, Tag, Image, Card, Row, Col, Statistic, Space, Button, message } from 'antd';
+import { Table, Tag, Image, Card, Statistic, Button, Modal } from 'antd';
+import { useWarehouse } from '../hooks/useWarehouses';
+import AddEvmVehicleToWarehouseForm from '../../evm-staff/components/AddEvmVehicleToWarehouseForm';
 
 const AdminWarehouseDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [warehouse, setWarehouse] = useState(null);
   const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
+  
+  const {
+    warehouse,
+    isLoading,
+    error,
+    refreshWarehouse,
+  } = useWarehouse(id);
 
   useEffect(() => {
-    fetchWarehouseDetail();
-  }, [id]);
-
-  const fetchWarehouseDetail = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axiosInstance.get(endpoints.warehouses.getById(id));
-      const warehouseData = response.data || response;
-      
-      setWarehouse(warehouseData);
-      
-      // Lấy danh sách xe trong kho
-      const vehiclesData = warehouseData.vehicles || [];
+    if (warehouse) {
+      const vehiclesData = warehouse.vehicles || [];
       setVehicles(Array.isArray(vehiclesData) ? vehiclesData : []);
-    } catch (err) {
-      console.error('Error fetching warehouse detail:', err);
-      setError(err?.message || 'Không thể tải thông tin kho');
-      message.error('Không thể tải thông tin kho: ' + (err?.message || 'Lỗi không xác định'));
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [warehouse]);
 
   const getTypeColor = (type) => {
     return type === 'EVM' 
@@ -145,12 +134,12 @@ const AdminWarehouseDetailPage = () => {
     },
   ];
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
-          <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải dữ liệu...</p>
         </div>
       </div>
     );
@@ -160,10 +149,17 @@ const AdminWarehouseDetailPage = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Không tìm thấy kho'}</p>
-          <Link to="/admin/warehouses" className="text-blue-600 hover:underline">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Có lỗi xảy ra
+          </h3>
+          <p className="text-gray-600 mb-4">{error || 'Không tìm thấy kho'}</p>
+          <Button
+            type="primary"
+            onClick={() => navigate('/admin/warehouses')}
+          >
             Quay lại danh sách kho
-          </Link>
+          </Button>
         </div>
       </div>
     );
@@ -172,139 +168,130 @@ const AdminWarehouseDetailPage = () => {
   return (
     <div className="space-y-6 bg-gray-50 min-h-screen p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link
-            to="/admin/warehouses"
-            className="text-gray-600 hover:text-gray-900 transition-colors"
+          <button
+            onClick={() => navigate('/admin/warehouses')}
+            className="p-2 hover:bg-white rounded-lg transition-colors"
           >
-            <ArrowLeft size={24} />
-          </Link>
+            <ArrowLeft size={24} className="text-gray-600" />
+          </button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{warehouse.name}</h1>
             <p className="text-gray-600 mt-1">Chi tiết kho hàng</p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Link to={`/admin/warehouses/${id}/edit`}>
-            <Button icon={<Edit size={16} />} type="default">
-              Chỉnh sửa
-            </Button>
-          </Link>
+          <Button
+            icon={<Edit size={16} />}
+            onClick={() => navigate(`/admin/warehouses/${id}/edit`)}
+            type="default"
+          >
+            Chỉnh sửa
+          </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Sức chứa"
-              value={warehouse.capacity || 0}
-              suffix="xe"
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Số xe hiện có"
-              value={vehicles.length}
-              suffix="xe"
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Xe có sẵn"
-              value={vehicles.filter(v => v.status === 'IN_STOCK').length}
-              suffix="xe"
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Tỷ lệ sử dụng"
-              value={warehouse.capacity ? Math.round((vehicles.length / warehouse.capacity) * 100) : 0}
-              suffix="%"
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="shadow-md">
+          <Statistic
+            title="Sức chứa"
+            value={warehouse.capacity || 0}
+            suffix="xe"
+            valueStyle={{ color: '#1890ff', fontSize: '24px' }}
+          />
+        </Card>
+        <Card className="shadow-md">
+          <Statistic
+            title="Số xe hiện có"
+            value={vehicles.length}
+            suffix="xe"
+            valueStyle={{ color: '#52c41a', fontSize: '24px' }}
+          />
+        </Card>
+        <Card className="shadow-md">
+          <Statistic
+            title="Xe có sẵn"
+            value={vehicles.filter(v => v.status === 'IN_STOCK').length}
+            suffix="xe"
+            valueStyle={{ color: '#52c41a', fontSize: '24px' }}
+          />
+        </Card>
+        <Card className="shadow-md">
+          <Statistic
+            title="Tỷ lệ sử dụng"
+            value={warehouse.capacity ? Math.round((vehicles.length / warehouse.capacity) * 100) : 0}
+            suffix="%"
+            valueStyle={{ color: '#faad14', fontSize: '24px' }}
+          />
+        </Card>
+      </div>
 
       {/* Warehouse Info */}
-      <Card title="Thông tin kho hàng">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={12}>
-            <div className="flex items-start gap-3 mb-4">
-              <Building size={20} className="text-gray-400 mt-1" />
-              <div>
-                <p className="text-sm text-gray-600">Tên kho</p>
-                <p className="text-base font-medium">{warehouse.name}</p>
-              </div>
+      <Card title="Thông tin kho hàng" className="shadow-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Building size={20} className="text-blue-600" />
             </div>
-          </Col>
-          <Col xs={24} md={12}>
-            <div className="flex items-start gap-3 mb-4">
-              <MapPin size={20} className="text-gray-400 mt-1" />
-              <div>
-                <p className="text-sm text-gray-600">Địa chỉ</p>
-                <p className="text-base font-medium">{warehouse.address || 'N/A'}</p>
-              </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Tên kho</p>
+              <p className="text-base font-semibold text-gray-900">{warehouse.name}</p>
             </div>
-          </Col>
-          <Col xs={24} md={12}>
-            <div className="flex items-start gap-3 mb-4">
-              <Package size={20} className="text-gray-400 mt-1" />
-              <div>
-                <p className="text-sm text-gray-600">Loại kho</p>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getTypeColor(warehouse.type)}`}>
-                  {getTypeText(warehouse.type)}
-                </span>
-              </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <MapPin size={20} className="text-green-600" />
             </div>
-          </Col>
-        </Row>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Địa chỉ</p>
+              <p className="text-base font-semibold text-gray-900">{warehouse.address || 'N/A'}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Package size={20} className="text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Loại kho</p>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getTypeColor(warehouse.type)}`}>
+                {getTypeText(warehouse.type)}
+              </span>
+            </div>
+          </div>
+        </div>
       </Card>
 
       {/* Vehicles Table */}
       <Card
         title={
           <div className="flex items-center justify-between">
-            <span>Danh sách xe trong kho ({vehicles.length})</span>
+            <span className="text-lg font-semibold">Danh sách xe trong kho ({vehicles.length})</span>
             {warehouse.type === 'EVM' && (
               <Button
                 type="primary"
                 icon={<Plus size={16} />}
-                onClick={() => {
-                  // Có thể mở modal thêm xe hoặc navigate
-                  window.location.hash = `#add-vehicle-${id}`;
-                }}
+                onClick={() => setShowAddVehicleModal(true)}
+                className="bg-gradient-to-r from-blue-500 to-cyan-600 border-none"
               >
                 Thêm xe vào kho
               </Button>
             )}
           </div>
         }
+        className="shadow-md"
       >
         {vehicles.length === 0 ? (
           <div className="text-center py-12">
             <Package size={48} className="mx-auto text-gray-400 mb-3" />
-            <p className="text-gray-600">Chưa có xe nào trong kho này</p>
+            <p className="text-gray-600 mb-4">Chưa có xe nào trong kho này</p>
             {warehouse.type === 'EVM' && (
               <Button
                 type="primary"
                 icon={<Plus size={16} />}
-                className="mt-4"
-                onClick={() => {
-                  window.location.hash = `#add-vehicle-${id}`;
-                }}
+                onClick={() => setShowAddVehicleModal(true)}
+                className="bg-gradient-to-r from-blue-500 to-cyan-600 border-none"
               >
                 Thêm xe vào kho
               </Button>
@@ -319,10 +306,40 @@ const AdminWarehouseDetailPage = () => {
               showSizeChanger: true,
               showTotal: (total) => `Tổng ${total} xe`,
             }}
-            loading={loading}
+            loading={isLoading}
           />
         )}
       </Card>
+
+      {/* Modal Add Evm Vehicle */}
+      <Modal
+        title={
+          <div style={{ fontSize: '20px', fontWeight: 600, color: '#1890ff' }}>
+            Thêm xe vào kho EVM
+          </div>
+        }
+        open={showAddVehicleModal}
+        onCancel={() => {
+          setShowAddVehicleModal(false);
+        }}
+        footer={null}
+        width={1000}
+        destroyOnClose
+        style={{ top: 20 }}
+        bodyStyle={{ 
+          padding: '24px',
+          maxHeight: 'calc(100vh - 150px)',
+          overflowY: 'auto'
+        }}
+      >
+        <AddEvmVehicleToWarehouseForm 
+          warehouseId={id}
+          onSuccess={() => {
+            setShowAddVehicleModal(false);
+            refreshWarehouse();
+          }}
+        />
+      </Modal>
     </div>
   );
 };

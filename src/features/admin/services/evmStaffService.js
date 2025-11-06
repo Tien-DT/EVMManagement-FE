@@ -46,9 +46,32 @@ export const evmStaffService = {
     }
   },
 
-  remove: async (id) => {
+  remove: async (id, accountId = null) => {
     try {
-      return await axiosInstance.delete(`${basePath}/${id}`);
+      // DELETE /v1/UserProfile/{id}?isDeleted=true
+      // According to API: id (path, required), isDeleted (query, optional boolean)
+      
+      // Try with accountId first if available (more reliable)
+      if (accountId) {
+        try {
+          return await axiosInstance.delete(`${basePath}/${accountId}`, {
+            params: { isDeleted: true }
+          });
+        } catch (accIdError) {
+          console.warn("Delete with accountId failed, trying with id:", accIdError);
+          // Fall through to try with id
+        }
+      }
+      
+      // Try DELETE with id and isDeleted=true query param
+      try {
+        return await axiosInstance.delete(`${basePath}/${id}`, {
+          params: { isDeleted: true }
+        });
+      } catch (idError) {
+        console.error("Error deleting with id:", idError);
+        throw idError;
+      }
     } catch (error) {
       throw error;
     }

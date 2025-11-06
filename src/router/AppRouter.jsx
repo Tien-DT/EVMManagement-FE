@@ -20,6 +20,7 @@ import EvmStaffLayout from "../layouts/EVMStaffLayout";
 import DashboardPage from "../features/admin/pages/DashboardPage";
 import SignUpForm from "../features/auth/components/SignUpForm";
 import RegisterDealerManagerPage from "../features/admin/pages/RegisterDealerManagerPage";
+import DealerManagerDetailPage from "../features/admin/pages/DealerManagerDetailPage";
 import EvmStaffListPage from "../features/admin/pages/EvmStaffListPage";
 import EvmStaffFormPage from "../features/admin/pages/EvmStaffFormPage";
 import EvmStaffDetailPage from "../features/admin/pages/EvmStaffDetailPage";
@@ -169,6 +170,10 @@ const AppRouter = () => (
             <Route
               path="/admin/register-dealer-manager"
               element={<RegisterDealerManagerPage />}
+            />
+            <Route
+              path="/admin/dealer-managers/:id"
+              element={<DealerManagerDetailPage />}
             />
             <Route path="/admin/warehouses" element={<AdminWarehousesPage />} />
             <Route

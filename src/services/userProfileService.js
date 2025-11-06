@@ -58,6 +58,15 @@ export const userProfileService = {
     }
   },
 
+  // Update profile by account ID (PATCH) - according to API: PATCH /v1/UserProfile/{accId}
+  updateByAccId: async (accId, payload) => {
+    try {
+      return await axiosInstance.patch(endpoints.userProfile.updateByAccount(accId), payload);
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Update profile by account ID (PUT)
   updateByAccount: async (accId, payload) => {
     try {

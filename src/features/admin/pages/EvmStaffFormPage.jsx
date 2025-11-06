@@ -40,23 +40,14 @@ export default function EvmStaffFormPage() {
       try {
         const res = await evmStaffService.getById(id);
         const data = res?.data || res;
-        // Email có thể ở trong account object hoặc trực tiếp trong data
-        const email = data.account?.email || data.email || "";
+        
+        // Extract email from account object if available
+        const email = data.email || data.account?.email || data.accountEmail || "";
+        
         // Lấy accountId để dùng cho PATCH request
-        const accId = data.accountId || data.account?.id || data.id || null;
+        const accId = data.accountId || data.account?.id || null;
         setAccountId(accId);
         
-        console.log("📧 [EVM STAFF EDIT] Data from BE:", {
-          rawResponse: res,
-          data,
-          account: data.account,
-          email: email,
-          accountId: accId,
-          dataId: data.id,
-          dataAccountId: data.accountId,
-          accountObjId: data.account?.id,
-          hasAccount: !!data.account
-        });
         const initialData = {
           fullName: data.fullName || "",
           phone: data.phone || "",
@@ -114,17 +105,41 @@ export default function EvmStaffFormPage() {
           return;
         }
         
-        console.log("📤 [EVM STAFF UPDATE] Payload:", payload);
-        console.log("📤 [EVM STAFF UPDATE] AccountId:", accountId);
-        console.log("📤 [EVM STAFF UPDATE] StaffId (UserProfile ID):", id);
-        
         // Theo API docs: PATCH /v1/UserProfile/{accId} - phải dùng Account ID
-        if (!accountId) {
-          throw new Error("Account ID not found. Cannot update staff.");
+        if (accountId) {
+          // Use PATCH with accId (correct API endpoint)
+          try {
+            await axiosInstance.patch(endpoints.userProfile.updateByAccount(accountId), payload);
+          } catch (patchError) {
+            // Fallback to updateByAccountId if method exists
+            if (evmStaffService.updateByAccountId) {
+              await evmStaffService.updateByAccountId(accountId, payload);
+            } else {
+              throw patchError;
+            }
+          }
+        } else {
+          // Fallback: try to get accountId from staff data
+          try {
+            const staffRes = await evmStaffService.getById(id);
+            const staffData = staffRes?.data || staffRes;
+            const fetchedAccountId = staffData.accountId || staffData.account?.id;
+            
+            if (fetchedAccountId) {
+              await axiosInstance.patch(endpoints.userProfile.updateByAccount(fetchedAccountId), payload);
+            } else {
+              // Final fallback to PUT with id
+              const fallbackPayload = { ...form };
+              delete fallbackPayload.password;
+              await evmStaffService.update(id, fallbackPayload);
+            }
+          } catch (updateError) {
+            // Final fallback to original update method
+            const fallbackPayload = { ...form };
+            delete fallbackPayload.password;
+            await evmStaffService.update(id, fallbackPayload);
+          }
         }
-        
-        console.log("📤 [EVM STAFF UPDATE] Using PATCH with accountId:", accountId);
-        await evmStaffService.updateByAccountId(accountId, payload);
         showSuccess("EVM Staff updated successfully!");
       } else {
         // Register new staff with account creation
