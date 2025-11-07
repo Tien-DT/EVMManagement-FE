@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, FileText, Search } from 'lucide-react';
+import { Plus, FileText, Search, Filter, X } from 'lucide-react';
 import dealerContractService from '../../../evm-staff/services/dealerContractService';
 import dealerService from '../../../dealer/services/dealerService';
 
@@ -8,11 +8,58 @@ const DealerContractsListPage = () => {
   const navigate = useNavigate();
   const [contracts, setContracts] = useState([]);
   const [dealerMap, setDealerMap] = useState({});
+  const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    status: '',
+    dealerId: '',
+    dateFrom: '',
+    dateTo: '',
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchContracts();
+  }, []);
+
+  // Fetch dealers separately for filter dropdown
+  useEffect(() => {
+    const fetchDealersForFilter = async () => {
+      try {
+        const response = await dealerService.list({ pageNumber: 1, pageSize: 100 });
+        console.log('📋 Dealers API response:', response);
+        
+        let dealersData = [];
+        
+        // Handle different response structures
+        if (response?.data?.items) {
+          dealersData = response.data.items;
+        } else if (response?.data && Array.isArray(response.data)) {
+          dealersData = response.data;
+        } else if (response?.items) {
+          dealersData = response.items;
+        } else if (Array.isArray(response)) {
+          dealersData = response;
+        } else if (response?.data?.data?.items) {
+          dealersData = response.data.data.items;
+        } else if (response?.data?.data && Array.isArray(response.data.data)) {
+          dealersData = response.data.data;
+        }
+        
+        console.log('✅ Dealers loaded for filter:', dealersData.length);
+        if (dealersData.length > 0) {
+          console.log('📝 First dealer sample:', dealersData[0]);
+        }
+        setDealers(dealersData);
+      } catch (error) {
+        console.error('❌ Error fetching dealers list:', error);
+        console.error('❌ Error response:', error.response?.data);
+        // Don't show alert, just log error
+      }
+    };
+
+    fetchDealersForFilter();
   }, []);
 
   const fetchContracts = async () => {
@@ -21,7 +68,19 @@ const DealerContractsListPage = () => {
       const response = await dealerContractService.getAllContracts();
       const contractsData = response.data || response;
       const contractsList = contractsData.items || [];
-      setContracts(contractsList);
+      
+      // Sort by created date (newest first)
+      const sortedContracts = [...contractsList].sort((a, b) => {
+        const dateA = a.createdAt || a.createdDate || a.created_date || a.created_at;
+        const dateB = b.createdAt || b.createdDate || b.created_date || b.created_at;
+        
+        const timeA = dateA ? new Date(dateA).getTime() : 0;
+        const timeB = dateB ? new Date(dateB).getTime() : 0;
+        
+        return timeB - timeA; // Sort descending (newest first)
+      });
+      
+      setContracts(sortedContracts);
       
       // Log contract data to see available date fields
       if (contractsList.length > 0) {
@@ -62,10 +121,56 @@ const DealerContractsListPage = () => {
     }
   };
 
-  const filteredContracts = contracts.filter(contract => 
-    contract.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contract.id?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredContracts = contracts.filter(contract => {
+    // Search filter
+    const matchesSearch = !searchTerm || 
+      contract.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.id?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = !filters.status || contract.status === filters.status;
+    
+    // Dealer filter
+    const matchesDealer = !filters.dealerId || contract.dealerId === filters.dealerId;
+    
+    // Date range filter
+    let matchesDate = true;
+    if (filters.dateFrom || filters.dateTo) {
+      const contractDate = contract.createdAt || contract.createdDate || contract.created_date || contract.created_at;
+      if (contractDate) {
+        const contractDateObj = new Date(contractDate);
+        if (filters.dateFrom) {
+          const fromDate = new Date(filters.dateFrom);
+          fromDate.setHours(0, 0, 0, 0);
+          if (contractDateObj < fromDate) matchesDate = false;
+        }
+        if (filters.dateTo) {
+          const toDate = new Date(filters.dateTo);
+          toDate.setHours(23, 59, 59, 999);
+          if (contractDateObj > toDate) matchesDate = false;
+        }
+      } else {
+        matchesDate = false;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesDealer && matchesDate;
+  });
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      status: '',
+      dealerId: '',
+      dateFrom: '',
+      dateTo: '',
+    });
+  };
+
+  const hasActiveFilters = filters.status || filters.dealerId || filters.dateFrom || filters.dateTo;
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -112,18 +217,134 @@ const DealerContractsListPage = () => {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="relative">
-          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo mã hợp đồng..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
-          />
+      {/* Search and Filters */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo mã hợp đồng..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-4 py-2 rounded-lg border flex items-center gap-2 ${
+              showFilters || hasActiveFilters
+                ? 'bg-gray-900 text-white border-gray-900'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <Filter size={18} />
+            Bộ lọc
+            {hasActiveFilters && (
+              <span className="bg-white text-gray-900 text-xs font-semibold px-2 py-0.5 rounded-full">
+                {[filters.status, filters.dealerId, filters.dateFrom, filters.dateTo].filter(Boolean).length}
+              </span>
+            )}
+          </button>
         </div>
+
+        {/* Filter Panel */}
+        {showFilters && (
+          <div className="border-t border-gray-200 pt-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Trạng thái
+                </label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                >
+                  <option value="">Tất cả</option>
+                  <option value="DRAFT">Bản nháp</option>
+                  <option value="PENDING_SIGNATURE">Chờ ký</option>
+                  <option value="ACTIVE">Đang hoạt động</option>
+                  <option value="CANCELED">Đã hủy</option>
+                </select>
+              </div>
+
+              {/* Dealer Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Đại lý
+                </label>
+                <select
+                  value={filters.dealerId}
+                  onChange={(e) => handleFilterChange('dealerId', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                >
+                  <option value="">Tất cả</option>
+                  {dealers.length === 0 ? (
+                    <option value="" disabled>Đang tải đại lý...</option>
+                  ) : (
+                    dealers.map((dealer) => {
+                      // Try multiple possible field names for dealer name
+                      const dealerName = dealer.name || 
+                                       dealer.dealerName || 
+                                       dealer.dealer?.name ||
+                                       dealer.dealer?.dealerName ||
+                                       dealerMap[dealer.id]?.name ||
+                                       dealerMap[dealer.id]?.dealerName ||
+                                       `Đại lý ${dealer.id?.slice(-6) || dealer.id || ''}`;
+                      
+                      return (
+                        <option key={dealer.id} value={dealer.id}>
+                          {dealerName}
+                        </option>
+                      );
+                    })
+                  )}
+                </select>
+              </div>
+
+              {/* Date From Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Từ ngày
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateFrom}
+                  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                />
+              </div>
+
+              {/* Date To Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Đến ngày
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateTo}
+                  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                />
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            {hasActiveFilters && (
+              <div className="flex justify-end">
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 flex items-center gap-2"
+                >
+                  <X size={16} />
+                  Xóa bộ lọc
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Contracts List */}
