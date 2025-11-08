@@ -22,7 +22,7 @@ export const masterTimeSlotSchema = z
     durationMinutes: z
       .number()
       .min(15, "Thời lượng phải ít nhất 15 phút")
-      .max(240, "Thời lượng không được vượt quá 240 phút (4 giờ)"),
+      .max(120, "Thời lượng không được vượt quá 120 phút (2 giờ)"),
 
     isActive: z.boolean().default(false),
 

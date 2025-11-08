@@ -157,6 +157,15 @@ const endpoints = {
     updateStatus: (id) => `/v1/TestDriveVehicles/${id}/status`,
     delete: (id) => `/v1/TestDriveVehicles/${id}`,
   },
+  // Vehicle Time Slots endpoints
+  vehicleTimeSlots: {
+    getAll: "/v1/VehicleTimeSlots",
+    getByDealer: (dealerId) => `/v1/VehicleTimeSlots/by-dealer/${dealerId}`,
+    create: "/v1/VehicleTimeSlots",
+    update: (id) => `/v1/VehicleTimeSlots/${id}`,
+    updateStatus: (id) => `/v1/VehicleTimeSlots/${id}/status`,
+    delete: (id) => `/v1/VehicleTimeSlots/${id}`,
+  },
   
   // Vehicle endpoints for dealer staff
   vehicles: {

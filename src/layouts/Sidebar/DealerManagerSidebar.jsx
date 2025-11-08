@@ -17,6 +17,7 @@ import {
   User,
   BarChart3,
   Package,
+  Calendar,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import axiosInstance from "../../api/axiosInstance";
@@ -109,6 +110,11 @@ const DealerManagerSidebar = () => {
       path: "/dealer-manager/master-time-slots",
       icon: Clock,
       label: "Master Time Slots",
+    },
+    {
+      path: "/dealer-manager/test-drive-schedule",
+      icon: Calendar,
+      label: "Lịch Lái Thử",
     },
   ];
 

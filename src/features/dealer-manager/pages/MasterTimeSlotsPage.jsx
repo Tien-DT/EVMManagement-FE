@@ -5,7 +5,7 @@ import {
   Clock,
   Plus,
   Search,
-  Edit,
+  Eye,
   Trash2,
   Loader2,
   AlertCircle,
@@ -300,13 +300,13 @@ const MasterTimeSlotsPage = () => {
                         <button
                           onClick={() =>
                             navigate(
-                              `/dealer-manager/master-time-slots/${slot.id}/edit`
+                              `/dealer-manager/master-time-slots/${slot.id}`
                             )
                           }
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Chỉnh sửa"
+                          title="Xem chi tiết"
                         >
-                          <Edit size={18} />
+                          <Eye size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(slot.id)}
