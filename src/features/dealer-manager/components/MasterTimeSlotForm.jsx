@@ -28,7 +28,7 @@ const BUSINESS_HOURS = [
   { hour: 17, minute: 30, label: "17:30" },
 ];
 
-const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialData, dealerId }) => {
+const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialData, dealerId, readOnly = false }) => {
   const {
     register,
     handleSubmit,
@@ -39,11 +39,13 @@ const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialD
     resolver: zodResolver(masterTimeSlotSchema),
     defaultValues: initialData || {
       code: "",
-      startHour: 8,
-      startMinute: 0,
-      endHour: 9,
+      startTime: "7:30", // Store as "hour:minute" string
+      endTime: "8:0",
+      startHour: 7,
+      startMinute: 30,
+      endHour: 8,
       endMinute: 0,
-      isActive: false,
+      isActive: true,
       dealerId: dealerId || "",
     },
   });
@@ -55,77 +57,52 @@ const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialD
     }
   }, [dealerId, setValue]);
 
-  const watchStartHour = watch("startHour");
-  const watchEndHour = watch("endHour");
+  const watchStartTime = watch("startTime");
+  const watchEndTime = watch("endTime");
+
+  // Parse time string to get hour and minute
+  const parseTime = (timeStr) => {
+    if (!timeStr) return { hour: 0, minute: 0 };
+    const [hour, minute] = timeStr.split(":").map(Number);
+    return { hour: hour || 0, minute: minute || 0 };
+  };
 
   // Calculate duration for display
   const displayDuration = React.useMemo(() => {
-    const startMin = BUSINESS_HOURS.find((t) => t.hour === watchStartHour)?.minute || 0;
-    const endMin = BUSINESS_HOURS.find((t) => t.hour === watchEndHour)?.minute || 0;
-    return calculateDuration(
-      watchStartHour || 0,
-      startMin,
-      watchEndHour || 0,
-      endMin
-    );
-  }, [watchStartHour, watchEndHour]);
+    const start = parseTime(watchStartTime);
+    const end = parseTime(watchEndTime);
+    return calculateDuration(start.hour, start.minute, end.hour, end.minute);
+  }, [watchStartTime, watchEndTime]);
 
-  // Auto-update startMinute and endMinute when hour changes
+  // Auto-update startOffsetMinutes and durationMinutes when time changes
   React.useEffect(() => {
-    const startMin = BUSINESS_HOURS.find((t) => t.hour === watchStartHour)?.minute || 0;
-    const endMin = BUSINESS_HOURS.find((t) => t.hour === watchEndHour)?.minute || 0;
+    const start = parseTime(watchStartTime);
+    const end = parseTime(watchEndTime);
     
-    if (watchStartHour) {
-      setValue("startMinute", startMin);
-    }
-    if (watchEndHour) {
-      setValue("endMinute", endMin);
-    }
-  }, [watchStartHour, watchEndHour, setValue]);
-
-  // Auto-update startOffsetMinutes and durationMinutes when form changes
-  React.useEffect(() => {
-    const startMin = BUSINESS_HOURS.find((t) => t.hour === watchStartHour)?.minute || 0;
-    const endMin = BUSINESS_HOURS.find((t) => t.hour === watchEndHour)?.minute || 0;
+    setValue("startHour", start.hour);
+    setValue("startMinute", start.minute);
+    setValue("endHour", end.hour);
+    setValue("endMinute", end.minute);
     
-    const startOffset = timeToMinutes(watchStartHour || 0, startMin);
-    const duration = calculateDuration(
-      watchStartHour || 0,
-      startMin,
-      watchEndHour || 0,
-      endMin
-    );
+    const startOffset = timeToMinutes(start.hour, start.minute);
+    const duration = calculateDuration(start.hour, start.minute, end.hour, end.minute);
+    
     setValue("startOffsetMinutes", startOffset, { shouldValidate: true });
     setValue("durationMinutes", duration, { shouldValidate: true });
-  }, [watchStartHour, watchEndHour, setValue]);
+  }, [watchStartTime, watchEndTime, setValue]);
 
   const handleFormSubmit = (data) => {
     console.log("Form data received:", data);
     
-    // Convert to API format
-    const startMin = BUSINESS_HOURS.find((t) => t.hour === data.startHour)?.minute || 0;
-    const endMin = BUSINESS_HOURS.find((t) => t.hour === data.endHour)?.minute || 0;
-    
-    const startOffset = timeToMinutes(data.startHour || 0, startMin);
-    const duration = calculateDuration(
-      data.startHour || 0,
-      startMin,
-      data.endHour || 0,
-      endMin
-    );
-    
     const payload = {
       code: data.code,
-      startOffsetMinutes: startOffset,
-      durationMinutes: duration,
+      startOffsetMinutes: data.startOffsetMinutes,
+      durationMinutes: data.durationMinutes,
       isActive: data.isActive,
       dealerId: data.dealerId,
     };
     
     console.log("Calculated payload:", payload);
-    console.log("startHour:", data.startHour, "endHour:", data.endHour);
-    console.log("startMin:", startMin, "endMin:", endMin);
-    console.log("startOffset:", startOffset, "duration:", duration);
     
     onSubmit(payload);
   };
@@ -153,9 +130,10 @@ const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialD
         <input
           type="text"
           {...register("code")}
+          disabled={readOnly}
           className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             errors.code ? "border-red-500" : "border-gray-300"
-          }`}
+          } ${readOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
           placeholder="Ví dụ: SLOT_SANG_8H, SLOT_CHIEU_14H..."
         />
         {errors.code && (
@@ -169,22 +147,24 @@ const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialD
           Thời gian bắt đầu <span className="text-red-500">*</span>
         </label>
         <select
-          {...register("startHour", { valueAsNumber: true })}
+          {...register("startTime")}
+          disabled={readOnly}
           className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.startHour || errors.startOffsetMinutes ? "border-red-500" : "border-gray-300"
-          }`}
+            errors.startOffsetMinutes ? "border-red-500" : "border-gray-300"
+          } ${readOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
         >
           <option value="">Chọn giờ bắt đầu</option>
           {BUSINESS_HOURS.map((time) => (
-            <option key={`${time.hour}-${time.minute}`} value={time.hour}>
+            <option key={`${time.hour}-${time.minute}`} value={`${time.hour}:${time.minute}`}>
               {time.label}
             </option>
           ))}
         </select>
+        <input type="hidden" {...register("startHour", { valueAsNumber: true })} />
         <input type="hidden" {...register("startMinute", { valueAsNumber: true })} />
-        {(errors.startHour || errors.startOffsetMinutes) && (
+        {errors.startOffsetMinutes && (
           <p className="mt-1 text-sm text-red-600">
-            {errors.startHour?.message || errors.startOffsetMinutes?.message}
+            {errors.startOffsetMinutes?.message}
           </p>
         )}
       </div>
@@ -195,21 +175,23 @@ const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialD
           Thời gian kết thúc <span className="text-red-500">*</span>
         </label>
         <select
-          {...register("endHour", { valueAsNumber: true })}
+          {...register("endTime")}
+          disabled={readOnly}
           className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.endHour ? "border-red-500" : "border-gray-300"
-          }`}
+            errors.durationMinutes ? "border-red-500" : "border-gray-300"
+          } ${readOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
         >
           <option value="">Chọn giờ kết thúc</option>
           {BUSINESS_HOURS.map((time) => (
-            <option key={`${time.hour}-${time.minute}`} value={time.hour}>
+            <option key={`${time.hour}-${time.minute}`} value={`${time.hour}:${time.minute}`}>
               {time.label}
             </option>
           ))}
         </select>
+        <input type="hidden" {...register("endHour", { valueAsNumber: true })} />
         <input type="hidden" {...register("endMinute", { valueAsNumber: true })} />
-        {errors.endHour && (
-          <p className="mt-1 text-sm text-red-600">{errors.endHour.message}</p>
+        {errors.durationMinutes && (
+          <p className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
         )}
       </div>
 
@@ -218,14 +200,9 @@ const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialD
         <div className="flex justify-between items-center">
           <p className="text-sm text-gray-700">
             <span className="font-semibold">Thời gian:</span>{" "}
-            {String(watchStartHour || 0).padStart(2, "0")}:
-            {String(
-              BUSINESS_HOURS.find((t) => t.hour === watchStartHour)?.minute || 0
-            ).padStart(2, "0")}{" "}
-            - {String(watchEndHour || 0).padStart(2, "0")}:
-            {String(
-              BUSINESS_HOURS.find((t) => t.hour === watchEndHour)?.minute || 0
-            ).padStart(2, "0")}
+            {watchStartTime ? BUSINESS_HOURS.find(t => `${t.hour}:${t.minute}` === watchStartTime)?.label || watchStartTime.replace(':', 'h') : ""}
+            {" - "}
+            {watchEndTime ? BUSINESS_HOURS.find(t => `${t.hour}:${t.minute}` === watchEndTime)?.label || watchEndTime.replace(':', 'h') : ""}
           </p>
           <p className="text-sm text-gray-700">
             <span className="font-semibold">Thời lượng:</span>{" "}
@@ -236,9 +213,9 @@ const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialD
               : "Vui lòng chọn thời gian hợp lệ"}
           </p>
         </div>
-        {errors.startOffsetMinutes && (
+        {(errors.startOffsetMinutes || errors.durationMinutes) && (
           <p className="mt-2 text-sm text-red-600 font-medium">
-            {errors.startOffsetMinutes.message}
+            {errors.startOffsetMinutes?.message || errors.durationMinutes?.message}
           </p>
         )}
       </div>
@@ -247,52 +224,38 @@ const MasterTimeSlotForm = ({ onSubmit, isSubmitting = false, onCancel, initialD
       <input type="hidden" {...register("startOffsetMinutes")} />
       <input type="hidden" {...register("durationMinutes")} />
       <input type="hidden" {...register("dealerId")} />
-
-      {/* Is Active Checkbox */}
-      <div className="mb-6">
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            {...register("isActive")}
-            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-          />
-          <span className="text-sm font-medium text-gray-700">
-            Kích hoạt slot này ngay sau khi tạo
-          </span>
-        </label>
-        <p className="mt-2 text-xs text-gray-500">
-          Đánh dấu nếu muốn slot này sẵn sàng sử dụng ngay
-        </p>
-      </div>
+      <input type="hidden" {...register("isActive")} value="true" />
 
       {/* Action Buttons */}
-      <div className="flex gap-4 pt-6 border-t border-gray-200">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-          disabled={isSubmitting}
-        >
-          Hủy
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting || displayDuration <= 0}
-          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              {initialData ? "Đang cập nhật..." : "Đang tạo..."}
-            </>
-          ) : (
-            <>
-              <Save size={20} />
-              {initialData ? "Cập nhật Slot" : "Tạo Slot"}
-            </>
-          )}
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="flex gap-4 pt-6 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            disabled={isSubmitting}
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting || displayDuration <= 0 || displayDuration > 120}
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                {initialData ? "Đang cập nhật..." : "Đang tạo..."}
+              </>
+            ) : (
+              <>
+                <Save size={20} />
+                {initialData ? "Cập nhật Slot" : "Tạo Slot"}
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </form>
   );
 };
