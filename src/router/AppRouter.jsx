@@ -14,7 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EvmStaffLayout from "../layouts/EVMStaffLayout";
+import EvmStaffLayout from "../layouts/EvmStaffLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
