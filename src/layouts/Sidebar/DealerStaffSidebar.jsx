@@ -9,8 +9,9 @@ import {
   Menu,
   X,
   User,
+  Calendar,
 } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
 import endpoints from "../../api/endpoints";
 
@@ -66,6 +67,11 @@ const DealerStaffSidebar = () => {
       path: "/dealer-staff/contracts",
       icon: FileCheck,
       label: "Hợp đồng",
+    },
+    {
+      path: "/dealer-staff/test-drive-bookings",
+      icon: Calendar,
+      label: "Đặt chỗ lái thử",
     },
   ];
 

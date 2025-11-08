@@ -157,6 +157,19 @@ const endpoints = {
     updateStatus: (id) => `/v1/TestDriveVehicles/${id}/status`,
     delete: (id) => `/v1/TestDriveVehicles/${id}`,
   },
+
+  // Test Drive Bookings endpoints
+  testDriveBookings: {
+    getAll: "/v1/TestDriveBookings",
+    getById: (id) => `/v1/TestDriveBookings/${id}`,
+    getByDealer: (dealerId) => `/v1/TestDriveBookings/dealer/${dealerId}`,
+    filter: "/v1/TestDriveBookings/filter",
+    create: "/v1/TestDriveBookings",
+    update: (id) => `/v1/TestDriveBookings/${id}`,
+    delete: (id) => `/v1/TestDriveBookings/${id}`,
+    sendConfirmation: (id) => `/v1/TestDriveBookings/${id}/send-confirmation`,
+    sendReminder: "/v1/TestDriveBookings/send-reminder",
+  },
   
   // Vehicle endpoints for dealer staff
   vehicles: {
