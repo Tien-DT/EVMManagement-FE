@@ -17,78 +17,14 @@ import {
   Calendar,
 } from "lucide-react";
 import { useCustomers } from "../../dealer-staff/hooks/useCustomers";
+import { useNotification } from "../../../context/NotificationContext";
 
 const CustomersPage = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotification();
   const [searchTerm, setSearchTerm] = useState("");
-  const [dealerId, setDealerId] = useState(null);
 
-  // Get dealerId from localStorage or context
-  useEffect(() => {
-    const fetchDealerId = async () => {
-      try {
-        // Check if dealerId already in localStorage
-        const cachedDealerId = localStorage.getItem("dealerId");
-        if (cachedDealerId) {
-          console.log("✅ Using cached dealerId:", cachedDealerId);
-          setDealerId(cachedDealerId);
-          return;
-        }
-
-        // Get user from localStorage
-        const userStr = localStorage.getItem("user");
-        if (!userStr) {
-          console.error("❌ No user found in localStorage");
-          setDealerId(null);
-          return;
-        }
-
-        const user = JSON.parse(userStr);
-        const accountId = user.id;
-
-        if (!accountId) {
-          console.error("❌ No accountId found in user");
-          setDealerId(null);
-          return;
-        }
-
-        console.log("🔍 Fetching dealerId for accountId:", accountId);
-
-        // Import dealerService
-        const { dealerService } = await import(
-          "../../dealer-manager/services/dealerService"
-        );
-
-        // Fetch user profile to get dealerId
-        const userProfile = await dealerService.getUserProfile(accountId);
-        console.log("📦 User profile response:", userProfile);
-
-        if (userProfile.success && userProfile.data?.dealerId) {
-          const fetchedDealerId = userProfile.data.dealerId;
-          console.log("✅ DealerId fetched from API:", fetchedDealerId);
-
-          // Save to localStorage for future use
-          localStorage.setItem(
-            "userProfile",
-            JSON.stringify(userProfile.data)
-          );
-          localStorage.setItem("dealerId", fetchedDealerId);
-
-          setDealerId(fetchedDealerId);
-        } else {
-          console.error("❌ No dealerId found in user profile");
-          console.error("User profile data:", userProfile.data);
-          setDealerId(null);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching dealerId:", error);
-        setDealerId(null);
-      }
-    };
-
-    fetchDealerId();
-  }, []);
-
+  // Use the new managed-by API endpoint (no dealerId needed)
   const {
     customers,
     isLoading,
@@ -97,12 +33,7 @@ const CustomersPage = () => {
     refreshCustomers,
     deleteCustomer,
     changePage,
-  } = useCustomers(dealerId);
-
-  // Debug: Log dealerId changes
-  useEffect(() => {
-    console.log("🎯 DealerId changed in CustomersPage:", dealerId);
-  }, [dealerId]);
+  } = useCustomers();
 
   // Filter customers based on search
   const filteredCustomers = customers.filter(
@@ -132,9 +63,9 @@ const CustomersPage = () => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa khách hàng "${fullName}"?`)) {
       const result = await deleteCustomer(id);
       if (result.success) {
-        alert("Xóa khách hàng thành công!");
+        showSuccess("Xóa khách hàng thành công!");
       } else {
-        alert(`Xóa khách hàng thất bại: ${result.error}`);
+        showError(result.error || "Xóa khách hàng thất bại");
       }
     }
   };
@@ -348,9 +279,7 @@ const CustomersPage = () => {
                       </button>
                       <button
                         onClick={() =>
-                          navigate(
-                            `/dealer-staff/customers/${customer.id}/edit`
-                          )
+                          navigate(`/dealer-staff/customers/edit/${customer.id}`)
                         }
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Chỉnh sửa"
