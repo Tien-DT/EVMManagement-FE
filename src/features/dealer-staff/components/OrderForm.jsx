@@ -36,18 +36,13 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
         const cachedDealerId = localStorage.getItem("dealerId");
         if (cachedDealerId) {
           setDealerId(cachedDealerId);
-          
-          // Fetch customers by dealer
-          const customerResponse = await customerService.getCustomersByDealer(
-            cachedDealerId,
-            1,
-            100
-          );
-          
-          if (customerResponse.success && customerResponse.data) {
-            const customersList = customerResponse.data.items || customerResponse.data;
-            setCustomers(customersList);
-          }
+        }
+        
+        // Fetch all customers managed by dealer staff
+        const customerResponse = await customerService.getAllManagedCustomers();
+        
+        if (customerResponse.success && customerResponse.data) {
+          setCustomers(customerResponse.data);
         }
       } catch (error) {
         console.error("Error fetching customers:", error);
@@ -341,7 +336,7 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
         >
           {customers.map((customer) => (
             <Option key={customer.id} value={customer.id}>
-              {customer.fullName} - {customer.phoneNumber}
+              {customer.fullName} - {customer.phone || customer.phoneNumber || "N/A"}
             </Option>
           ))}
         </Select>

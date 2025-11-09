@@ -9,23 +9,16 @@ export const useDealerCustomers = (dealerId) => {
 
   useEffect(() => {
     const fetchCustomers = async () => {
-      if (!dealerId) return;
-
       setIsLoading(true);
       setError(null);
 
       try {
-        const response = await customerService.getCustomersByDealer(
-          dealerId,
-          1,
-          1000 // Lấy tất cả customers
-        );
+        // For dealer staff, use the managed-by endpoint to get all customers
+        // This endpoint automatically returns customers managed by the current dealer staff
+        const response = await customerService.getAllManagedCustomers();
 
         if (response.success && response.data) {
-          const customersData = Array.isArray(response.data)
-            ? response.data
-            : response.data.items || [];
-          setCustomers(customersData);
+          setCustomers(response.data);
         } else {
           setCustomers([]);
         }
@@ -39,7 +32,7 @@ export const useDealerCustomers = (dealerId) => {
     };
 
     fetchCustomers();
-  }, [dealerId]);
+  }, [dealerId]); // Keep dealerId in dependency array for consistency, but we don't use it
 
   return { customers, isLoading, error };
 };
