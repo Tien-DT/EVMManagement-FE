@@ -83,6 +83,8 @@ import MasterTimeSlotsPage from "../features/dealer-manager/pages/MasterTimeSlot
 import CreateMasterTimeSlotPage from "../features/dealer-manager/pages/CreateMasterTimeSlotPage";
 import EditMasterTimeSlotPage from "../features/dealer-manager/pages/EditMasterTimeSlotPage";
 import TestDriveSchedulePage from "../features/dealer-manager/pages/TestDriveSchedulePage";
+import CreateTestDriveSchedulePage from "../features/dealer-manager/pages/CreateTestDriveSchedulePage";
+import TestDriveScheduleDetailPage from "../features/dealer-manager/pages/TestDriveScheduleDetailPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
@@ -387,10 +389,18 @@ const AppRouter = () => (
               element={<EditMasterTimeSlotPage />}
             />
 
-            {/* Test Drive Schedule Route */}
+            {/* Test Drive Schedule Routes */}
             <Route
               path="/dealer-manager/test-drive-schedule"
               element={<TestDriveSchedulePage />}
+            />
+            <Route
+              path="/dealer-manager/test-drive-schedule/create"
+              element={<CreateTestDriveSchedulePage />}
+            />
+            <Route
+              path="/dealer-manager/test-drive-schedule/:date/:masterSlotId"
+              element={<TestDriveScheduleDetailPage />}
             />
           </Route>
         </Route>

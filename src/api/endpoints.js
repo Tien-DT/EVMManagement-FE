@@ -161,7 +161,9 @@ const endpoints = {
   vehicleTimeSlots: {
     getAll: "/v1/VehicleTimeSlots",
     getByDealer: (dealerId) => `/v1/VehicleTimeSlots/by-dealer/${dealerId}`,
+    getSlotsByDate: "/v1/VehicleTimeSlots/slots-by-date",
     create: "/v1/VehicleTimeSlots",
+    bulkAssign: "/v1/VehicleTimeSlots/bulk-assign",
     update: (id) => `/v1/VehicleTimeSlots/${id}`,
     updateStatus: (id) => `/v1/VehicleTimeSlots/${id}/status`,
     delete: (id) => `/v1/VehicleTimeSlots/${id}`,

@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import { useNotification } from "../../../context/NotificationContext";
 
 const TestDriveSchedulePage = () => {
+  const navigate = useNavigate();
   const { showError } = useNotification();
   const [dealerId, setDealerId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [scheduleData, setScheduleData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(null);
 
   // Get dealerId from localStorage
   useEffect(() => {
@@ -44,49 +46,6 @@ const TestDriveSchedulePage = () => {
     fetchDealerId();
   }, []);
 
-  // Fetch schedule data
-  useEffect(() => {
-    if (!dealerId) return;
-
-    const fetchSchedule = async () => {
-      try {
-        setLoading(true);
-        const response = await axiosInstance.get(
-          endpoints.vehicleTimeSlots.getByDealer(dealerId),
-          {
-            params: {
-              pageNumber: 1,
-              pageSize: 1000, // Get all data
-            },
-          }
-        );
-
-        console.log("🔥 Full Response:", response);
-        console.log("🔥 Response.success:", response.success);
-        console.log("🔥 Response.data:", response.data);
-
-        // axiosInstance already unwraps response.data, so response is the actual data
-        if (response.success) {
-          const items = response.data?.items || [];
-          console.log("✅ Setting schedule data, count:", items.length);
-          console.log("✅ Items:", items);
-          setScheduleData(items);
-        } else {
-          console.log("❌ API response success = false");
-          console.log("❌ Response:", response);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching schedule:", error);
-        showError("Không thể tải lịch lái thử");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSchedule();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dealerId]);
-
   // Generate weeks for selected year
   const weeksInYear = useMemo(() => {
     const weeks = [];
@@ -117,7 +76,19 @@ const TestDriveSchedulePage = () => {
     return weeks;
   }, [selectedYear]);
 
-  // Get dates for selected week
+  // Auto-select current week on mount
+  useEffect(() => {
+    if (selectedWeekIndex !== null || weeksInYear.length === 0) return;
+
+    const today = new Date();
+    const currentWeekIndex = weeksInYear.findIndex((week) => {
+      return today >= week.start && today <= week.end;
+    });
+
+    setSelectedWeekIndex(currentWeekIndex >= 0 ? currentWeekIndex : 0);
+  }, [weeksInYear, selectedWeekIndex]);
+
+  // Get dates for selected week - return both Date objects and string keys
   const weekDates = useMemo(() => {
     if (!weeksInYear[selectedWeekIndex]) return [];
     
@@ -127,11 +98,65 @@ const TestDriveSchedulePage = () => {
     for (let i = 0; i < 7; i++) {
       const date = new Date(start);
       date.setDate(start.getDate() + i);
-      dates.push(date);
+      
+      // Create date string in YYYY-MM-DD format for API matching
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
+      
+      dates.push({
+        dateObj: date,
+        dateStr: dateStr,
+      });
     }
     
     return dates;
   }, [weeksInYear, selectedWeekIndex]);
+
+  // Fetch schedule data for selected week
+  useEffect(() => {
+    if (!dealerId || weekDates.length === 0 || selectedWeekIndex === null) return;
+
+    const fetchSchedule = async () => {
+      try {
+        setLoading(true);
+        
+        // Format dates as MM/DD/YYYY for API
+        const fromDate = `${String(weekDates[0].dateObj.getMonth() + 1).padStart(2, "0")}/${String(weekDates[0].dateObj.getDate()).padStart(2, "0")}/${weekDates[0].dateObj.getFullYear()}`;
+        const toDate = `${String(weekDates[6].dateObj.getMonth() + 1).padStart(2, "0")}/${String(weekDates[6].dateObj.getDate()).padStart(2, "0")}/${weekDates[6].dateObj.getFullYear()}`;
+        
+        const response = await axiosInstance.get(
+          endpoints.vehicleTimeSlots.getSlotsByDate,
+          {
+            params: {
+              dealerId,
+              fromDate,
+              toDate,
+            },
+          }
+        );
+
+        // axiosInstance already unwraps response.data, so response is the actual data
+        if (response.success) {
+          // response.data is an array of date objects
+          setScheduleData(response.data || []);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching schedule:", error);
+        // Handle 404 gracefully - no schedule for this week (don't show error notification)
+        if (error.response?.status === 404) {
+          setScheduleData([]);
+        }
+        // Don't show error notification for any case, just log to console
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedule();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dealerId, selectedYear, selectedWeekIndex]);
 
   // Convert startOffsetMinutes to time string (HH:mm)
   const minutesToTime = (minutes) => {
@@ -148,49 +173,58 @@ const TestDriveSchedulePage = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Process schedule data for the selected week
+  // Process schedule data from new API format
   const processedSchedule = useMemo(() => {
+    if (!Array.isArray(scheduleData) || scheduleData.length === 0) return {};
+
     const result = {};
 
-    weekDates.forEach((date) => {
-      const dateKey = formatDateKey(date);
-      result[dateKey] = {};
+    // Initialize all dates in week using date strings
+    weekDates.forEach((dateItem) => {
+      result[dateItem.dateStr] = {};
     });
 
-    console.log("📅 Week dates keys:", Object.keys(result));
-    console.log("📊 Schedule data count:", scheduleData.length);
-
-    // Group by date and master slot
-    scheduleData.forEach((item) => {
-      // Extract date directly from slotDate string (ignore timezone)
-      const dateKey = item.slotDate.split("T")[0];
+    // Process data array - each item has date and masterSlots
+    scheduleData.forEach((dateItem) => {
+      const dateKey = dateItem.date; // Format: "2025-10-15"
       
-      console.log("🔍 Checking item dateKey:", dateKey, "exists in result?", !!result[dateKey]);
+      if (!result[dateKey]) return; // Skip if date not in current week
       
-      // Only include if date is in current week
-      if (!result[dateKey]) return;
-
-      const masterSlotId = item.masterSlotId;
-      
-      if (!result[dateKey][masterSlotId]) {
-        result[dateKey][masterSlotId] = {
-          code: item.masterSlot.code,
-          startOffsetMinutes: item.masterSlot.startOffsetMinutes,
-          durationMinutes: item.masterSlot.durationMinutes,
-          items: [],
+      // Process masterSlots for this date
+      dateItem.masterSlots?.forEach((masterSlot) => {
+        result[dateKey][masterSlot.masterSlotId] = {
+          masterSlotId: masterSlot.masterSlotId, // Store ID for navigation
+          date: dateItem.date, // Store original date string from API
+          code: masterSlot.masterSlotCode,
+          startOffsetMinutes: masterSlot.startOffsetMinutes,
+          durationMinutes: masterSlot.durationMinutes,
+          availableVehicles: masterSlot.availableVehicles || 0,
+          bookedVehicles: masterSlot.bookedVehicles || 0,
+          totalVehicles: masterSlot.totalVehicles || 0,
         };
-      }
-      
-      result[dateKey][masterSlotId].items.push(item);
+      });
     });
 
-    // Determine status for each slot (if any item is BOOKED, show BOOKED)
+    // Determine display status based on available/booked counts
     Object.keys(result).forEach((dateKey) => {
       Object.keys(result[dateKey]).forEach((masterSlotId) => {
         const slot = result[dateKey][masterSlotId];
-        const hasBooked = slot.items.some((item) => item.status === "BOOKED");
-        slot.displayStatus = hasBooked ? "đã đặt" : "còn trống";
-        slot.statusColor = hasBooked ? "text-red-600 bg-red-50" : "text-green-600 bg-green-50";
+        const hasBooked = slot.bookedVehicles > 0;
+        const hasAvailable = slot.availableVehicles > 0;
+        
+        if (hasBooked && hasAvailable) {
+          slot.displayStatus = `${slot.availableVehicles} trống / ${slot.bookedVehicles} đã đặt`;
+          slot.statusColor = "text-orange-600 bg-orange-50";
+        } else if (hasBooked) {
+          slot.displayStatus = "đã đặt hết";
+          slot.statusColor = "text-red-600 bg-red-50";
+        } else if (hasAvailable) {
+          slot.displayStatus = "còn trống";
+          slot.statusColor = "text-green-600 bg-green-50";
+        } else {
+          slot.displayStatus = "chưa có xe";
+          slot.statusColor = "text-gray-600 bg-gray-50";
+        }
       });
     });
 
@@ -198,9 +232,8 @@ const TestDriveSchedulePage = () => {
   }, [scheduleData, weekDates]);
 
   // Get slots for a specific date, sorted by start time, limited to 4 slots
-  const getSlotsForDate = (date) => {
-    const dateKey = date.toISOString().split("T")[0];
-    const slotsForDate = processedSchedule[dateKey] || {};
+  const getSlotsForDate = (dateStr) => {
+    const slotsForDate = processedSchedule[dateStr] || {};
     
     // Convert to array and sort by startOffsetMinutes
     const sortedSlots = Object.values(slotsForDate).sort(
@@ -212,9 +245,9 @@ const TestDriveSchedulePage = () => {
   };
 
   // Format date for display (dd/MM)
-  const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
+  const formatDate = (dateObj) => {
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
     return `${day}/${month}`;
   };
 
@@ -239,14 +272,23 @@ const TestDriveSchedulePage = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Calendar className="w-8 h-8 text-blue-600" />
-          Lịch Lái Thử
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Xem lịch các xe lái thử theo tuần
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Calendar className="w-8 h-8 text-blue-600" />
+            Lịch Lái Thử
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Xem lịch các xe lái thử theo tuần
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/dealer-manager/test-drive-schedule/create")}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus size={20} />
+          Tạo lịch lái thử
+        </button>
       </div>
 
       {/* Filters */}
@@ -284,14 +326,14 @@ const TestDriveSchedulePage = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedWeekIndex(Math.max(0, selectedWeekIndex - 1))}
-                disabled={selectedWeekIndex === 0}
+                disabled={selectedWeekIndex === 0 || selectedWeekIndex === null}
                 className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={20} />
               </button>
               
               <select
-                value={selectedWeekIndex}
+                value={selectedWeekIndex === null ? "" : selectedWeekIndex}
                 onChange={(e) => setSelectedWeekIndex(Number(e.target.value))}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -308,7 +350,7 @@ const TestDriveSchedulePage = () => {
                     Math.min(weeksInYear.length - 1, selectedWeekIndex + 1)
                   )
                 }
-                disabled={selectedWeekIndex === weeksInYear.length - 1}
+                disabled={selectedWeekIndex === weeksInYear.length - 1 || selectedWeekIndex === null}
                 className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={20} />
@@ -326,6 +368,12 @@ const TestDriveSchedulePage = () => {
             <p className="mt-4 text-gray-600">Đang tải lịch...</p>
           </div>
         </div>
+      ) : !Array.isArray(scheduleData) || scheduleData.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-md p-12 text-center">
+          <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Không có lịch trong tuần này</p>
+          <p className="text-gray-500 text-sm mt-2">Hãy tạo lịch lái thử mới</p>
+        </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
@@ -335,13 +383,13 @@ const TestDriveSchedulePage = () => {
                   <th className="border border-gray-300 bg-gray-100 p-3 w-24 text-left text-sm font-semibold">
                     
                   </th>
-                  {weekDates.map((date, index) => (
+                  {weekDates.map((dateItem, index) => (
                     <th
                       key={index}
                       className="border border-gray-300 bg-blue-500 text-white p-3 text-center"
                     >
                       <div className="font-bold">{dayNames[index]}</div>
-                      <div className="text-sm">{formatDate(date)}</div>
+                      <div className="text-sm">{formatDate(dateItem.dateObj)}</div>
                     </th>
                   ))}
                 </tr>
@@ -352,8 +400,8 @@ const TestDriveSchedulePage = () => {
                     <td className="border border-gray-300 bg-gray-50 p-3 text-center font-semibold text-sm">
                       Slot {slotNumber}
                     </td>
-                    {weekDates.map((date, dateIndex) => {
-                      const slots = getSlotsForDate(date);
+                    {weekDates.map((dateItem, dateIndex) => {
+                      const slots = getSlotsForDate(dateItem.dateStr);
                       const slot = slots[slotNumber - 1];
 
                       return (
@@ -362,7 +410,17 @@ const TestDriveSchedulePage = () => {
                           className="border border-gray-300 p-2 align-top"
                         >
                           {slot ? (
-                            <div className="text-xs space-y-1">
+                            <div 
+                              className="text-xs space-y-1 cursor-pointer hover:bg-blue-50 p-2 rounded transition-colors"
+                              onClick={() => {
+                                // Use original date string from API response
+                                const dateStr = slot.date;
+                                const masterSlotId = slot.masterSlotId;
+                                if (masterSlotId && dateStr) {
+                                  navigate(`/dealer-manager/test-drive-schedule/${dateStr}/${masterSlotId}`);
+                                }
+                              }}
+                            >
                               <div className="font-bold text-blue-700">
                                 {slot.code}
                               </div>
