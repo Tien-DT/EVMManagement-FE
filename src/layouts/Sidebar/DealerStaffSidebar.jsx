@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { FileText, FileSignature, Calendar } from "lucide-react";
+import { FileText, FileSignature, Calendar, GitCompare } from "lucide-react";
 
 const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
   const { user } = useAuth();
@@ -26,6 +26,11 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
             />
           </svg>
         ),
+      },
+      {
+        name: "So sánh xe",
+        path: "/dealer-staff/vehicles/compare",
+        icon: <GitCompare size={20} />,
       },
       {
         name: "Khách hàng",
@@ -140,6 +145,7 @@ const DealerStaffSidebar = ({ collapsed, setCollapsed }) => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                end={item.path === "/dealer-staff/vehicles"}
                 className={({ isActive }) =>
                   `flex items-center px-4 py-3 transition-colors ${
                     isActive

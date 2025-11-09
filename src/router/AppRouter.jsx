@@ -88,6 +88,7 @@ import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPag
 import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
 import DealerVehicleModelsPage from "../features/dealer-staff/pages/DealerVehicleModelsPage";
 import DealerVehicleVariantsPage from "../features/dealer-staff/pages/DealerVehicleVariantsPage";
+import VehicleComparisonPage from "../features/dealer-staff/pages/VehicleComparisonPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 import QuotationDetailPage from "../features/dealer-staff/pages/QuotationDetailPage";
@@ -383,14 +384,18 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["dealer-staff"]} />}>
           <Route element={<DealerStaffLayout />}>
-            {/* Vehicle Routes */}
+            {/* Vehicle Routes - Compare route must come before /vehicles to avoid route matching issues */}
             <Route
-              path="/dealer-staff/vehicles"
-              element={<DealerVehicleModelsPage />}
+              path="/dealer-staff/vehicles/compare"
+              element={<VehicleComparisonPage />}
             />
             <Route
               path="/dealer-staff/vehicles/:modelId/variants"
               element={<DealerVehicleVariantsPage />}
+            />
+            <Route
+              path="/dealer-staff/vehicles"
+              element={<DealerVehicleModelsPage />}
             />
 
             {/* Customer Routes */}
