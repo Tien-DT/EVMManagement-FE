@@ -181,15 +181,6 @@ const endpoints = {
     delete: (id) => `/v1/VehicleTimeSlots/${id}`,
   },
   
-  // Vehicle endpoints for dealer staff
-  vehicles: {
-    getModels: "/v1/VehicleModels",
-    getVariantsByModel: (modelId) => `/v1/VehicleVariants/by-model/${modelId}`,
-    getModelsByDealer: (dealerId) => `/v1/VehicleModels/dealer/${dealerId}/models`,
-    getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants`,
-    getVehiclesByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
-  },
-  
   // Handover Records endpoints
   handoverRecords: {
     getAll: "/v1/HandoverRecords",
@@ -262,6 +253,12 @@ const endpoints = {
     create: "/v1/Vehicles",
     update: (id) => `/v1/Vehicles/${id}`,
     delete: (id) => `/v1/Vehicles/${id}`,
+    // Dealer staff specific endpoints
+    getModels: "/v1/VehicleModels",
+    getVariantsByModel: (modelId) => `/v1/VehicleVariants/by-model/${modelId}`,
+    getModelsByDealer: (dealerId) => `/v1/VehicleModels/dealer/${dealerId}/models`,
+    getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants`,
+    getVehiclesByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
   },
 
   // Payments endpoints (VNPAY Integration)
