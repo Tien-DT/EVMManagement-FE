@@ -72,6 +72,7 @@ const endpoints = {
     getAll: "/v1/Customers",
     getById: (id) => `/v1/Customers/${id}`,
     getByDealer: (dealerId) => `/v1/Customers/dealer/${dealerId}`,
+    managedBy: "/v1/Customers/managed-by",
     create: "/v1/Customers",
     update: (id) => `/v1/Customers/${id}`,
     delete: (id) => `/v1/Customers/${id}`,

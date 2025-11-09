@@ -6,7 +6,6 @@ import {
   Descriptions, 
   Button, 
   Spin, 
-  message, 
   Tag, 
   Divider, 
   Row, 
@@ -20,6 +19,7 @@ import {
   DeleteOutlined 
 } from "@ant-design/icons";
 import { customerService } from "../services/customerService";
+import { useNotification } from "../../../context/NotificationContext";
 import moment from "moment";
 
 const { Title, Text } = Typography;
@@ -27,6 +27,7 @@ const { Title, Text } = Typography;
 const CustomerDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotification();
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,15 +39,20 @@ const CustomerDetailPage = () => {
     try {
       setLoading(true);
       const response = await customerService.getCustomerById(id);
-      if (response && (response.success || response.data)) {
-        setCustomer(response.data);
-        console.log("✅ Customer details loaded:", response.data);
+      console.log("Customer details response:", response);
+      
+      // Handle different response formats
+      const customerData = response?.data || response;
+      
+      if (customerData) {
+        setCustomer(customerData);
+        console.log("✅ Customer details loaded:", customerData);
       } else {
-        message.error("Không thể tải thông tin khách hàng");
+        showError("Không thể tải thông tin khách hàng");
       }
     } catch (error) {
       console.error("❌ Error loading customer details:", error);
-      message.error("Lỗi khi tải thông tin khách hàng");
+      showError("Lỗi khi tải thông tin khách hàng");
     } finally {
       setLoading(false);
     }
@@ -71,15 +77,24 @@ const CustomerDetailPage = () => {
       try {
         setLoading(true);
         const response = await customerService.deleteCustomer(id);
-        if (response && (response.success || response.data)) {
-          message.success("Xóa khách hàng thành công");
-          navigate("/dealer-staff/customers");
+        console.log("Delete customer response:", response);
+        
+        // Handle different response formats
+        // DELETE API might return: {success: true} or just 200 OK with no body
+        if (response?.success !== false) {
+          showSuccess("Xóa khách hàng thành công");
+          // Redirect to customers list after 1 second
+          setTimeout(() => {
+            navigate("/dealer-staff/customers");
+          }, 1000);
         } else {
-          message.error("Không thể xóa khách hàng");
+          const errorMsg = response?.message || "Không thể xóa khách hàng";
+          showError(errorMsg);
         }
       } catch (error) {
         console.error("❌ Error deleting customer:", error);
-        message.error("Lỗi khi xóa khách hàng");
+        const errorMessage = error.message || "Lỗi khi xóa khách hàng";
+        showError(errorMessage);
       } finally {
         setLoading(false);
       }

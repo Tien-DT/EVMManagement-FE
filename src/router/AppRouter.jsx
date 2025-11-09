@@ -87,6 +87,7 @@ import TestDriveSchedulePage from "../features/dealer-manager/pages/TestDriveSch
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
+import EditCustomerPage from "../features/dealer-staff/pages/EditCustomerPage";
 import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
 import DealerVehicleModelsPage from "../features/dealer-staff/pages/DealerVehicleModelsPage";
 import DealerVehicleVariantsPage from "../features/dealer-staff/pages/DealerVehicleVariantsPage";
@@ -424,6 +425,10 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/customers/create"
               element={<CreateCustomerPage />}
+            />
+            <Route
+              path="/dealer-staff/customers/edit/:id"
+              element={<EditCustomerPage />}
             />
             <Route
               path="/dealer-staff/customers/:id"

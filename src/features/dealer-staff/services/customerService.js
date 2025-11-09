@@ -40,6 +40,23 @@ export const customerService = {
     }
   },
 
+  // Get customers managed by current dealer staff (new API)
+  getManagedCustomers: async (pageNumber = 1, pageSize = 10) => {
+    try {
+      const response = await axiosInstance.get(endpoints.customers.managedBy, {
+        params: {
+          pageNumber,
+          pageSize,
+        },
+      });
+      console.log("Get managed customers response:", response);
+      return response;
+    } catch (error) {
+      console.error("Get managed customers error:", error);
+      throw error;
+    }
+  },
+
   // Get customer by ID
   getCustomerById: async (id) => {
     try {

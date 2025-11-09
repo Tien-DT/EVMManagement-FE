@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { customerService } from "../services/customerService";
 
-export const useCustomers = (dealerId) => {
+export const useCustomers = () => {
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,20 +14,13 @@ export const useCustomers = (dealerId) => {
   });
 
   const fetchCustomers = async (pageNumber = 1, pageSize = 10) => {
-    if (!dealerId) {
-      console.log("No dealerId provided, skipping fetch");
-      setError("Dealer ID is required");
-      setIsLoading(false);
-      return;
-    }
-
-    console.log("Fetching customers for dealerId:", dealerId);
+    console.log("Fetching managed customers");
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await customerService.getCustomersByDealer(
-        dealerId,
+      // Use the new managed-by API endpoint
+      const response = await customerService.getManagedCustomers(
         pageNumber,
         pageSize
       );
@@ -73,24 +66,32 @@ export const useCustomers = (dealerId) => {
   };
 
   useEffect(() => {
-    if (dealerId) {
-      fetchCustomers();
-    }
-  }, [dealerId]);
+    // Fetch customers on mount - no longer need dealerId
+    fetchCustomers();
+  }, []);
 
   const deleteCustomer = async (id) => {
     try {
       const response = await customerService.deleteCustomer(id);
+      console.log("Delete customer response:", response);
 
-      if (response.success) {
+      // Handle different response formats
+      // DELETE API might return: {success: true} or just 200 OK with no body
+      // axiosInstance returns response.data which could be empty for DELETE
+      if (response?.success !== false) {
+        // Success - remove from list and refresh
         setCustomers((prev) => prev.filter((c) => c.id !== id));
+        // Refresh customers list to update pagination
+        await fetchCustomers(pagination.currentPage, pagination.pageSize);
         return { success: true };
       } else {
-        throw new Error(response.message || "Xóa khách hàng thất bại");
+        const errorMsg = response?.message || "Xóa khách hàng thất bại";
+        throw new Error(errorMsg);
       }
     } catch (err) {
       console.error("Delete customer error:", err);
-      return { success: false, error: err.message };
+      const errorMessage = err.message || "Không thể xóa khách hàng";
+      return { success: false, error: errorMessage };
     }
   };
 
