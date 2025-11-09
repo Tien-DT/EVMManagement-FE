@@ -97,16 +97,12 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
   };
 
   const fetchCustomers = async () => {
-    if (!dealerId) return;
-    
     setLoadingCustomers(true);
     try {
-      const response = await customerService.getCustomersByDealer(dealerId, 1, 1000);
+      // Fetch all customers managed by dealer staff
+      const response = await customerService.getAllManagedCustomers();
       if (response.success && response.data) {
-        const customersList = Array.isArray(response.data) 
-          ? response.data 
-          : response.data.items || [];
-        setCustomers(customersList);
+        setCustomers(response.data);
       }
     } catch (error) {
       console.error("Error fetching customers:", error);

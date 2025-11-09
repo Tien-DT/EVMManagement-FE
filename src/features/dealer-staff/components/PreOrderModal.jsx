@@ -17,10 +17,10 @@ const PreOrderModal = ({ visible, onClose, variant, dealerId, onSuccess }) => {
 
   // Fetch customers when modal opens
   useEffect(() => {
-    if (visible && dealerId) {
+    if (visible) {
       fetchCustomers();
     }
-  }, [visible, dealerId]);
+  }, [visible]);
 
   // Reset form when modal closes
   useEffect(() => {
@@ -35,12 +35,10 @@ const PreOrderModal = ({ visible, onClose, variant, dealerId, onSuccess }) => {
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const response = await customerService.getCustomersByDealer(dealerId, 1, 1000);
+      // Fetch all customers managed by dealer staff
+      const response = await customerService.getAllManagedCustomers();
       if (response.success && response.data) {
-        const customersList = Array.isArray(response.data) 
-          ? response.data 
-          : response.data.items || [];
-        setCustomers(customersList);
+        setCustomers(response.data);
       }
     } catch (error) {
       console.error("Error fetching customers:", error);

@@ -57,6 +57,54 @@ export const customerService = {
     }
   },
 
+  // Get all customers managed by current dealer staff (fetches all pages)
+  getAllManagedCustomers: async () => {
+    try {
+      let allCustomers = [];
+      let pageNumber = 1;
+      const pageSize = 1000; // Large page size to minimize requests
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await axiosInstance.get(endpoints.customers.managedBy, {
+          params: {
+            pageNumber,
+            pageSize,
+          },
+        });
+
+        if (response.success && response.data) {
+          const customersData = Array.isArray(response.data)
+            ? response.data
+            : response.data.items || [];
+          
+          allCustomers = [...allCustomers, ...customersData];
+
+          // Check if there are more pages
+          const totalPages = response.data.totalPages || 0;
+          const currentPage = response.data.pageNumber || pageNumber;
+          
+          if (currentPage >= totalPages || customersData.length < pageSize) {
+            hasMore = false;
+          } else {
+            pageNumber++;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      console.log(`Fetched all ${allCustomers.length} managed customers`);
+      return {
+        success: true,
+        data: allCustomers,
+      };
+    } catch (error) {
+      console.error("Get all managed customers error:", error);
+      throw error;
+    }
+  },
+
   // Get customer by ID
   getCustomerById: async (id) => {
     try {
