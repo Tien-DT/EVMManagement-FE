@@ -169,6 +169,8 @@ const endpoints = {
     delete: (id) => `/v1/TestDriveBookings/${id}`,
     sendConfirmation: (id) => `/v1/TestDriveBookings/${id}/send-confirmation`,
     sendReminder: "/v1/TestDriveBookings/send-reminder",
+  },
+
   // Vehicle Time Slots endpoints
   vehicleTimeSlots: {
     getAll: "/v1/VehicleTimeSlots",
