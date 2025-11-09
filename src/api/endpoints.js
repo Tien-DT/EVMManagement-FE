@@ -72,6 +72,7 @@ const endpoints = {
     getAll: "/v1/Customers",
     getById: (id) => `/v1/Customers/${id}`,
     getByDealer: (dealerId) => `/v1/Customers/dealer/${dealerId}`,
+    managedBy: "/v1/Customers/managed-by",
     create: "/v1/Customers",
     update: (id) => `/v1/Customers/${id}`,
     delete: (id) => `/v1/Customers/${id}`,
@@ -157,6 +158,20 @@ const endpoints = {
     updateStatus: (id) => `/v1/TestDriveVehicles/${id}/status`,
     delete: (id) => `/v1/TestDriveVehicles/${id}`,
   },
+
+  // Test Drive Bookings endpoints
+  testDriveBookings: {
+    getAll: "/v1/TestDriveBookings",
+    getById: (id) => `/v1/TestDriveBookings/${id}`,
+    getByDealer: (dealerId) => `/v1/TestDriveBookings/dealer/${dealerId}`,
+    filter: "/v1/TestDriveBookings/filter",
+    create: "/v1/TestDriveBookings",
+    update: (id) => `/v1/TestDriveBookings/${id}`,
+    delete: (id) => `/v1/TestDriveBookings/${id}`,
+    sendConfirmation: (id) => `/v1/TestDriveBookings/${id}/send-confirmation`,
+    sendReminder: "/v1/TestDriveBookings/send-reminder",
+  },
+
   // Vehicle Time Slots endpoints
   vehicleTimeSlots: {
     getAll: "/v1/VehicleTimeSlots",
@@ -167,15 +182,6 @@ const endpoints = {
     update: (id) => `/v1/VehicleTimeSlots/${id}`,
     updateStatus: (id) => `/v1/VehicleTimeSlots/${id}/status`,
     delete: (id) => `/v1/VehicleTimeSlots/${id}`,
-  },
-  
-  // Vehicle endpoints for dealer staff
-  vehicles: {
-    getModels: "/v1/VehicleModels",
-    getVariantsByModel: (modelId) => `/v1/VehicleVariants/by-model/${modelId}`,
-    getModelsByDealer: (dealerId) => `/v1/VehicleModels/dealer/${dealerId}/models`,
-    getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants`,
-    getVehiclesByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
   },
   
   // Handover Records endpoints
@@ -250,6 +256,12 @@ const endpoints = {
     create: "/v1/Vehicles",
     update: (id) => `/v1/Vehicles/${id}`,
     delete: (id) => `/v1/Vehicles/${id}`,
+    // Dealer staff specific endpoints
+    getModels: "/v1/VehicleModels",
+    getVariantsByModel: (modelId) => `/v1/VehicleVariants/by-model/${modelId}`,
+    getModelsByDealer: (dealerId) => `/v1/VehicleModels/dealer/${dealerId}/models`,
+    getVariantsByDealerAndModel: (dealerId, modelId) => `/v1/VehicleVariants/dealer/${dealerId}/models/${modelId}/variants`,
+    getVehiclesByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
   },
 
   // Payments endpoints (VNPAY Integration)

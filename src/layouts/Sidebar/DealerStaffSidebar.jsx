@@ -9,8 +9,10 @@ import {
   Menu,
   X,
   User,
+  Calendar,
+  GitCompare,
 } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
 import endpoints from "../../api/endpoints";
 
@@ -46,6 +48,12 @@ const DealerStaffSidebar = () => {
       path: "/dealer-staff/vehicles",
       icon: Car,
       label: "Xe",
+      exact: true, // Only match exact path, not sub-routes
+    },
+    {
+      path: "/dealer-staff/vehicles/compare",
+      icon: GitCompare,
+      label: "So sánh xe",
     },
     {
       path: "/dealer-staff/customers",
@@ -67,9 +75,17 @@ const DealerStaffSidebar = () => {
       icon: FileCheck,
       label: "Hợp đồng",
     },
+    {
+      path: "/dealer-staff/test-drive-bookings",
+      icon: Calendar,
+      label: "Đặt chỗ lái thử",
+    },
   ];
 
-  const isActive = (path) => {
+  const isActive = (path, exact = false) => {
+    if (exact) {
+      return location.pathname === path;
+    }
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
 
@@ -136,7 +152,7 @@ const DealerStaffSidebar = () => {
 
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const active = isActive(item.path);
+            const active = isActive(item.path, item.exact);
 
             return (
               <Link

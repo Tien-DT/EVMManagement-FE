@@ -14,7 +14,7 @@ import RoleBasedRoute from "./RoleBasedRoute";
 import AdminLayout from "../layouts/AdminLayout";
 import DealerManagerLayout from "../layouts/DealerManagerLayout";
 import DealerStaffLayout from "../layouts/DealerStaffLayout";
-import EvmStaffLayout from "../layouts/EVMStaffLayout";
+import EvmStaffLayout from "../layouts/EvmStaffLayout";
 
 // Admin Pages
 import DashboardPage from "../features/admin/pages/DashboardPage";
@@ -89,9 +89,11 @@ import TestDriveScheduleDetailPage from "../features/dealer-manager/pages/TestDr
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
 import CreateCustomerPage from "../features/dealer-staff/pages/CreateCustomerPage";
+import EditCustomerPage from "../features/dealer-staff/pages/EditCustomerPage";
 import CustomerDetailPage from "../features/dealer-staff/pages/CustomerDetailPage";
 import DealerVehicleModelsPage from "../features/dealer-staff/pages/DealerVehicleModelsPage";
 import DealerVehicleVariantsPage from "../features/dealer-staff/pages/DealerVehicleVariantsPage";
+import VehicleComparisonPage from "../features/dealer-staff/pages/VehicleComparisonPage";
 import QuotationsPage from "../features/dealer-staff/pages/QuotationsPage";
 import CreateQuotationPage from "../features/dealer-staff/pages/CreateQuotationPage";
 import QuotationDetailPage from "../features/dealer-staff/pages/QuotationDetailPage";
@@ -103,6 +105,10 @@ import OrderDetailPage from "../features/dealer-staff/pages/OrderDetailPage";
 import ContractsPage from "../features/dealer-staff/pages/ContractsPage";
 import CreateContractPage from "../features/dealer-staff/pages/CreateContractPage";
 import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPage";
+
+// Test Drive Booking Pages
+import TestDriveBookingsPage from "../features/dealer-staff/pages/TestDriveBookingsPage";
+import CreateTestDriveBookingPage from "../features/dealer-staff/pages/CreateTestDriveBookingPage";
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
@@ -410,14 +416,18 @@ const AppRouter = () => (
       <Route element={<PrivateRoute />}>
         <Route element={<RoleBasedRoute allowedRoles={["dealer-staff"]} />}>
           <Route element={<DealerStaffLayout />}>
-            {/* Vehicle Routes */}
+            {/* Vehicle Routes - Compare route must come before /vehicles to avoid route matching issues */}
             <Route
-              path="/dealer-staff/vehicles"
-              element={<DealerVehicleModelsPage />}
+              path="/dealer-staff/vehicles/compare"
+              element={<VehicleComparisonPage />}
             />
             <Route
               path="/dealer-staff/vehicles/:modelId/variants"
               element={<DealerVehicleVariantsPage />}
+            />
+            <Route
+              path="/dealer-staff/vehicles"
+              element={<DealerVehicleModelsPage />}
             />
 
             {/* Customer Routes */}
@@ -425,6 +435,10 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/customers/create"
               element={<CreateCustomerPage />}
+            />
+            <Route
+              path="/dealer-staff/customers/edit/:id"
+              element={<EditCustomerPage />}
             />
             <Route
               path="/dealer-staff/customers/:id"
@@ -465,6 +479,16 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/contracts/:id"
               element={<ContractDetailPage />}
+            />
+
+            {/* Test Drive Booking Routes */}
+            <Route
+              path="/dealer-staff/test-drive-bookings"
+              element={<TestDriveBookingsPage />}
+            />
+            <Route
+              path="/dealer-staff/test-drive-bookings/create"
+              element={<CreateTestDriveBookingPage />}
             />
           </Route>
         </Route>
