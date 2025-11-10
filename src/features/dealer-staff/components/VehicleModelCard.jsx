@@ -12,11 +12,11 @@ const VehicleModelCard = ({ model, basePath = "/dealer-staff/vehicles" }) => {
 
   return (
     <Card
-      hoverable={!isOutOfStock}
+      hoverable={true}
       onClick={handleClick}
       style={{
-        opacity: isOutOfStock ? 0.6 : 1,
-        cursor: isOutOfStock ? "not-allowed" : "pointer",
+        opacity: isOutOfStock ? 0.75 : 1,
+        cursor: "pointer",
       }}
       cover={
         <div

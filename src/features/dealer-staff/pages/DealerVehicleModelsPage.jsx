@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Spin, Empty, Card, Breadcrumb } from "antd";
+import { Spin, Breadcrumb } from "antd";
 import { HomeOutlined, CarOutlined } from "@ant-design/icons";
 import { useAuth } from "../../../context/AuthContext";
 import { useDealerVehicleModels } from "../hooks/useDealerVehicleModels";
@@ -85,38 +85,46 @@ const DealerVehicleModelsPage = () => {
   const { models, loading } = useDealerVehicleModels(dealerId);
 
   return (
-    <div style={{ padding: "24px" }}>
-      <Breadcrumb style={{ marginBottom: 24 }}>
-        <Breadcrumb.Item>
-          <HomeOutlined />
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>
-          <CarOutlined />
-          <span style={{ marginLeft: 8 }}>Danh sách xe</span>
-        </Breadcrumb.Item>
-      </Breadcrumb>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="mb-6">
+        <Breadcrumb>
+          <Breadcrumb.Item>
+            <HomeOutlined />
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <CarOutlined />
+            <span className="ml-2">Danh sách xe</span>
+          </Breadcrumb.Item>
+        </Breadcrumb>
+      </div>
 
-      <Card>
-        <h2 style={{ marginBottom: 24, fontSize: 24, fontWeight: 600 }}>
-          Danh sách mẫu xe
-        </h2>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Vehicle Models</h1>
+          <p className="text-gray-600 mt-1">Manage your electric vehicle models</p>
+        </div>
+      </div>
 
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "50px 0" }}>
-            <Spin size="large" />
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Spin size="large" />
+          <span className="ml-3 text-gray-600">Loading...</span>
+        </div>
+      ) : models.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <span className="text-2xl">🚗</span>
           </div>
-        ) : models.length === 0 ? (
-          <Empty description="Không có mẫu xe nào trong kho" />
-        ) : (
-          <Row gutter={[16, 16]}>
-            {models.map((model) => (
-              <Col key={model.id} xs={24} sm={12} md={8} lg={6}>
-                <VehicleModelCard model={model} />
-              </Col>
-            ))}
-          </Row>
-        )}
-      </Card>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Không có mẫu xe nào</h3>
+          <p className="text-gray-500">Chưa có mẫu xe nào trong kho</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {models.map((model) => (
+            <VehicleModelCard key={model.id} model={model} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -415,6 +415,12 @@ const VehicleComparisonPage = () => {
                       behavior: "smooth"
                     });
                   }}
+                  style={{
+                    opacity: 1,
+                    backgroundColor: "#1890ff",
+                    borderColor: "#1890ff",
+                  }}
+                  className="hover:!opacity-100 hover:!bg-blue-600"
                 >
                   Xem so sánh
                 </Button>
