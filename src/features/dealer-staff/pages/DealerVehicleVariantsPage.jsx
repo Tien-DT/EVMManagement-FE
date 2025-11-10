@@ -25,29 +25,85 @@ const DealerVehicleVariantsPage = () => {
   const [preOrderVariant, setPreOrderVariant] = useState(null);
   const [addingToCart, setAddingToCart] = useState(false);
 
+  // Fetch dealerId and userId
   useEffect(() => {
-    const userProfileStr = localStorage.getItem("userProfile");
-    const userStr = localStorage.getItem("user");
-
-    if (userProfileStr) {
+    const fetchDealerId = async () => {
       try {
-        const userProfile = JSON.parse(userProfileStr);
-        setDealerId(userProfile.dealerId);
-        setUserId(userProfile.id);
-      } catch (err) {
-        console.error("Error parsing userProfile:", err);
-      }
-    }
+        // Check if dealerId already in localStorage
+        const cachedDealerId = localStorage.getItem("dealerId");
+        if (cachedDealerId) {
+          console.log("✅ Using cached dealerId:", cachedDealerId);
+          setDealerId(cachedDealerId);
+        }
 
-    if (!userId && userStr) {
-      try {
-        const userData = JSON.parse(userStr);
-        setUserId(userData.id);
-      } catch (err) {
-        console.error("Error parsing user:", err);
+        // Check userProfile in localStorage
+        const userProfileStr = localStorage.getItem("userProfile");
+        if (userProfileStr) {
+          try {
+            const userProfile = JSON.parse(userProfileStr);
+            if (userProfile.dealerId) {
+              console.log("✅ Using dealerId from userProfile:", userProfile.dealerId);
+              localStorage.setItem("dealerId", userProfile.dealerId);
+              setDealerId(userProfile.dealerId);
+            }
+            if (userProfile.id) {
+              setUserId(userProfile.id);
+            }
+          } catch (err) {
+            console.error("Error parsing userProfile:", err);
+          }
+        }
+
+        // Get user from localStorage
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          try {
+            const userData = JSON.parse(userStr);
+            if (userData.id && !userId) {
+              setUserId(userData.id);
+            }
+
+            // If still no dealerId, fetch from API
+            if (!cachedDealerId && userData.id) {
+              const accountId = userData.id;
+              console.log("🔍 Fetching dealerId for accountId:", accountId);
+
+              // Import dealerService dynamically
+              const { dealerService } = await import(
+                "../../dealer-manager/services/dealerService"
+              );
+
+              // Fetch user profile to get dealerId
+              const userProfile = await dealerService.getUserProfile(accountId);
+              console.log("📦 User profile response:", userProfile);
+
+              if (userProfile.success && userProfile.data?.dealerId) {
+                const fetchedDealerId = userProfile.data.dealerId;
+                console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+                // Save to localStorage for future use
+                localStorage.setItem("dealerId", fetchedDealerId);
+                localStorage.setItem("userProfile", JSON.stringify(userProfile.data));
+                setDealerId(fetchedDealerId);
+                
+                if (userProfile.data.id) {
+                  setUserId(userProfile.data.id);
+                }
+              } else {
+                console.error("❌ No dealerId found in user profile");
+              }
+            }
+          } catch (err) {
+            console.error("Error parsing user or fetching dealerId:", err);
+          }
+        }
+      } catch (error) {
+        console.error("❌ Error fetching dealerId:", error);
       }
-    }
-  }, [userId]);
+    };
+
+    fetchDealerId();
+  }, []);
 
   const dedupeCartItems = useCallback((items = []) => {
     const seen = new Set();
@@ -88,6 +144,16 @@ const DealerVehicleVariantsPage = () => {
   }, [cartItems, dedupeCartItems]);
 
   const { variants, loading } = useDealerVehicleVariants(dealerId, modelId);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("🔍 DealerVehicleVariantsPage state:", {
+      dealerId,
+      modelId,
+      variantsCount: variants.length,
+      loading
+    });
+  }, [dealerId, modelId, variants.length, loading]);
 
   const handleVariantClick = (variant) => {
     setSelectedVariant(variant);
@@ -210,8 +276,15 @@ const DealerVehicleVariantsPage = () => {
           <div style={{ textAlign: "center", padding: "50px 0" }}>
             <Spin size="large" />
           </div>
+        ) : !dealerId ? (
+          <Empty description="Đang tải thông tin dealer..." />
+        ) : !modelId ? (
+          <Empty description="Không tìm thấy mã model xe" />
         ) : variants.length === 0 ? (
-          <Empty description="Không có biến thể xe nào còn hàng" />
+          <Empty 
+            description="Không có biến thể xe nào còn hàng"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
         ) : (
           <Row gutter={[16, 16]}>
             {variants.map((variant) => (

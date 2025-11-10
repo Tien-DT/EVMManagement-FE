@@ -9,17 +9,78 @@ const DealerVehicleModelsPage = () => {
   const { user } = useAuth();
   const [dealerId, setDealerId] = useState(null);
 
+  // Fetch dealerId from localStorage or API
   useEffect(() => {
-    const userProfileStr = localStorage.getItem("userProfile");
-    if (userProfileStr) {
+    const fetchDealerId = async () => {
       try {
-        const userProfile = JSON.parse(userProfileStr);
-        setDealerId(userProfile.dealerId);
-      } catch (err) {
-        console.error("Error parsing userProfile:", err);
+        // Check if dealerId already in localStorage
+        const cachedDealerId = localStorage.getItem("dealerId");
+        if (cachedDealerId) {
+          console.log("✅ Using cached dealerId:", cachedDealerId);
+          setDealerId(cachedDealerId);
+          return;
+        }
+
+        // Check userProfile in localStorage
+        const userProfileStr = localStorage.getItem("userProfile");
+        if (userProfileStr) {
+          try {
+            const userProfile = JSON.parse(userProfileStr);
+            if (userProfile.dealerId) {
+              console.log("✅ Using dealerId from userProfile:", userProfile.dealerId);
+              localStorage.setItem("dealerId", userProfile.dealerId);
+              setDealerId(userProfile.dealerId);
+              return;
+            }
+          } catch (err) {
+            console.error("Error parsing userProfile:", err);
+          }
+        }
+
+        // Get user from localStorage
+        const userStr = localStorage.getItem("user");
+        if (!userStr) {
+          console.error("❌ No user found in localStorage");
+          return;
+        }
+
+        const userData = JSON.parse(userStr);
+        const accountId = userData.id || user?.id;
+
+        if (!accountId) {
+          console.error("❌ No accountId found in user");
+          return;
+        }
+
+        console.log("🔍 Fetching dealerId for accountId:", accountId);
+
+        // Import dealerService dynamically
+        const { dealerService } = await import(
+          "../../dealer-manager/services/dealerService"
+        );
+
+        // Fetch user profile to get dealerId
+        const userProfile = await dealerService.getUserProfile(accountId);
+        console.log("📦 User profile response:", userProfile);
+
+        if (userProfile.success && userProfile.data?.dealerId) {
+          const fetchedDealerId = userProfile.data.dealerId;
+          console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+          // Save to localStorage for future use
+          localStorage.setItem("dealerId", fetchedDealerId);
+          localStorage.setItem("userProfile", JSON.stringify(userProfile.data));
+          setDealerId(fetchedDealerId);
+        } else {
+          console.error("❌ No dealerId found in user profile");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching dealerId:", error);
       }
-    }
-  }, []);
+    };
+
+    fetchDealerId();
+  }, [user]);
 
   const { models, loading } = useDealerVehicleModels(dealerId);
 

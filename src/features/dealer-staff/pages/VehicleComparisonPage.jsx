@@ -46,15 +46,75 @@ const VehicleComparisonPage = () => {
 
   // Fetch dealerId
   useEffect(() => {
-    const userProfileStr = localStorage.getItem("userProfile");
-    if (userProfileStr) {
+    const fetchDealerId = async () => {
       try {
-        const userProfile = JSON.parse(userProfileStr);
-        setDealerId(userProfile.dealerId);
-      } catch (err) {
-        console.error("Error parsing userProfile:", err);
+        // Check if dealerId already in localStorage
+        const cachedDealerId = localStorage.getItem("dealerId");
+        if (cachedDealerId) {
+          console.log("✅ Using cached dealerId:", cachedDealerId);
+          setDealerId(cachedDealerId);
+          return;
+        }
+
+        // Check userProfile in localStorage
+        const userProfileStr = localStorage.getItem("userProfile");
+        if (userProfileStr) {
+          try {
+            const userProfile = JSON.parse(userProfileStr);
+            if (userProfile.dealerId) {
+              console.log("✅ Using dealerId from userProfile:", userProfile.dealerId);
+              localStorage.setItem("dealerId", userProfile.dealerId);
+              setDealerId(userProfile.dealerId);
+              return;
+            }
+          } catch (err) {
+            console.error("Error parsing userProfile:", err);
+          }
+        }
+
+        // Get user from localStorage
+        const userStr = localStorage.getItem("user");
+        if (!userStr) {
+          console.error("❌ No user found in localStorage");
+          return;
+        }
+
+        const userData = JSON.parse(userStr);
+        const accountId = userData.id;
+
+        if (!accountId) {
+          console.error("❌ No accountId found in user");
+          return;
+        }
+
+        console.log("🔍 Fetching dealerId for accountId:", accountId);
+
+        // Import dealerService dynamically
+        const { dealerService } = await import(
+          "../../dealer-manager/services/dealerService"
+        );
+
+        // Fetch user profile to get dealerId
+        const userProfile = await dealerService.getUserProfile(accountId);
+        console.log("📦 User profile response:", userProfile);
+
+        if (userProfile.success && userProfile.data?.dealerId) {
+          const fetchedDealerId = userProfile.data.dealerId;
+          console.log("✅ DealerId fetched from API:", fetchedDealerId);
+
+          // Save to localStorage for future use
+          localStorage.setItem("dealerId", fetchedDealerId);
+          localStorage.setItem("userProfile", JSON.stringify(userProfile.data));
+          setDealerId(fetchedDealerId);
+        } else {
+          console.error("❌ No dealerId found in user profile");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching dealerId:", error);
       }
-    }
+    };
+
+    fetchDealerId();
   }, []);
 
   // Fetch all vehicle models
@@ -85,9 +145,11 @@ const VehicleComparisonPage = () => {
 
       setVariantsLoading(true);
       try {
+        console.log("🚗 Fetching variants for", models.length, "models");
         // Fetch all variants in parallel
         const variantPromises = models.map(async (model) => {
           try {
+            console.log(`🔍 Fetching variants for model ${model.id} (${model.name})`);
             const response = await vehicleService.getVehicleVariantsWithStock(
               dealerId,
               model.id,
@@ -95,17 +157,36 @@ const VehicleComparisonPage = () => {
               100
             );
 
+            console.log(`📦 Variants response for model ${model.id}:`, response);
+
             let variantsData = [];
-            const payload = response?.data ?? response;
-            if (Array.isArray(payload?.items)) {
-              variantsData = payload.items;
-            } else if (Array.isArray(payload)) {
-              variantsData = payload;
-            } else if (Array.isArray(response?.data?.items)) {
-              variantsData = response.data.items;
-            } else if (Array.isArray(response?.data)) {
-              variantsData = response.data;
+            
+            // Handle different response structures (axiosInstance returns response.data)
+            if (response?.success && response?.data) {
+              // Structure: { success: true, data: { items: [...], totalCount: ... } }
+              const data = response.data;
+              if (Array.isArray(data.items)) {
+                variantsData = data.items;
+              } else if (Array.isArray(data)) {
+                variantsData = data;
+              }
+            } else if (Array.isArray(response?.items)) {
+              // Structure: { items: [...], totalCount: ... }
+              variantsData = response.items;
+            } else if (Array.isArray(response)) {
+              // Structure: [...]
+              variantsData = response;
+            } else if (response?.data) {
+              // Structure: { data: { items: [...], totalCount: ... } }
+              const data = response.data;
+              if (Array.isArray(data.items)) {
+                variantsData = data.items;
+              } else if (Array.isArray(data)) {
+                variantsData = data;
+              }
             }
+
+            console.log(`✅ Found ${variantsData.length} variants for model ${model.id}`);
 
             return {
               model,
@@ -116,7 +197,8 @@ const VehicleComparisonPage = () => {
               }))
             };
           } catch (error) {
-            console.error(`Error fetching variants for model ${model.id}:`, error);
+            console.error(`❌ Error fetching variants for model ${model.id}:`, error);
+            console.error("Error details:", error.response?.data || error.message);
             return { model, variants: [] };
           }
         });
@@ -134,6 +216,9 @@ const VehicleComparisonPage = () => {
           };
         });
 
+        console.log(`✅ Total variants loaded: ${allVariants.length}`);
+        console.log(`✅ Models with variants: ${Object.keys(groupedVariants).length}`);
+
         // Cache the results
         const cacheData = {
           allVariants,
@@ -145,7 +230,8 @@ const VehicleComparisonPage = () => {
         setAvailableVariants(allVariants);
         setVariantOptions(groupedVariants);
       } catch (error) {
-        console.error("Error fetching variants:", error);
+        console.error("❌ Error fetching variants:", error);
+        console.error("Error details:", error.response?.data || error.message);
       } finally {
         setVariantsLoading(false);
       }
@@ -157,15 +243,26 @@ const VehicleComparisonPage = () => {
   // Fetch full variant details when selected
   const fetchVariantDetails = async (variantId) => {
     try {
+      console.log("🔍 Fetching variant details for:", variantId);
       const response = await axiosInstance.get(
         endpoints.vehicleVariants.getById(variantId)
       );
-      if (response.success && response.data) {
+      console.log("📦 Variant details response:", response);
+      
+      // Handle different response structures
+      if (response?.success && response?.data) {
         return response.data;
+      } else if (response?.data && !response.success) {
+        // Some APIs return data directly without success flag
+        return response.data;
+      } else if (response && !response.success && !response.data) {
+        // Response is the data itself
+        return response;
       }
       return null;
     } catch (error) {
-      console.error("Error fetching variant details:", error);
+      console.error("❌ Error fetching variant details:", error);
+      console.error("Error details:", error.response?.data || error.message);
       return null;
     }
   };
@@ -432,8 +529,18 @@ const VehicleComparisonPage = () => {
           />
         )}
 
-        {filteredVariants.length === 0 ? (
-          <Empty description="Không tìm thấy xe phù hợp" />
+        {availableVariants.length === 0 && !variantsLoading ? (
+          <Empty 
+            description={
+              models.length === 0 
+                ? "Không có mẫu xe nào trong kho" 
+                : "Không có biến thể xe nào để so sánh"
+            }
+          />
+        ) : filteredVariants.length === 0 && searchTerm ? (
+          <Empty description="Không tìm thấy xe phù hợp với từ khóa tìm kiếm" />
+        ) : filteredVariants.length === 0 && selectedModelFilter ? (
+          <Empty description="Không có xe nào trong model đã chọn" />
         ) : (
           <Row gutter={[16, 16]}>
             {filteredVariants.map((variant) => {
