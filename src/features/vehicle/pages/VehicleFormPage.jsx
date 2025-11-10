@@ -14,7 +14,7 @@ const emptyForm = {
   imageUrl: "",
 };
 
-const rankingOptions = ["Premium", "Standard", "Economy"];
+const rankingOptions = ["Premium", "MidRange", "Standard"];
 
 export default function VehicleFormPage() {
   const navigate = useNavigate();
