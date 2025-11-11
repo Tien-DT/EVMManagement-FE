@@ -23,6 +23,7 @@ import { DeleteOutlined, ShoppingCartOutlined, CarOutlined, ClearOutlined } from
 import moment from "moment";
 import { vehicleService } from "../services/vehicleService";
 import { customerService } from "../services/customerService";
+import { promotionService } from "../../promotion/services/promotionService";
 
 const { Panel } = Collapse;
 
@@ -33,6 +34,9 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
   const [isFinanced, setIsFinanced] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [promotions, setPromotions] = useState([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(false);
+  const [selectedPromotion, setSelectedPromotion] = useState(null);
 
   const formatPrice = (price) => {
     if (!price) return "0 ₫";
@@ -112,6 +116,46 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
     }
   };
 
+  const fetchPromotions = async () => {
+    setLoadingPromotions(true);
+    try {
+      const uniqueItems = getUniqueCartItems();
+      const variantIds = [...new Set(uniqueItems.map(item => item.variantId).filter(Boolean))];
+      
+      if (variantIds.length === 0) {
+        setPromotions([]);
+        return;
+      }
+
+      // Fetch promotions for the first variant (or combine results from all variants)
+      // For now, we'll fetch for the first variant. If needed, we can enhance to fetch for all variants
+      const variantId = variantIds[0];
+      const response = await promotionService.getVehiclePromotions({
+        variantId: variantId,
+        pageNumber: 1,
+        pageSize: 100,
+      });
+
+      // Handle different response structures
+      let promotionsData = [];
+      if (response?.data) {
+        promotionsData = Array.isArray(response.data) ? response.data : response.data.items || [];
+      } else if (Array.isArray(response)) {
+        promotionsData = response;
+      } else if (response?.items) {
+        promotionsData = response.items;
+      }
+
+      setPromotions(promotionsData);
+    } catch (error) {
+      console.error("Error fetching promotions:", error);
+      // Don't show error message as promotions are optional
+      setPromotions([]);
+    } finally {
+      setLoadingPromotions(false);
+    }
+  };
+
   const calculateTotal = () => {
     return getUniqueCartItems().reduce((sum, item) => {
       return sum + (item.price || 0);
@@ -124,6 +168,7 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
       return;
     }
     fetchCustomers(); // Fetch customers when opening modal
+    fetchPromotions(); // Fetch promotions when opening modal
     setShowOrderModal(true);
   };
 
@@ -209,7 +254,9 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
         totalAmount: cartTotal,
         discountAmount: 0,
         finalAmount: cartTotal,
+        promotionId: undefined,
       });
+      setSelectedPromotion(null);
     }
   }, [showOrderModal, form]);
 
@@ -217,11 +264,39 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
     const cartTotal = form.getFieldValue("cartTotal") || 0;
     const other = form.getFieldValue("otherCosts") || 0;
     const totalAmount = cartTotal + other;
-    const discount = form.getFieldValue("discountAmount") || 0;
+    
+    // Recalculate discount if promotion is selected
+    let discount = form.getFieldValue("discountAmount") || 0;
+    if (selectedPromotion && selectedPromotion.discountPercent) {
+      discount = Math.round((totalAmount * selectedPromotion.discountPercent) / 100);
+      form.setFieldsValue({ discountAmount: discount });
+    }
+    
     form.setFieldsValue({
       totalAmount: totalAmount,
       finalAmount: totalAmount - discount,
     });
+  };
+
+  const handlePromotionChange = (promotionId) => {
+    if (!promotionId) {
+      setSelectedPromotion(null);
+      form.setFieldsValue({ discountAmount: 0 });
+      handleCalculateTotals();
+      return;
+    }
+
+    const promotion = promotions.find(p => p.id === promotionId);
+    if (promotion && promotion.discountPercent) {
+      setSelectedPromotion(promotion);
+      const cartTotal = form.getFieldValue("cartTotal") || 0;
+      const otherCosts = form.getFieldValue("otherCosts") || 0;
+      const totalAmount = cartTotal + otherCosts;
+      const discountAmount = Math.round((totalAmount * promotion.discountPercent) / 100);
+      
+      form.setFieldsValue({ discountAmount: discountAmount });
+      handleCalculateTotals();
+    }
   };
 
   return (
@@ -351,6 +426,7 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
         onCancel={() => {
           setShowOrderModal(false);
           form.resetFields();
+          setSelectedPromotion(null);
         }}
         footer={null}
         width={600}
@@ -378,6 +454,25 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
                 <Select.Option key={customer.id} value={customer.id}>
                   {customer.fullName || customer.phone} - {customer.phone}
                   {customer.email && ` (${customer.email})`}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="promotionId"
+            label="Chương trình khuyến mãi"
+          >
+            <Select
+              placeholder="Chọn chương trình khuyến mãi (tùy chọn)"
+              allowClear
+              loading={loadingPromotions}
+              onChange={handlePromotionChange}
+              notFoundContent={loadingPromotions ? <Spin size="small" /> : "Không có chương trình khuyến mãi"}
+            >
+              {promotions.map((promotion) => (
+                <Select.Option key={promotion.id} value={promotion.id}>
+                  {promotion.name || promotion.code} - {promotion.discountPercent}% giảm giá
                 </Select.Option>
               ))}
             </Select>

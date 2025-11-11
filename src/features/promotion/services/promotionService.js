@@ -63,6 +63,28 @@ export const promotionService = {
     }
   },
 
+  // Get vehicle promotions
+  getVehiclePromotions: async (params) => {
+    try {
+      const { variantId, promotionId, pageNumber = 1, pageSize = 10 } = params || {};
+      const queryParams = {};
+      
+      if (variantId) queryParams.variantId = variantId;
+      if (promotionId) queryParams.promotionId = promotionId;
+      queryParams.pageNumber = pageNumber;
+      queryParams.pageSize = pageSize;
+
+      const response = await axiosInstance.get(endpoints.admin.vehiclePromotions, {
+        params: queryParams,
+      });
+      console.log("Get vehicle promotions API response:", response);
+      return response.data || response;
+    } catch (error) {
+      console.error("Get vehicle promotions service error:", error);
+      throw error;
+    }
+  },
+
 };
 
 export default promotionService;
