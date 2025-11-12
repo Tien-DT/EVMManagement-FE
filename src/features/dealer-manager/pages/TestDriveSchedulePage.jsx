@@ -368,12 +368,6 @@ const TestDriveSchedulePage = () => {
             <p className="mt-4 text-gray-600">Đang tải lịch...</p>
           </div>
         </div>
-      ) : !Array.isArray(scheduleData) || scheduleData.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
-          <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Không có lịch trong tuần này</p>
-          <p className="text-gray-500 text-sm mt-2">Hãy tạo lịch lái thử mới</p>
-        </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
