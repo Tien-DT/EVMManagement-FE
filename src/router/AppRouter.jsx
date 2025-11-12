@@ -107,6 +107,7 @@ import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPag
 // Test Drive Booking Pages
 import TestDriveBookingsPage from "../features/dealer-staff/pages/TestDriveBookingsPage";
 import CreateTestDriveBookingPage from "../features/dealer-staff/pages/CreateTestDriveBookingPage";
+import TestDriveBookingDetailPage from "../features/dealer-staff/pages/TestDriveBookingDetailPage";
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
@@ -479,6 +480,10 @@ const AppRouter = () => (
             <Route
               path="/dealer-staff/test-drive-bookings/create"
               element={<CreateTestDriveBookingPage />}
+            />
+            <Route
+              path="/dealer-staff/test-drive-bookings/:id"
+              element={<TestDriveBookingDetailPage />}
             />
           </Route>
         </Route>

@@ -8,7 +8,6 @@ import { Calendar, User, Car, FileText, Loader2 } from "lucide-react";
 const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
   const { user } = useAuth();
   const [dealerId, setDealerId] = useState(null);
-  const [userProfileId, setUserProfileId] = useState(null);
 
   const { availableVehicles, isLoading: isLoadingVehicles } = useTestDriveVehicles();
   const { customers, isLoading: isLoadingCustomers } = useDealerCustomers(dealerId);
@@ -21,53 +20,52 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
     note: "",
   });
 
-  // Get dealerId and userProfileId
+  // Get dealerId and set dealerStaffId from current user's userProfileId
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        // Get from localStorage first
-        const cachedProfile = localStorage.getItem("userProfile");
-        if (cachedProfile) {
-          const profile = JSON.parse(cachedProfile);
-          setDealerId(profile.dealerId);
-          setUserProfileId(profile.id);
+        // Get userProfileId from AuthContext user object
+        if (user?.userProfileId) {
           setFormData((prev) => ({
             ...prev,
-            dealerStaffId: profile.id,
-          }));
-          return;
-        }
-
-        // Get from user context
-        const userStr = localStorage.getItem("user");
-        if (!userStr) return;
-
-        const userObj = JSON.parse(userStr);
-        if (userObj.userProfileId) {
-          setUserProfileId(userObj.userProfileId);
-          setFormData((prev) => ({
-            ...prev,
-            dealerStaffId: userObj.userProfileId,
+            dealerStaffId: user.userProfileId,
           }));
         }
 
-        if (userObj.dealerId) {
-          setDealerId(userObj.dealerId);
+        // Get dealerId from user object or localStorage
+        if (user?.dealerId) {
+          setDealerId(user.dealerId);
         } else {
-          // Fetch from API
-          const { dealerService } = await import(
-            "../../dealer-manager/services/dealerService"
-          );
-          const profileResponse = await dealerService.getUserProfile(userObj.id);
-          if (profileResponse.success && profileResponse.data) {
-            const profile = profileResponse.data;
-            localStorage.setItem("userProfile", JSON.stringify(profile));
+          // Try to get from localStorage
+          const cachedProfile = localStorage.getItem("userProfile");
+          if (cachedProfile) {
+            const profile = JSON.parse(cachedProfile);
             setDealerId(profile.dealerId);
-            setUserProfileId(profile.id);
-            setFormData((prev) => ({
-              ...prev,
-              dealerStaffId: profile.id,
-            }));
+            // Also set dealerStaffId if not already set
+            if (!user?.userProfileId && profile.id) {
+              setFormData((prev) => ({
+                ...prev,
+                dealerStaffId: profile.id,
+              }));
+            }
+          } else if (user?.id) {
+            // Fetch from API as fallback
+            const { dealerService } = await import(
+              "../../dealer-manager/services/dealerService"
+            );
+            const profileResponse = await dealerService.getUserProfile(user.id);
+            if (profileResponse.success && profileResponse.data) {
+              const profile = profileResponse.data;
+              localStorage.setItem("userProfile", JSON.stringify(profile));
+              setDealerId(profile.dealerId);
+              // Set dealerStaffId if not already set
+              if (!user?.userProfileId && profile.id) {
+                setFormData((prev) => ({
+                  ...prev,
+                  dealerStaffId: profile.id,
+                }));
+              }
+            }
           }
         }
       } catch (error) {
@@ -76,7 +74,7 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
     };
 
     fetchUserProfile();
-  }, []);
+  }, [user]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
