@@ -35,9 +35,38 @@ export const useWarehouses = (dealerId) => {
 
       if (response.success && response.data) {
         // Kiểm tra xem response.data có phải là array không
-        const warehousesData = Array.isArray(response.data)
+        let warehousesData = Array.isArray(response.data)
           ? response.data
           : response.data.items || response.data.warehouses || [];
+
+        // Filter chỉ lấy kho của dealer (loại bỏ kho EVM)
+        warehousesData = warehousesData.filter((warehouse) => {
+          // Loại bỏ kho EVM - kiểm tra nhiều điều kiện
+          const isEvmWarehouse = 
+            warehouse.type === "EVM" || 
+            warehouse.type === "evm" ||
+            warehouse.type === 0 || // Có thể là số 0 cho EVM
+            warehouse.organization === "EVM" ||
+            warehouse.organization === "evm" ||
+            warehouse.organization === 0 ||
+            (!warehouse.dealerId && (warehouse.type === "EVM" || warehouse.type === 0 || !warehouse.type));
+          
+          if (isEvmWarehouse) {
+            console.log("❌ Filtered out EVM warehouse:", warehouse.name, warehouse.type, warehouse.dealerId);
+            return false;
+          }
+          
+          // CHỈ lấy kho có dealerId trùng với dealerId hiện tại (điều kiện bắt buộc)
+          const hasMatchingDealerId = warehouse.dealerId && String(warehouse.dealerId) === String(dealerId);
+          
+          if (!hasMatchingDealerId) {
+            console.log("❌ Filtered out warehouse - dealerId mismatch:", warehouse.name, "warehouse.dealerId:", warehouse.dealerId, "current dealerId:", dealerId);
+            return false;
+          }
+          
+          console.log("✅ Keeping dealer warehouse:", warehouse.name, "dealerId:", warehouse.dealerId);
+          return true;
+        });
 
         setWarehouses(warehousesData);
         console.log(

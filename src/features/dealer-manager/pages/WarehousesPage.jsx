@@ -210,7 +210,7 @@ const WarehousesPage = () => {
             Total Warehouses
           </h3>
           <p className="text-3xl font-bold">
-            {pagination.totalCount || warehouses.length}
+            {warehouses.length}
           </p>
         </div>
 

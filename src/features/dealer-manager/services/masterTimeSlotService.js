@@ -40,6 +40,35 @@ export const masterTimeSlotService = {
     }
   },
 
+  // Get all active time slots by dealer (for checking limit)
+  getAllActiveByDealer: async (dealerId) => {
+    try {
+      // Fetch with large pageSize to get all timeslots
+      const response = await axiosInstance.get(
+        endpoints.masterTimeSlots.getByDealer(dealerId),
+        {
+          params: {
+            pageNumber: 1,
+            pageSize: 100, // Large enough to get all timeslots
+          },
+        }
+      );
+      console.log("Get all active time slots by dealer response:", response);
+      
+      // Extract items from response
+      const data = response?.data || response;
+      const allSlots = data?.items || (Array.isArray(data) ? data : []);
+      
+      // Filter only active timeslots
+      const activeSlots = allSlots.filter(slot => slot.isActive === true || slot.isActive === 1);
+      
+      return activeSlots;
+    } catch (error) {
+      console.error("Get all active time slots by dealer error:", error);
+      throw error;
+    }
+  },
+
   // Get time slot by ID
   getById: async (id) => {
     try {

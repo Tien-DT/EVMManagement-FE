@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePromotion, usePromotionMutations } from "../hooks/usePromotions";
+import vehicleService from "../../vehicle/services/vehicleService";
+import variantService from "../../vehicle/services/variantService";
 import { 
   ArrowLeft, 
   Save, 
@@ -9,7 +11,9 @@ import {
   Tag, 
   FileText,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Car,
+  X
 } from "lucide-react";
 
 const emptyForm = {
@@ -20,6 +24,7 @@ const emptyForm = {
   startAt: "",
   endAt: "",
   isActive: true,
+  variantIds: [],
 };
 
 export default function PromotionFormPage() {
@@ -32,6 +37,51 @@ export default function PromotionFormPage() {
 
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
+  const [models, setModels] = useState([]);
+  const [variants, setVariants] = useState([]);
+  const [selectedModelId, setSelectedModelId] = useState("");
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
+  // Fetch models on mount
+  useEffect(() => {
+    const fetchModels = async () => {
+      setLoadingModels(true);
+      try {
+        const response = await vehicleService.list({ pageSize: 1000 });
+        const modelsData = response?.data?.items || response?.items || response?.data || [];
+        setModels(Array.isArray(modelsData) ? modelsData : []);
+      } catch (error) {
+        console.error("Error fetching models:", error);
+      } finally {
+        setLoadingModels(false);
+      }
+    };
+    fetchModels();
+  }, []);
+
+  // Fetch variants when model is selected
+  useEffect(() => {
+    const fetchVariants = async () => {
+      if (!selectedModelId) {
+        setVariants([]);
+        return;
+      }
+      
+      setLoadingVariants(true);
+      try {
+        const response = await variantService.list({ modelId: selectedModelId, pageSize: 1000 });
+        const variantsData = response?.data?.items || response?.items || response?.data || [];
+        setVariants(Array.isArray(variantsData) ? variantsData : []);
+      } catch (error) {
+        console.error("Error fetching variants:", error);
+        setVariants([]);
+      } finally {
+        setLoadingVariants(false);
+      }
+    };
+    fetchVariants();
+  }, [selectedModelId]);
 
   // Load promotion data for editing
   useEffect(() => {
@@ -44,7 +94,14 @@ export default function PromotionFormPage() {
         startAt: promotion.startAt ? new Date(promotion.startAt).toISOString().slice(0, 16) : "",
         endAt: promotion.endAt ? new Date(promotion.endAt).toISOString().slice(0, 16) : "",
         isActive: Boolean(promotion.isActive),
+        variantIds: promotion.variantIds || [],
       });
+      
+      // If promotion has variants, try to determine the model
+      if (promotion.variantIds && promotion.variantIds.length > 0) {
+        // We'll need to fetch variant details to get modelId
+        // For now, we'll leave it empty and let user re-select
+      }
     }
   }, [isEdit, promotion]);
 
@@ -110,6 +167,7 @@ export default function PromotionFormPage() {
         discountPercent: Number(form.discountPercent),
         startAt: new Date(form.startAt).toISOString(),
         endAt: new Date(form.endAt).toISOString(),
+        variantIds: form.variantIds || [],
       };
 
       if (isEdit) {
@@ -301,6 +359,142 @@ export default function PromotionFormPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Vehicle Selection */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Car size={20} className="mr-2 text-teal-600" />
+              Chọn Xe Áp Dụng Khuyến Mãi
+            </h2>
+            
+            <div className="space-y-4">
+              {/* Model Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Chọn Model
+                </label>
+                <select
+                  value={selectedModelId}
+                  onChange={(e) => {
+                    setSelectedModelId(e.target.value);
+                    // Clear selected variants when model changes
+                    setForm(prev => ({ ...prev, variantIds: [] }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  disabled={loadingModels}
+                >
+                  <option value="">-- Chọn Model --</option>
+                  {models.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.name} {model.code ? `(${model.code})` : ""}
+                    </option>
+                  ))}
+                </select>
+                {loadingModels && (
+                  <p className="mt-1 text-sm text-gray-500">Đang tải danh sách model...</p>
+                )}
+              </div>
+
+              {/* Variants Selection */}
+              {selectedModelId && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Chọn Variants (Có thể chọn nhiều)
+                  </label>
+                  {loadingVariants ? (
+                    <p className="text-sm text-gray-500">Đang tải danh sách variants...</p>
+                  ) : variants.length === 0 ? (
+                    <p className="text-sm text-gray-500">Không có variant nào cho model này</p>
+                  ) : (
+                    <div className="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto bg-gray-50">
+                      <div className="space-y-2">
+                        {variants.map((variant) => {
+                          const isSelected = form.variantIds.includes(variant.id);
+                          return (
+                            <label
+                              key={variant.id}
+                              className={`flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                                isSelected
+                                  ? "bg-teal-50 border-2 border-teal-500"
+                                  : "bg-white border-2 border-transparent hover:bg-gray-50"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setForm(prev => ({
+                                      ...prev,
+                                      variantIds: [...prev.variantIds, variant.id]
+                                    }));
+                                  } else {
+                                    setForm(prev => ({
+                                      ...prev,
+                                      variantIds: prev.variantIds.filter(id => id !== variant.id)
+                                    }));
+                                  }
+                                }}
+                                className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                              />
+                              <div className="flex-1">
+                                <span className="font-medium text-gray-900">
+                                  {variant.color || variant.name || "Variant"}
+                                </span>
+                                {variant.price && (
+                                  <span className="ml-2 text-sm text-gray-500">
+                                    - {new Intl.NumberFormat("vi-VN", {
+                                      style: "currency",
+                                      currency: "VND",
+                                    }).format(variant.price)}
+                                  </span>
+                                )}
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Selected Variants Summary */}
+                  {form.variantIds.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        Đã chọn {form.variantIds.length} variant(s):
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {form.variantIds.map((variantId) => {
+                          const variant = variants.find(v => v.id === variantId);
+                          if (!variant) return null;
+                          return (
+                            <span
+                              key={variantId}
+                              className="inline-flex items-center space-x-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
+                            >
+                              <span>{variant.color || variant.name || variantId}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setForm(prev => ({
+                                    ...prev,
+                                    variantIds: prev.variantIds.filter(id => id !== variantId)
+                                  }));
+                                }}
+                                className="ml-1 hover:text-teal-900"
+                              >
+                                <X size={14} />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

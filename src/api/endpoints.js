@@ -42,6 +42,7 @@ const endpoints = {
     vehicleModels: "/v1/VehicleModels",
     vehicleVariants: "/v1/VehicleVariants",
     promotions: "/v1/Promotions",
+    vehiclePromotions: "/v1/Promotions/vehicle-promotions",
     warehouses: "/v1/Warehouses",
     warehousesById: (id) => `/v1/Warehouses/${id}`,
     warehousesByDealer: (dealerId) => `/v1/Warehouses/dealer/${dealerId}`,

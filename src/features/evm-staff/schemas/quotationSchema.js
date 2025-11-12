@@ -14,7 +14,7 @@ export const quotationDetailSchema = z.object({
 
 export const quotationSchema = z.object({
   code: z.string().min(1, "Mã báo giá không được để trống"),
-  customerId: z.string().min(1, "Vui lòng chọn khách hàng"),
+  customerId: z.string().min(1, "Vui lòng chọn khách hàng").optional().nullable(),
   createdByUserId: z.string().optional(),
   note: z.string().optional(),
   status: z.string().default("DRAFT"),
@@ -26,6 +26,7 @@ export const quotationSchema = z.object({
       const now = new Date();
       return date > now;
     }, "Ngày hết hạn phải sau ngày hiện tại"),
+  promotionId: z.string().uuid("ID khuyến mãi không hợp lệ").optional().nullable(),
   quotationDetails: z
     .array(quotationDetailSchema)
     .min(1, "Phải có ít nhất một chi tiết báo giá"),

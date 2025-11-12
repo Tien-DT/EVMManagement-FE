@@ -86,7 +86,7 @@ const CreateMasterTimeSlotPage = () => {
 
       const payload = { ...formData, dealerId };
       await createMasterTimeSlot(payload);
-
+      
       showSuccess("Tạo master time slot thành công!");
       navigate("/dealer-manager/master-time-slots");
     } catch (err) {

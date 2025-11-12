@@ -93,10 +93,16 @@ const MasterTimeSlotsPage = () => {
     slot.code?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Count active timeslots
+  const activeTimeslotsCount = masterTimeSlots.filter(
+    slot => slot.isActive === true || slot.isActive === 1
+  ).length;
+
   const handleToggleActive = async (id, currentStatus) => {
     try {
       const newStatus = !currentStatus;
       await updateIsActive(id, newStatus);
+      
       showSuccess(
         newStatus
           ? "Kích hoạt master time slot thành công"
@@ -140,13 +146,31 @@ const MasterTimeSlotsPage = () => {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Clock className="w-8 h-8 text-blue-600" />
-          Quản lý Master Time Slots
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Quản lý các khung giờ master cho dealer của bạn
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Clock className="w-8 h-8 text-blue-600" />
+              Quản lý Master Time Slots
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Quản lý các khung giờ master cho dealer của bạn
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-gray-600 mb-1">Timeslots Active</div>
+            <div className="text-2xl font-bold">
+              <span className={activeTimeslotsCount >= 4 ? "text-red-600" : "text-blue-600"}>
+                {activeTimeslotsCount}
+              </span>
+              <span className="text-gray-400"> / 4</span>
+            </div>
+            {activeTimeslotsCount >= 4 && (
+              <div className="text-xs text-red-600 mt-1">
+                Đã đạt giới hạn tối đa
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Error Message */}

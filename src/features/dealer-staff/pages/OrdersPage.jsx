@@ -37,6 +37,7 @@ import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import moment from "moment";
 import DepositModal from "../components/DepositModal";
+import CreateContractModal from "../components/CreateContractModal";
 
 const pageStyles = `
   .orders-page {
@@ -422,6 +423,8 @@ const OrdersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [depositModalVisible, setDepositModalVisible] = useState(false);
   const [selectedOrderForDeposit, setSelectedOrderForDeposit] = useState(null);
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [selectedOrderForContract, setSelectedOrderForContract] = useState(null);
   const [activeTab, setActiveTab] = useState("PREORDER"); // B2C_P = Đặt trước, B2C = Có sẵn
 
   const statusSequence = useMemo(
@@ -1016,8 +1019,32 @@ const OrdersPage = () => {
   };
 
   // Handle create contract for READY_FOR_HANDOVER order
-  const handleCreateContract = (order) => {
-    navigate(`/dealer-staff/contracts/create?orderId=${order.id}`);
+  const handleCreateContract = async (order) => {
+    try {
+      // Load quotation details if quotationId exists (similar to EVM staff)
+      let orderWithQuotation = { ...order };
+      if (order.quotationId) {
+        try {
+          const quotationResponse = await axiosInstance.get(endpoints.quotations.getById(order.quotationId));
+          // Attach quotation to order object (create new object to avoid mutation)
+          orderWithQuotation.quotation = quotationResponse.data || quotationResponse;
+        } catch (error) {
+          console.error('Error loading quotation:', error);
+          // Continue without quotation info - not critical
+        }
+      }
+      setSelectedOrderForContract(orderWithQuotation);
+      setShowContractModal(true);
+    } catch (error) {
+      console.error('Error preparing contract creation:', error);
+      message.error('Không thể tải thông tin đơn hàng');
+    }
+  };
+
+  // Handle contract created successfully
+  const handleContractCreated = () => {
+    // Refresh orders list
+    refreshOrders();
   };
 
   // Handle deposit for QUOTATION_ACCEPTED order
@@ -1623,6 +1650,19 @@ const OrdersPage = () => {
         onClose={handleDepositModalClose}
         onSuccess={handleDepositSuccess}
       />
+
+      {/* Create Contract Modal */}
+      {showContractModal && selectedOrderForContract && (
+        <CreateContractModal
+          visible={showContractModal}
+          onClose={() => {
+            setShowContractModal(false);
+            setSelectedOrderForContract(null);
+          }}
+          order={selectedOrderForContract}
+          onSuccess={handleContractCreated}
+        />
+      )}
 
       <style jsx>{pageStyles}</style>
     </div>
