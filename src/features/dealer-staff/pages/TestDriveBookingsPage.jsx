@@ -1,77 +1,41 @@
-// src/features/dealer-staff/pages/TestDriveBookingsPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import {
-  Plus,
-  Search,
-  Filter,
-  Calendar,
-  User,
-  Car,
-  Send,
-  Eye,
-  Loader2,
-  AlertCircle,
-  RefreshCw,
-  Bell,
-  Clock,
-} from "lucide-react";
-import { useTestDriveBookings } from "../hooks/useTestDriveBookings";
-import { useCreateTestDriveBooking } from "../hooks/useCreateTestDriveBooking";
-import { useDealerCustomers } from "../hooks/useDealerCustomers";
-import { useAuth } from "../../../context/AuthContext";
-import CheckInOutModal from "../components/CheckInOutModal";
+import axiosInstance from "../../../api/axiosInstance";
+import endpoints from "../../../api/endpoints";
+import { useNotification } from "../../../context/NotificationContext";
 
 const TestDriveBookingsPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { showError } = useNotification();
   const [dealerId, setDealerId] = useState(null);
-  const [filters, setFilters] = useState({
-    dealerId: null,
-    customerId: "",
-    status: "",
-    pageNumber: 1,
-    pageSize: 10,
-  });
+  const [loading, setLoading] = useState(false);
+  const [scheduleData, setScheduleData] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(null);
 
-  const { bookings, loading, error, pagination, fetchBookings, changePage, refresh } =
-    useTestDriveBookings(filters, false);
-
-  const { sendConfirmation, sendReminder, updateCheckInOut, isSubmitting } = useCreateTestDriveBooking();
-  const { customers, isLoading: isLoadingCustomers } = useDealerCustomers(dealerId);
-  const [selectedBookings, setSelectedBookings] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
-  const [showCheckInOutModal, setShowCheckInOutModal] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState(null);
-
-  // Get dealerId
+  // Get dealerId from localStorage
   useEffect(() => {
     const fetchDealerId = async () => {
       try {
         const cachedDealerId = localStorage.getItem("dealerId");
         if (cachedDealerId) {
           setDealerId(cachedDealerId);
-          setFilters((prev) => ({ ...prev, dealerId: cachedDealerId }));
-          return;
-        }
-
-        const userStr = localStorage.getItem("user");
-        if (!userStr) return;
-
-        const userObj = JSON.parse(userStr);
-        if (userObj.dealerId) {
-          setDealerId(userObj.dealerId);
-          setFilters((prev) => ({ ...prev, dealerId: userObj.dealerId }));
         } else {
-          const { dealerService } = await import(
-            "../../dealer-manager/services/dealerService"
-          );
-          const profileResponse = await dealerService.getUserProfile(userObj.id);
-          if (profileResponse.success && profileResponse.data) {
-            const profile = profileResponse.data;
-            localStorage.setItem("dealerId", profile.dealerId);
-            setDealerId(profile.dealerId);
-            setFilters((prev) => ({ ...prev, dealerId: profile.dealerId }));
+          const userStr = localStorage.getItem("user");
+          if (!userStr) return;
+
+          const user = JSON.parse(userStr);
+          const accountId = user.id;
+
+          const { dealerService} = await import("../../dealer-manager/services/dealerService");
+          const userProfile = await dealerService.getUserProfile(accountId);
+
+          if (userProfile.success && userProfile.data?.dealerId) {
+            const fetchedDealerId = userProfile.data.dealerId;
+            localStorage.setItem("userProfile", JSON.stringify(userProfile.data));
+            localStorage.setItem("dealerId", fetchedDealerId);
+            setDealerId(fetchedDealerId);
           }
         }
       } catch (error) {
@@ -82,424 +46,387 @@ const TestDriveBookingsPage = () => {
     fetchDealerId();
   }, []);
 
-  // Fetch bookings when filters change
+  // Generate weeks for selected year
+  const weeksInYear = useMemo(() => {
+    const weeks = [];
+    const startDate = new Date(selectedYear, 0, 1);
+    
+    const firstMonday = new Date(startDate);
+    const dayOfWeek = startDate.getDay();
+    const daysToMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
+    firstMonday.setDate(startDate.getDate() + daysToMonday);
+
+    let currentWeekStart = new Date(firstMonday);
+    
+    while (currentWeekStart.getFullYear() <= selectedYear) {
+      const weekEnd = new Date(currentWeekStart);
+      weekEnd.setDate(currentWeekStart.getDate() + 6);
+      
+      if (weekEnd.getFullYear() > selectedYear) break;
+      
+      weeks.push({
+        start: new Date(currentWeekStart),
+        end: new Date(weekEnd),
+      });
+      
+      currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+    }
+
+    return weeks;
+  }, [selectedYear]);
+
+  // Auto-select current week on mount
   useEffect(() => {
-    if (filters.dealerId) {
-      fetchBookings(filters);
-      // Clear selected bookings when filters change
-      setSelectedBookings([]);
-      setSelectAll(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.dealerId, filters.customerId, filters.status, filters.pageNumber]);
+    if (selectedWeekIndex !== null || weeksInYear.length === 0) return;
 
-  const handleFilterChange = (field, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [field]: value,
-      pageNumber: 1, // Reset to first page when filter changes
-    }));
-  };
-
-  const handleSendConfirmation = async (bookingId) => {
-    if (window.confirm("Bạn có chắc chắn muốn gửi xác nhận cho đặt chỗ này?")) {
-      const result = await sendConfirmation(bookingId);
-      if (result.success) {
-        refresh();
-      }
-    }
-  };
-
-  const handleOpenCheckInOut = (booking) => {
-    setSelectedBooking(booking);
-    setShowCheckInOutModal(true);
-  };
-
-  const handleCloseCheckInOut = () => {
-    setShowCheckInOutModal(false);
-    setSelectedBooking(null);
-  };
-
-  const handleUpdateCheckInOut = async (bookingId, checkinAt, checkoutAt, action) => {
-    const result = await updateCheckInOut(bookingId, checkinAt, checkoutAt, action);
-    if (result.success) {
-      handleCloseCheckInOut();
-      refresh();
-    }
-  };
-
-  const handleSendReminder = async () => {
-    if (selectedBookings.length === 0) {
-      alert("Vui lòng chọn ít nhất một đặt chỗ để gửi nhắc nhở");
-      return;
-    }
-
-    if (window.confirm(`Bạn có chắc chắn muốn gửi nhắc nhở cho ${selectedBookings.length} đặt chỗ đã chọn?`)) {
-      const result = await sendReminder(selectedBookings);
-      if (result.success) {
-        setSelectedBookings([]);
-        setSelectAll(false);
-        refresh();
-      }
-    }
-  };
-
-  const handleSelectBooking = (bookingId) => {
-    setSelectedBookings((prev) => {
-      if (prev.includes(bookingId)) {
-        return prev.filter((id) => id !== bookingId);
-      } else {
-        return [...prev, bookingId];
-      }
+    const today = new Date();
+    const currentWeekIndex = weeksInYear.findIndex((week) => {
+      return today >= week.start && today <= week.end;
     });
-  };
 
-  const handleSelectAll = () => {
-    if (selectAll) {
-      setSelectedBookings([]);
-      setSelectAll(false);
-    } else {
-      const allBookingIds = bookings.map((booking) => booking.id);
-      setSelectedBookings(allBookingIds);
-      setSelectAll(true);
+    setSelectedWeekIndex(currentWeekIndex >= 0 ? currentWeekIndex : 0);
+  }, [weeksInYear, selectedWeekIndex]);
+
+  // Get dates for selected week - return both Date objects and string keys
+  const weekDates = useMemo(() => {
+    if (!weeksInYear[selectedWeekIndex]) return [];
+    
+    const { start } = weeksInYear[selectedWeekIndex];
+    const dates = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
+      
+      dates.push({
+        dateObj: date,
+        dateStr: dateStr,
+      });
     }
-  };
+    
+    return dates;
+  }, [weeksInYear, selectedWeekIndex]);
 
-  // Update selectAll state when selectedBookings changes
+  // Fetch schedule data for selected week
   useEffect(() => {
-    if (bookings.length > 0) {
-      setSelectAll(selectedBookings.length === bookings.length && bookings.length > 0);
-    }
-  }, [selectedBookings, bookings]);
+    if (!dealerId || weekDates.length === 0 || selectedWeekIndex === null) return;
 
-  const getStatusBadge = (status) => {
-    const statusMap = {
-      BOOKED: { color: "bg-blue-100 text-blue-800", text: "Đã đặt" },
-      CHECKED_IN: { color: "bg-yellow-100 text-yellow-800", text: "Đã check-in" },
-      COMPLETED: { color: "bg-green-100 text-green-800", text: "Hoàn thành" },
-      CANCELED: { color: "bg-red-100 text-red-800", text: "Đã hủy" },
+    const fetchSchedule = async () => {
+      try {
+        setLoading(true);
+        
+        const fromDate = `${String(weekDates[0].dateObj.getMonth() + 1).padStart(2, "0")}/${String(weekDates[0].dateObj.getDate()).padStart(2, "0")}/${weekDates[0].dateObj.getFullYear()}`;
+        const toDate = `${String(weekDates[6].dateObj.getMonth() + 1).padStart(2, "0")}/${String(weekDates[6].dateObj.getDate()).padStart(2, "0")}/${weekDates[6].dateObj.getFullYear()}`;
+        
+        const response = await axiosInstance.get(
+          endpoints.vehicleTimeSlots.getSlotsByDate,
+          {
+            params: {
+              dealerId,
+              fromDate,
+              toDate,
+            },
+          }
+        );
+
+        if (response.success) {
+          setScheduleData(response.data || []);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching schedule:", error);
+        if (error.response?.status === 404) {
+          setScheduleData([]);
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const statusInfo = statusMap[status] || { color: "bg-gray-100 text-gray-800", text: status };
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}>
-        {statusInfo.text}
-      </span>
+    fetchSchedule();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dealerId, selectedYear, selectedWeekIndex]);
+
+  // Convert minutes to time string
+  const minutesToTime = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+  };
+
+  // Format date to YYYY-MM-DD
+  const formatDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Process schedule data
+  const processedSchedule = useMemo(() => {
+    if (!Array.isArray(scheduleData) || scheduleData.length === 0) return {};
+
+    const result = {};
+
+    weekDates.forEach((dateItem) => {
+      result[dateItem.dateStr] = {};
+    });
+
+    scheduleData.forEach((dateItem) => {
+      const dateKey = dateItem.date;
+      
+      if (!result[dateKey]) return;
+      
+      dateItem.masterSlots?.forEach((masterSlot) => {
+        result[dateKey][masterSlot.masterSlotId] = {
+          masterSlotId: masterSlot.masterSlotId,
+          date: dateItem.date,
+          code: masterSlot.masterSlotCode,
+          startOffsetMinutes: masterSlot.startOffsetMinutes,
+          durationMinutes: masterSlot.durationMinutes,
+          availableVehicles: masterSlot.availableVehicles || 0,
+          bookedVehicles: masterSlot.bookedVehicles || 0,
+          totalVehicles: masterSlot.totalVehicles || 0,
+        };
+      });
+    });
+
+    Object.keys(result).forEach((dateKey) => {
+      Object.keys(result[dateKey]).forEach((masterSlotId) => {
+        const slot = result[dateKey][masterSlotId];
+        const hasBooked = slot.bookedVehicles > 0;
+        const hasAvailable = slot.availableVehicles > 0;
+        
+        if (hasBooked && hasAvailable) {
+          slot.displayStatus = `${slot.availableVehicles} trống / ${slot.bookedVehicles} đã đặt`;
+          slot.statusColor = "text-orange-600 bg-orange-50";
+        } else if (hasBooked) {
+          slot.displayStatus = "đã đặt hết";
+          slot.statusColor = "text-red-600 bg-red-50";
+        } else if (hasAvailable) {
+          slot.displayStatus = "còn trống";
+          slot.statusColor = "text-green-600 bg-green-50";
+        } else {
+          slot.displayStatus = "chưa có xe";
+          slot.statusColor = "text-gray-600 bg-gray-50";
+        }
+      });
+    });
+
+    return result;
+  }, [scheduleData, weekDates]);
+
+  // Get slots for a specific date
+  const getSlotsForDate = (dateStr) => {
+    const slotsForDate = processedSchedule[dateStr] || {};
+    
+    const sortedSlots = Object.values(slotsForDate).sort(
+      (a, b) => a.startOffsetMinutes - b.startOffsetMinutes
     );
+    
+    return sortedSlots.slice(0, 4);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("vi-VN");
+  // Format date for display (dd/MM)
+  const formatDate = (dateObj) => {
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    return `${day}/${month}`;
   };
 
-  if (loading && !bookings.length) {
+  // Format week range for dropdown
+  const formatWeekRange = (week) => {
+    return `${formatDate(week.start)} To ${formatDate(week.end)}`;
+  };
+
+  const dayNames = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+
+  if (!dealerId) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
-          <p className="text-gray-600">Đang tải danh sách đặt chỗ...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error && !bookings.length) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Có lỗi xảy ra</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => refresh()}
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Thử lại
-          </button>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý đặt chỗ lái thử</h1>
-          <p className="text-gray-600 mt-1">Danh sách đặt chỗ lái thử và thông tin chi tiết</p>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Calendar className="w-8 h-8 text-blue-600" />
+            Đặt Chỗ Lái Thử
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Xem lịch và tạo đặt chỗ lái thử
+          </p>
         </div>
-        <button
-          onClick={() => navigate("/dealer-staff/test-drive-bookings/create")}
-          className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-        >
-          <Plus size={20} />
-          <span>Tạo đặt chỗ mới</span>
-        </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-4 shadow-md border border-gray-200">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Khách hàng
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div className="flex gap-4 items-center">
+          {/* Year Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              YEAR
             </label>
             <select
-              value={filters.customerId}
-              onChange={(e) => handleFilterChange("customerId", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedYear}
+              onChange={(e) => {
+                setSelectedYear(Number(e.target.value));
+                setSelectedWeekIndex(0);
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Tất cả khách hàng</option>
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.fullName || customer.name} - {customer.phone || ""}
-                </option>
-              ))}
+              {Array.from({ length: 5 }, (_, i) => {
+                const year = new Date().getFullYear() - 1 + i;
+                return (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
+          {/* Week Selection */}
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Trạng thái
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              WEEK
             </label>
-            <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Tất cả trạng thái</option>
-              <option value="BOOKED">Đã đặt</option>
-              <option value="CHECKED_IN">Đã check-in</option>
-              <option value="COMPLETED">Hoàn thành</option>
-              <option value="CANCELED">Đã hủy</option>
-            </select>
-          </div>
-
-          <div className="flex items-end gap-2">
-            {selectedBookings.length > 0 && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={handleSendReminder}
-                disabled={isSubmitting}
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+                onClick={() => setSelectedWeekIndex(Math.max(0, selectedWeekIndex - 1))}
+                disabled={selectedWeekIndex === 0 || selectedWeekIndex === null}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Bell size={18} />
-                <span>Gửi nhắc nhở ({selectedBookings.length})</span>
+                <ChevronLeft size={20} />
               </button>
-            )}
-            <button
-              onClick={() => refresh()}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <RefreshCw size={18} />
-              <span>Làm mới</span>
-            </button>
+              
+              <select
+                value={selectedWeekIndex === null ? "" : selectedWeekIndex}
+                onChange={(e) => setSelectedWeekIndex(Number(e.target.value))}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {weeksInYear.map((week, index) => (
+                  <option key={index} value={index}>
+                    {formatWeekRange(week)}
+                  </option>
+                ))}
+              </select>
+              
+              <button
+                onClick={() =>
+                  setSelectedWeekIndex(
+                    Math.min(weeksInYear.length - 1, selectedWeekIndex + 1)
+                  )
+                }
+                disabled={selectedWeekIndex === weeksInYear.length - 1 || selectedWeekIndex === null}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bookings List */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">
-                  <input
-                    type="checkbox"
-                    checked={selectAll}
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Khách hàng
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Xe
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Thời gian tạo
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Check-in
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Check-out
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Trạng thái
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Ghi chú
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Thao tác
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {bookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedBookings.includes(booking.id)}
-                      onChange={() => handleSelectBooking(booking.id)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {booking.customer?.fullName?.charAt(0).toUpperCase() || "?"}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {booking.customer?.fullName || "N/A"}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {booking.customer?.phone || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <Car size={16} className="text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {booking.vehicleTimeslot?.vehicleName || booking.vehicleTimeslot?.testDriveVehicle?.vehicleName || "N/A"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Calendar size={14} className="text-gray-400" />
-                      <span>{formatDate(booking.createdAt || booking.created_at)}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {booking.checkinAt ? (
-                      <div className="flex items-center space-x-2 text-sm text-green-600">
-                        <Clock size={14} />
-                        <span>{formatDate(booking.checkinAt)}</span>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {booking.checkoutAt ? (
-                      <div className="flex items-center space-x-2 text-sm text-orange-600">
-                        <Clock size={14} />
-                        <span>{formatDate(booking.checkoutAt)}</span>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">{getStatusBadge(booking.status)}</td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-gray-600 max-w-xs truncate">
-                      {booking.note || "—"}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleOpenCheckInOut(booking)}
-                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        title="Check-in/Check-out"
-                      >
-                        <Clock size={18} />
-                      </button>
-                      {booking.status === "BOOKED" && (
-                        <button
-                          onClick={() => handleSendConfirmation(booking.id)}
-                          disabled={isSubmitting}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-                          title="Gửi xác nhận"
-                        >
-                          <Send size={18} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => navigate(`/dealer-staff/test-drive-bookings/${booking.id}`)}
-                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Xem chi tiết"
-                      >
-                        <Eye size={18} />
-                      </button>
-                    </div>
-                  </td>
+      {/* Schedule Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Đang tải lịch...</p>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse min-w-[1200px]">
+              <thead>
+                <tr>
+                  <th className="border border-gray-300 bg-gray-100 p-3 w-24 text-left text-sm font-semibold">
+                    
+                  </th>
+                  {weekDates.map((dateItem, index) => (
+                    <th
+                      key={index}
+                      className="border border-gray-300 bg-blue-500 text-white p-3 text-center"
+                    >
+                      <div className="font-bold">{dayNames[index]}</div>
+                      <div className="text-sm">{formatDate(dateItem.dateObj)}</div>
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4].map((slotNumber) => (
+                  <tr key={slotNumber}>
+                    <td className="border border-gray-300 bg-gray-50 p-3 text-center font-semibold text-sm">
+                      Slot {slotNumber}
+                    </td>
+                    {weekDates.map((dateItem, dateIndex) => {
+                      const slots = getSlotsForDate(dateItem.dateStr);
+                      const slot = slots[slotNumber - 1];
+
+                      return (
+                        <td
+                          key={dateIndex}
+                          className="border border-gray-300 p-2 align-top"
+                        >
+                          {slot ? (
+                            <div 
+                              className="text-xs space-y-1 cursor-pointer hover:bg-blue-50 p-2 rounded transition-colors"
+                              onClick={() => {
+                                const dateStr = slot.date;
+                                const masterSlotId = slot.masterSlotId;
+                                if (masterSlotId && dateStr) {
+                                  navigate(`/dealer-staff/test-drive-bookings/${dateStr}/${masterSlotId}`);
+                                }
+                              }}
+                            >
+                              <div className="font-bold text-blue-700">
+                                {slot.code}
+                              </div>
+                              <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${slot.statusColor}`}>
+                                ({slot.displayStatus})
+                              </div>
+                              <div className="text-green-700 font-medium">
+                                ({minutesToTime(slot.startOffsetMinutes)}-
+                                {minutesToTime(slot.startOffsetMinutes + slot.durationMinutes)})
+                              </div>
+                            </div>
+                          ) : (
+                            <div 
+                              className="text-center text-gray-400 cursor-pointer hover:bg-green-50 p-4 rounded transition-colors"
+                              onClick={() => {
+                                // Navigate to create page with date param
+                                navigate(`/dealer-staff/test-drive-bookings/create?date=${dateItem.dateStr}`);
+                              }}
+                              title="Click để tạo đặt chỗ"
+                            >
+                              <div className="text-gray-300 hover:text-green-600 transition-colors">+</div>
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-
-        {/* Empty State */}
-        {bookings.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Không có đặt chỗ nào
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {filters.customerId || filters.status
-                ? "Thử điều chỉnh bộ lọc"
-                : "Tạo đặt chỗ đầu tiên để bắt đầu"}
-            </p>
-            {!filters.customerId && !filters.status && (
-              <button
-                onClick={() => navigate("/dealer-staff/test-drive-bookings/create")}
-                className="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                <Plus size={20} />
-                <span>Tạo đặt chỗ mới</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-              Hiển thị {bookings.length} trong tổng số {pagination.totalItems} đặt chỗ
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => changePage(pagination.currentPage - 1)}
-                disabled={pagination.currentPage === 1}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Trước
-              </button>
-              <span className="text-sm text-gray-600">
-                Trang {pagination.currentPage} / {pagination.totalPages}
-              </span>
-              <button
-                onClick={() => changePage(pagination.currentPage + 1)}
-                disabled={pagination.currentPage === pagination.totalPages}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Sau
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Check-in/Check-out Modal */}
-      <CheckInOutModal
-        isOpen={showCheckInOutModal}
-        onClose={handleCloseCheckInOut}
-        booking={selectedBooking}
-        onUpdate={handleUpdateCheckInOut}
-        isSubmitting={isSubmitting}
-      />
+      )}
     </div>
   );
 };

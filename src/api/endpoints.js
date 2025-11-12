@@ -78,6 +78,7 @@ const endpoints = {
     update: (id) => `/v1/Customers/${id}`,
     delete: (id) => `/v1/Customers/${id}`,
     search: "/v1/Customers/search",
+    searchByPhone: "/v1/Customers/search/by-phone",
   },
 
   // Quotation endpoints
@@ -167,6 +168,7 @@ const endpoints = {
     getByDealer: (dealerId) => `/v1/TestDriveBookings/dealer/${dealerId}`,
     filter: "/v1/TestDriveBookings/filter",
     create: "/v1/TestDriveBookings",
+    createByStaff: "/v1/TestDriveBookings/create-by-staff",
     update: (id) => `/v1/TestDriveBookings/${id}`,
     delete: (id) => `/v1/TestDriveBookings/${id}`,
     sendConfirmation: (id) => `/v1/TestDriveBookings/${id}/send-confirmation`,
