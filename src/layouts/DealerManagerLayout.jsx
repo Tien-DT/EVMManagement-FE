@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
-import DealerManagerSidebar from "./sidebar/DealerManagerSidebar";
+import DealerManagerSidebar from "./Sidebar/DealerManagerSidebar";
 import { useAuth } from "../context/AuthContext";
 import ForceChangePasswordModal from "../features/auth/components/ForceChangePasswordModal";
 
