@@ -32,6 +32,7 @@ const CreateTestDriveBookingPage = () => {
     address: "",
     dob: "",
     cardId: "",
+    gender: "",
   });
   
   const [note, setNote] = useState("");
@@ -73,13 +74,31 @@ const CreateTestDriveBookingPage = () => {
     fetchUserInfo();
   }, []);
 
-  // Set booking date from URL param
+  // Set booking date and auto-select slot from URL params
   useEffect(() => {
     const dateParam = searchParams.get("date");
+    const slotNumberParam = searchParams.get("slotNumber");
+    
     if (dateParam) {
       setBookingDate(dateParam);
     }
-  }, [searchParams]);
+    
+    // Auto-select master slot based on slotNumber (1=sớm nhất, 2=sớm thứ 2, etc.)
+    if (slotNumberParam && masterSlots.length > 0) {
+      const slotNumber = parseInt(slotNumberParam, 10);
+      
+      // Sort slots by startOffsetMinutes (sớm nhất -> muộn nhất)
+      const sortedSlots = [...masterSlots].sort((a, b) => a.startOffsetMinutes - b.startOffsetMinutes);
+      
+      // Select slot tương ứng với slotNumber (index = slotNumber - 1)
+      const targetSlot = sortedSlots[slotNumber - 1];
+      
+      if (targetSlot) {
+        console.log(`🕒 Auto-selecting slot ${slotNumber}:`, targetSlot.code);
+        setSelectedMasterSlotId(targetSlot.id);
+      }
+    }
+  }, [searchParams, masterSlots]);
 
   // Fetch master time slots
   useEffect(() => {
@@ -189,13 +208,38 @@ const CreateTestDriveBookingPage = () => {
 
       if (response.success && response.data) {
         const customerData = response.data;
+        
+        console.log("🔍 Raw customer data from API:", customerData);
+        
+        // Format dob to YYYY-MM-DD for input type="date"
+        let formattedDob = "";
+        if (customerData.dob) {
+          const dobDate = new Date(customerData.dob);
+          formattedDob = dobDate.toISOString().split('T')[0]; // "2000-01-15"
+        }
+        
+        // Convert gender to uppercase to match select options
+        let formattedGender = "";
+        if (customerData.gender) {
+          formattedGender = customerData.gender.toUpperCase(); // "male" -> "MALE"
+        }
+        
         setCustomer({
           fullName: customerData.fullName || "",
           email: customerData.email || "",
           address: customerData.address || "",
-          dob: customerData.dob || "",
+          dob: formattedDob,
           cardId: customerData.cardId || "",
+          gender: formattedGender,
         });
+        
+        console.log("✅ Customer state updated:", {
+          fullName: customerData.fullName,
+          dob: formattedDob,
+          gender: formattedGender,
+          rawGender: customerData.gender
+        });
+        
         showSuccess("Tìm thấy thông tin khách hàng");
       } else {
         showError("Không tìm thấy khách hàng. Vui lòng nhập thủ công.");
@@ -205,6 +249,7 @@ const CreateTestDriveBookingPage = () => {
           address: "",
           dob: "",
           cardId: "",
+          gender: "",
         });
       }
     } catch (error) {
@@ -216,6 +261,7 @@ const CreateTestDriveBookingPage = () => {
         address: "",
         dob: "",
         cardId: "",
+        gender: "",
       });
     } finally {
       setSearchingCustomer(false);
@@ -250,6 +296,7 @@ const CreateTestDriveBookingPage = () => {
         customerAddress: customer.address?.trim() || "",
         customerDob: customer.dob || null,
         customerCardId: customer.cardId?.trim() || "",
+        customerGender: customer.gender || null,
         note: note.trim() || "",
         dealerId: dealerId,
         dealerStaffId: dealerStaffId,
@@ -483,6 +530,21 @@ const CreateTestDriveBookingPage = () => {
                 onChange={(e) => setCustomer({ ...customer, cardId: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Giới tính
+              </label>
+              <select
+                value={customer.gender}
+                onChange={(e) => setCustomer({ ...customer, gender: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">-- Chọn giới tính --</option>
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+                <option value="OTHER">Khác</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">

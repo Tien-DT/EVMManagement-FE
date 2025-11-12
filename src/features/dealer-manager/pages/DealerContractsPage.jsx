@@ -36,17 +36,42 @@ const DealerContractsPage = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
-    // Get dealerId from sessionStorage
-    const userProfile = JSON.parse(sessionStorage.getItem("userProfile") || "{}");
-    if (userProfile.dealerId) {
-      setDealerId(userProfile.dealerId);
-    }
+    const fetchDealerId = async () => {
+      try {
+        const cachedDealerId = localStorage.getItem("dealerId");
+        if (cachedDealerId) {
+          setDealerId(cachedDealerId);
+        } else {
+          const userStr = localStorage.getItem("user");
+          if (!userStr) return;
+
+          const user = JSON.parse(userStr);
+          const accountId = user.id;
+
+          const { dealerService } = await import("../services/dealerService");
+          const userProfile = await dealerService.getUserProfile(accountId);
+
+          if (userProfile.success && userProfile.data?.dealerId) {
+            const fetchedDealerId = userProfile.data.dealerId;
+            localStorage.setItem("userProfile", JSON.stringify(userProfile.data));
+            localStorage.setItem("dealerId", fetchedDealerId);
+            setDealerId(fetchedDealerId);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching dealerId:", error);
+        message.error("Không thể lấy thông tin đại lý");
+      }
+    };
+
+    fetchDealerId();
   }, []);
 
   useEffect(() => {
     if (dealerId) {
       fetchContracts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dealerId]);
 
   const fetchContracts = async () => {
@@ -55,16 +80,50 @@ const DealerContractsPage = () => {
       const response = await axiosInstance.get(
         endpoints.dealerContracts.getByDealer(dealerId)
       );
-      // Ensure we always get an array
+      
+      console.log("🔍 DEBUG - Full response:", response);
+      console.log("🔍 DEBUG - response.data:", response.data);
+      console.log("🔍 DEBUG - response.success:", response.success);
+      
+      // Parse response based on API structure
       let contractsList = [];
-      if (response.data?.items && Array.isArray(response.data.items)) {
-        contractsList = response.data.items;
-      } else if (Array.isArray(response.data)) {
+      
+      // Check if response has success flag and data property (ApiResponse<T> wrapper)
+      if (response.success && response.data) {
+        // Check if data is an array
+        if (Array.isArray(response.data)) {
+          contractsList = response.data;
+        } 
+        // Check if data has items property (paged result)
+        else if (response.data.items && Array.isArray(response.data.items)) {
+          contractsList = response.data.items;
+        }
+        // Data is a single object, wrap it in array
+        else if (typeof response.data === 'object') {
+          contractsList = [response.data];
+        }
+      }
+      // Fallback: check direct array
+      else if (Array.isArray(response.data)) {
         contractsList = response.data;
-      } else if (Array.isArray(response)) {
+      } 
+      else if (Array.isArray(response)) {
         contractsList = response;
       }
-      setContracts(contractsList);
+      
+      console.log("🔍 DEBUG - contractsList after parsing:", contractsList);
+      console.log("🔍 DEBUG - contractsList.length:", contractsList.length);
+      
+      // Map backend field names to frontend field names
+      const mappedContracts = contractsList.map(contract => ({
+        ...contract,
+        code: contract.contractCode || contract.code,
+        createdAt: contract.createdDate || contract.createdAt,
+        modifiedAt: contract.modifiedDate || contract.modifiedAt,
+      }));
+      
+      console.log("🔍 DEBUG - mappedContracts:", mappedContracts);
+      setContracts(mappedContracts);
     } catch (error) {
       console.error("Error fetching dealer contracts:", error);
       message.error("Không thể tải danh sách hợp đồng");

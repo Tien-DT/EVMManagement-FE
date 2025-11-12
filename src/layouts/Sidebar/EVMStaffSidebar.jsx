@@ -19,67 +19,67 @@ const EvmStaffSidebar = () => {
 
   const menuGroups = [
     {
-      title: 'Main',
+      title: 'Chính',
       items: [
         {
           path: '/evm-staff/dashboard',
           icon: LayoutDashboard,
-          label: 'Dashboard'
+          label: 'Tổng quan'
         }
       ]
     },
     {
-      title: 'Management',
+      title: 'Quản lý',
       items: [
         {
           path: '/evm-staff/quotations',
           icon: FileText,
-          label: 'Quotations'
+          label: 'Báo giá'
         },
         {
           path: '/evm-staff/contracts',
           icon: FileSignature,
-          label: 'Contracts'
+          label: 'Hợp đồng'
         },
         {
           path: '/evm-staff/orders',
           icon: ShoppingCart,
-          label: 'Orders'
+          label: 'Đơn hàng'
         },
         {
           path: '/evm-staff/vehicles',
           icon: Car,
-          label: 'Vehicles'
+          label: 'Xe (B2B)'
         },
         {
           path: '/evm-staff/handover-records',
           icon: Truck,
-          label: 'Handover Records'
+          label: 'Biên bản bàn giao'
         },
         {
           path: '/evm-staff/reports',
           icon: FileText,
-          label: 'Reports from Dealers'
+          label: 'Báo cáo từ Dealer'
         },
         {
           path: '/evm-staff/warehouses',
           icon: Package,
-          label: 'Warehouses'
+          label: 'Kho hàng'
         },
         {
           path: '/evm-staff/transports',
           icon: Truck,
-          label: 'Transports'
+          label: 'Vận chuyển'
         }
       ]
     },
     {
-      title: 'Settings',
+      title: 'Cài đặt',
       items: [
         {
           path: '/evm-staff/profile',
           icon: Settings,
-          label: 'My Profile'
+          label: 'Hồ sơ của tôi'
         }
       ]
     }

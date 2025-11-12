@@ -1,108 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Calendar, Clock, ArrowLeft, Car, Package } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Car, User, Phone, Mail } from "lucide-react";
 import axiosInstance from "../../../api/axiosInstance";
 import endpoints from "../../../api/endpoints";
 import { useNotification } from "../../../context/NotificationContext";
 
-const TestDriveScheduleDetailPage = () => {
-  const { date, masterSlotId } = useParams();
+const TestDriveBookingDetailPage = () => {
+  const { bookingId } = useParams();
   const navigate = useNavigate();
   const { showError } = useNotification();
-  const [dealerId, setDealerId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [slotDetail, setSlotDetail] = useState(null);
+  
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Get dealerId from localStorage
+  // Fetch booking detail
   useEffect(() => {
-    const fetchDealerId = async () => {
+    if (!bookingId) return;
+
+    const fetchBookingDetail = async () => {
+      setLoading(true);
       try {
-        const cachedDealerId = localStorage.getItem("dealerId");
-        if (cachedDealerId) {
-          setDealerId(cachedDealerId);
+        const response = await axiosInstance.get(endpoints.testDriveBookings.getById(bookingId));
+        
+        console.log("📋 Booking detail:", response);
+        
+        if (response.success) {
+          setBooking(response.data);
         } else {
-          const userStr = localStorage.getItem("user");
-          if (!userStr) return;
-
-          const user = JSON.parse(userStr);
-          const accountId = user.id;
-
-          const { dealerService } = await import("../services/dealerService");
-          const userProfile = await dealerService.getUserProfile(accountId);
-
-          if (userProfile.success && userProfile.data?.dealerId) {
-            const fetchedDealerId = userProfile.data.dealerId;
-            localStorage.setItem("userProfile", JSON.stringify(userProfile.data));
-            localStorage.setItem("dealerId", fetchedDealerId);
-            setDealerId(fetchedDealerId);
-          }
+          showError("Không thể tải chi tiết đặt chỗ");
         }
       } catch (error) {
-        console.error("Error fetching dealerId:", error);
-      }
-    };
-
-    fetchDealerId();
-  }, []);
-
-  // Fetch slot detail
-  useEffect(() => {
-    if (!dealerId || !date || !masterSlotId) return;
-
-    const fetchSlotDetail = async () => {
-      try {
-        setLoading(true);
-
-        // Parse date (format: YYYY-MM-DD)
-        const [year, month, day] = date.split("-");
-        const dateObj = new Date(year, month - 1, day);
-        
-        // Format as MM/DD/YYYY for API
-        const formattedDate = `${String(dateObj.getMonth() + 1).padStart(2, "0")}/${String(dateObj.getDate()).padStart(2, "0")}/${dateObj.getFullYear()}`;
-        
-        const response = await axiosInstance.get(
-          endpoints.vehicleTimeSlots.getSlotsByDate,
-          {
-            params: {
-              dealerId,
-              fromDate: formattedDate,
-              toDate: formattedDate,
-            },
-          }
-        );
-
-        if (response.success && Array.isArray(response.data)) {
-          // Find the date item
-          const dateItem = response.data.find((item) => item.date === date);
-          
-          if (dateItem) {
-            // Find the specific masterSlot
-            const slot = dateItem.masterSlots?.find(
-              (ms) => ms.masterSlotId === masterSlotId
-            );
-            
-            if (slot) {
-              setSlotDetail(slot);
-            } else {
-              showError("Không tìm thấy lịch");
-              navigate("/dealer-manager/test-drive-schedule");
-            }
-          } else {
-            showError("Không tìm thấy lịch");
-            navigate("/dealer-manager/test-drive-schedule");
-          }
-        }
-      } catch (error) {
-        console.error("❌ Error fetching slot detail:", error);
-        showError("Không thể tải chi tiết lịch");
+        console.error("Error fetching booking detail:", error);
+        showError("Không thể tải chi tiết đặt chỗ");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSlotDetail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dealerId, date, masterSlotId]);
+    fetchBookingDetail();
+  }, [bookingId, showError]);
 
   // Convert minutes to time string
   const minutesToTime = (minutes) => {
@@ -111,10 +47,32 @@ const TestDriveScheduleDetailPage = () => {
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
   };
 
-  // Format date for display
-  const formatDisplayDate = (dateStr) => {
-    const [year, month, day] = dateStr.split("-");
+  // Format date
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const dateObj = new Date(dateStr);
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const year = dateObj.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  // Status badge
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      CONFIRMED: { label: "Đã xác nhận", color: "bg-green-100 text-green-800" },
+      PENDING: { label: "Chờ xác nhận", color: "bg-yellow-100 text-yellow-800" },
+      CANCELLED: { label: "Đã hủy", color: "bg-red-100 text-red-800" },
+      COMPLETED: { label: "Hoàn thành", color: "bg-blue-100 text-blue-800" },
+      BOOKED: { label: "Đã đặt", color: "bg-purple-100 text-purple-800" },
+    };
+    
+    const config = statusMap[status] || { label: status, color: "bg-gray-100 text-gray-800" };
+    return (
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
+        {config.label}
+      </span>
+    );
   };
 
   if (loading) {
@@ -128,16 +86,16 @@ const TestDriveScheduleDetailPage = () => {
     );
   }
 
-  if (!slotDetail) {
+  if (!booking) {
     return (
       <div className="p-6">
-        <div className="text-center">
-          <p className="text-gray-600">Không tìm thấy thông tin lịch</p>
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">Không tìm thấy thông tin đặt chỗ</p>
           <button
             onClick={() => navigate("/dealer-manager/test-drive-schedule")}
-            className="mt-4 text-blue-600 hover:text-blue-700"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Quay lại
+            Quay lại lịch
           </button>
         </div>
       </div>
@@ -145,179 +103,205 @@ const TestDriveScheduleDetailPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="mb-6">
-        <button
-          onClick={() => navigate("/dealer-manager/test-drive-schedule")}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
-        >
-          <ArrowLeft size={20} />
-          Quay lại
-        </button>
-        
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Calendar className="w-8 h-8 text-blue-600" />
-          Chi Tiết Lịch Lái Thử
-        </h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <button
+            onClick={() => navigate("/dealer-manager/test-drive-schedule")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+          >
+            <ArrowLeft size={20} />
+            <span>Quay lại lịch</span>
+          </button>
+          <h1 className="text-3xl font-bold text-gray-900">Chi Tiết Đặt Chỗ Lái Thử</h1>
+          <p className="text-gray-600 mt-1">Thông tin chi tiết về lịch đặt lái thử</p>
+        </div>
+        <div>
+          {getStatusBadge(booking.status)}
+        </div>
       </div>
 
-      {/* Slot Information Card */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Thông Tin Slot
+      {/* Customer Information */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <User className="text-blue-600" size={24} />
+          Thông Tin Khách Hàng
         </h2>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Mã Slot
-            </label>
-            <p className="text-lg text-blue-600 font-bold">
-              {slotDetail.masterSlotCode}
-            </p>
+            <p className="text-sm text-gray-600">Họ tên</p>
+            <p className="text-lg font-semibold">{booking.customer?.fullName || "N/A"}</p>
           </div>
-
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Ngày
-            </label>
-            <p className="text-lg text-gray-900">
-              {formatDisplayDate(date)}
-            </p>
+            <p className="text-sm text-gray-600">Số điện thoại</p>
+            <p className="text-lg font-semibold">{booking.customer?.phone || "N/A"}</p>
           </div>
-
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              <Clock size={16} className="inline mr-1" />
-              Thời Gian
-            </label>
-            <p className="text-lg text-gray-900">
-              {minutesToTime(slotDetail.startOffsetMinutes)} - {minutesToTime(slotDetail.startOffsetMinutes + slotDetail.durationMinutes)}
-            </p>
+            <p className="text-sm text-gray-600">Email</p>
+            <p className="text-lg font-semibold">{booking.customer?.email || "N/A"}</p>
           </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Thời Lượng
-            </label>
-            <p className="text-lg text-gray-900">
-              {slotDetail.durationMinutes} phút
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Tổng Xe
-            </label>
-            <p className="text-lg text-gray-900">
-              {slotDetail.totalVehicles || 0} xe
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Trạng Thái
-            </label>
-            <div className="flex gap-2">
-              <span className="px-3 py-1 rounded text-sm font-medium text-green-600 bg-green-50">
-                {slotDetail.availableVehicles || 0} trống
-              </span>
-              <span className="px-3 py-1 rounded text-sm font-medium text-red-600 bg-red-50">
-                {slotDetail.bookedVehicles || 0} đã đặt
-              </span>
+          {booking.customer?.cardId && (
+            <div>
+              <p className="text-sm text-gray-600">CMND/CCCD</p>
+              <p className="text-lg font-semibold">{booking.customer.cardId}</p>
             </div>
-          </div>
+          )}
+          {booking.customer?.address && (
+            <div className="col-span-2">
+              <p className="text-sm text-gray-600">Địa chỉ</p>
+              <p className="text-lg font-semibold">{booking.customer.address}</p>
+            </div>
+          )}
         </div>
-
-        {slotDetail.isActive !== undefined && (
-          <div className="mt-4">
-            <span className={`px-3 py-1 rounded text-sm font-medium ${
-              slotDetail.isActive 
-                ? "text-green-600 bg-green-50" 
-                : "text-gray-600 bg-gray-50"
-            }`}>
-              {slotDetail.isActive ? "Đang hoạt động" : "Không hoạt động"}
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* Vehicles List */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      {/* Booking Information */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <Car className="w-6 h-6 text-blue-600" />
-          Danh Sách Xe ({slotDetail.vehicles?.length || 0})
+          <Calendar className="text-blue-600" size={24} />
+          Thông Tin Đặt Lịch
         </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-sm text-gray-600">Mã đặt chỗ</p>
+            <p className="text-sm font-semibold font-mono">{booking.id?.slice(0, 13).toUpperCase()}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Ngày lái thử</p>
+            <p className="text-lg font-semibold">
+              {booking.vehicleTimeSlot?.slotDate ? formatDate(booking.vehicleTimeSlot.slotDate) : "N/A"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Mã slot</p>
+            <p className="text-lg font-semibold">
+              {booking.vehicleTimeSlot?.masterSlot?.code || "N/A"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Thời gian</p>
+            <p className="text-lg font-semibold">
+              {booking.vehicleTimeSlot?.masterSlot ? 
+                `${minutesToTime(booking.vehicleTimeSlot.masterSlot.startOffsetMinutes)} - ${minutesToTime(booking.vehicleTimeSlot.masterSlot.startOffsetMinutes + booking.vehicleTimeSlot.masterSlot.durationMinutes)}` 
+                : "N/A"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Thời lượng</p>
+            <p className="text-lg font-semibold">
+              {booking.vehicleTimeSlot?.masterSlot?.durationMinutes || 0} phút
+            </p>
+          </div>
+          {booking.checkinAt && (
+            <div>
+              <p className="text-sm text-gray-600">Check-in</p>
+              <p className="text-lg font-semibold">{new Date(booking.checkinAt).toLocaleString("vi-VN")}</p>
+            </div>
+          )}
+          {booking.checkoutAt && (
+            <div>
+              <p className="text-sm text-gray-600">Check-out</p>
+              <p className="text-lg font-semibold">{new Date(booking.checkoutAt).toLocaleString("vi-VN")}</p>
+            </div>
+          )}
+          {booking.note && (
+            <div className="col-span-2">
+              <p className="text-sm text-gray-600 mb-2">Ghi chú</p>
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                <p className="text-gray-700">{booking.note}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-        {slotDetail.vehicles && slotDetail.vehicles.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="text-left p-3 font-semibold text-gray-700">VIN</th>
-                  <th className="text-left p-3 font-semibold text-gray-700">Tên Xe</th>
-                  <th className="text-left p-3 font-semibold text-gray-700">Model</th>
-                  <th className="text-left p-3 font-semibold text-gray-700">Màu Sắc</th>
-                  <th className="text-left p-3 font-semibold text-gray-700">Mục Đích</th>
-                  <th className="text-left p-3 font-semibold text-gray-700">Trạng Thái</th>
-                </tr>
-              </thead>
-              <tbody>
-                {slotDetail.vehicles.map((vehicle, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="p-3 text-sm text-gray-900 font-mono">
-                      {vehicle.vehicle?.vin || "N/A"}
-                    </td>
-                    <td className="p-3 text-sm text-gray-900">
-                      {vehicle.vehicle?.modelName || "N/A"}
-                    </td>
-                    <td className="p-3 text-sm text-gray-900">
-                      {vehicle.vehicle?.modelName?.split(" ")[0] || "N/A"}
-                    </td>
-                    <td className="p-3 text-sm">
-                      <span className="px-2 py-1 rounded text-xs font-medium" style={{
-                        backgroundColor: vehicle.vehicle?.color === "Trắng" ? "#f3f4f6" : 
-                                       vehicle.vehicle?.color === "Đen" ? "#1f2937" : 
-                                       vehicle.vehicle?.color === "Xanh" ? "#3b82f6" :
-                                       "#e5e7eb",
-                        color: vehicle.vehicle?.color === "Đen" ? "#fff" : "#000"
-                      }}>
-                        {vehicle.vehicle?.color || "N/A"}
-                      </span>
-                    </td>
-                    <td className="p-3 text-sm">
-                      <span className="px-2 py-1 rounded text-xs font-medium text-purple-600 bg-purple-50">
-                        {vehicle.vehicle?.purpose || "N/A"}
-                      </span>
-                    </td>
-                    <td className="p-3 text-sm">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        vehicle.status === "AVAILABLE" 
-                          ? "text-green-600 bg-green-50" 
-                          : vehicle.status === "BOOKED"
-                          ? "text-red-600 bg-red-50"
-                          : "text-gray-600 bg-gray-50"
-                      }`}>
-                        {vehicle.status === "AVAILABLE" ? "Có sẵn" : 
-                         vehicle.status === "BOOKED" ? "Đã đặt" : 
-                         vehicle.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Vehicle Information */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <Car className="text-blue-600" size={24} />
+          Thông Tin Xe
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-sm text-gray-600">Tên xe</p>
+            <p className="text-lg font-semibold">{booking.vehicleModelName || "N/A"}</p>
           </div>
-        ) : (
-          <div className="text-center py-8">
-            <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">Chưa có xe nào trong slot này</p>
+          <div>
+            <p className="text-sm text-gray-600">Màu sắc</p>
+            <p className="text-lg font-semibold">{booking.vehicleColor || "N/A"}</p>
           </div>
-        )}
+          <div>
+            <p className="text-sm text-gray-600">VIN</p>
+            <p className="text-lg font-semibold font-mono text-sm">
+              {booking.vehicleTimeSlot?.vehicle?.vin || "N/A"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Trạng thái xe</p>
+            <p className="text-lg font-semibold">
+              {booking.vehicleTimeSlot?.vehicle?.status === "IN_STOCK" ? "Có sẵn" : 
+               booking.vehicleTimeSlot?.vehicle?.status === "SOLD" ? "Đã bán" : 
+               booking.vehicleTimeSlot?.vehicle?.status || "N/A"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Mục đích</p>
+            <p className="text-lg font-semibold">
+              {booking.vehicleTimeSlot?.vehicle?.purpose === "TEST_DRIVE" ? "Lái thử" : 
+               booking.vehicleTimeSlot?.vehicle?.purpose === "SALE" ? "Bán" : 
+               booking.vehicleTimeSlot?.vehicle?.purpose || "N/A"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Dealer Staff Information */}
+      {booking.dealerStaff && (
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <User className="text-blue-600" size={24} />
+            Nhân Viên Phụ Trách
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-sm text-gray-600">Họ tên</p>
+              <p className="text-lg font-semibold">{booking.dealerStaff.fullName || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Số điện thoại</p>
+              <p className="text-lg font-semibold">{booking.dealerStaff.phone || "N/A"}</p>
+            </div>
+            {booking.dealerStaff.cardId && (
+              <div>
+                <p className="text-sm text-gray-600">CMND/CCCD</p>
+                <p className="text-lg font-semibold">{booking.dealerStaff.cardId}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Timestamps */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Thông Tin Khác</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-sm text-gray-600">Ngày tạo</p>
+            <p className="text-lg font-semibold">
+              {booking.createdDate ? new Date(booking.createdDate).toLocaleString("vi-VN") : "N/A"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Cập nhật lần cuối</p>
+            <p className="text-lg font-semibold">
+              {booking.modifiedDate ? new Date(booking.modifiedDate).toLocaleString("vi-VN") : "N/A"}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default TestDriveScheduleDetailPage;
+export default TestDriveBookingDetailPage;

@@ -11,6 +11,7 @@ import {
   User,
   Calendar,
   GitCompare,
+  Search,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
@@ -79,6 +80,11 @@ const DealerStaffSidebar = () => {
       path: "/dealer-staff/test-drive-bookings",
       icon: Calendar,
       label: "Đặt chỗ lái thử",
+    },
+    {
+      path: "/dealer-staff/customer-booking-search",
+      icon: Search,
+      label: "Tra cứu lịch đặt",
     },
   ];
 

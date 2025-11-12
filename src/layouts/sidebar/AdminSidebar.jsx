@@ -21,62 +21,62 @@ const AdminSidebar = () => {
 
   const menuGroups = [
     {
-      title: "Main",
+      title: "Chính",
       items: [
         {
           path: "/admin/dashboard",
           icon: LayoutDashboard,
-          label: "Dashboard",
+          label: "Tổng quan",
         },
       ],
     },
     {
-      title: "Management",
+      title: "Quản lý",
       items: [
         {
           path: "/admin/dealers",
           icon: Building2,
-          label: "Dealers",
+          label: "Đại lý",
         },
         {
           path: "/admin/dealer-contracts",
           icon: FileText,
-          label: "Dealer Contracts",
+          label: "Hợp đồng Dealer",
         },
         {
           path: "/admin/evm-staff",
           icon: UserCheck,
-          label: "EVM Staff",
+          label: "Nhân viên EVM",
         },
         {
           path: "/admin/register-dealer-manager",
           icon: UserCog,
-          label: "Dealer Manager",
+          label: "Quản lý Dealer",
         },
         {
           path: "/admin/vehiclemodels",
           icon: Car,
-          label: "Vehicles",
+          label: "Xe (B2B)",
         },
         {
           path: "/admin/promotions",
           icon: Tag,
-          label: "Promotions",
+          label: "Khuyến mãi",
         },
         {
           path: "/admin/warehouses",
           icon: Package,
-          label: "Warehouses",
+          label: "Kho hàng",
         },
       ],
     },
     {
-      title: "Settings",
+      title: "Cài đặt",
       items: [
         {
           path: "/admin/profile",
           icon: User,
-          label: "My Profile",
+          label: "Hồ sơ của tôi",
         },
       ],
     },

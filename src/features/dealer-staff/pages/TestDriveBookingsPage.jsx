@@ -11,6 +11,7 @@ const TestDriveBookingsPage = () => {
   const [dealerId, setDealerId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [scheduleData, setScheduleData] = useState([]);
+  const [masterSlots, setMasterSlots] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(null);
 
@@ -45,6 +46,35 @@ const TestDriveBookingsPage = () => {
 
     fetchDealerId();
   }, []);
+
+  // Fetch master time slots for dealer
+  useEffect(() => {
+    if (!dealerId) return;
+
+    const fetchMasterSlots = async () => {
+      try {
+        const response = await axiosInstance.get(
+          endpoints.masterTimeSlots.getByDealer(dealerId)
+        );
+        
+        const slots = Array.isArray(response.data)
+          ? response.data
+          : response.data?.items || [];
+        
+        // Filter active slots and sort by startOffsetMinutes (sớm → muộn)
+        const activeSlots = slots
+          .filter((slot) => slot.isActive)
+          .sort((a, b) => a.startOffsetMinutes - b.startOffsetMinutes);
+        
+        console.log("🕒 Master slots sorted:", activeSlots.map(s => ({ code: s.code, start: s.startOffsetMinutes })));
+        setMasterSlots(activeSlots);
+      } catch (error) {
+        console.error("Error fetching master slots:", error);
+      }
+    };
+
+    fetchMasterSlots();
+  }, [dealerId]);
 
   // Generate weeks for selected year
   const weeksInYear = useMemo(() => {
@@ -124,7 +154,7 @@ const TestDriveBookingsPage = () => {
         const toDate = `${String(weekDates[6].dateObj.getMonth() + 1).padStart(2, "0")}/${String(weekDates[6].dateObj.getDate()).padStart(2, "0")}/${weekDates[6].dateObj.getFullYear()}`;
         
         const response = await axiosInstance.get(
-          endpoints.vehicleTimeSlots.getSlotsByDate,
+          endpoints.testDriveBookings.filter,
           {
             params: {
               dealerId,
@@ -135,7 +165,12 @@ const TestDriveBookingsPage = () => {
         );
 
         if (response.success) {
-          setScheduleData(response.data || []);
+          // API returns paginated response with items array
+          const bookingList = Array.isArray(response.data) 
+            ? response.data 
+            : response.data?.items || [];
+          console.log("📅 Fetched bookings:", bookingList);
+          setScheduleData(bookingList);
         }
       } catch (error) {
         console.error("❌ Error fetching schedule:", error);
@@ -166,57 +201,104 @@ const TestDriveBookingsPage = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Process schedule data
+  // Process schedule data - NEW API returns array of bookings
   const processedSchedule = useMemo(() => {
     if (!Array.isArray(scheduleData) || scheduleData.length === 0) return {};
 
     const result = {};
 
+    // Initialize empty slots for each day in the week
     weekDates.forEach((dateItem) => {
       result[dateItem.dateStr] = {};
     });
 
-    scheduleData.forEach((dateItem) => {
-      const dateKey = dateItem.date;
+    // Group bookings by date and masterSlotId
+    scheduleData.forEach((booking) => {
+      const slotDate = booking.vehicleTimeSlot?.slotDate;
+      const masterSlot = booking.vehicleTimeSlot?.masterSlot;
       
-      if (!result[dateKey]) return;
+      if (!slotDate || !masterSlot) return;
       
-      dateItem.masterSlots?.forEach((masterSlot) => {
-        result[dateKey][masterSlot.masterSlotId] = {
-          masterSlotId: masterSlot.masterSlotId,
-          date: dateItem.date,
-          code: masterSlot.masterSlotCode,
+      // Format date to YYYY-MM-DD (handle timezone properly)
+      // slotDate format: "2025-11-12T00:00:00+00:00"
+      const dateKey = slotDate.split('T')[0]; // Extract "2025-11-12"
+      
+      console.log("🔍 Processing booking:", { slotDate, dateKey, masterSlotCode: masterSlot.code });
+      
+      if (!result[dateKey]) {
+        console.log("⚠️ Date not in current week:", dateKey, "Available dates:", Object.keys(result));
+        return; // Skip dates not in current week
+      }
+      
+      const masterSlotId = masterSlot.id;
+      
+      // Initialize slot if not exists
+      if (!result[dateKey][masterSlotId]) {
+        result[dateKey][masterSlotId] = {
+          masterSlotId: masterSlotId,
+          date: dateKey,
+          code: masterSlot.code,
           startOffsetMinutes: masterSlot.startOffsetMinutes,
           durationMinutes: masterSlot.durationMinutes,
-          availableVehicles: masterSlot.availableVehicles || 0,
-          bookedVehicles: masterSlot.bookedVehicles || 0,
-          totalVehicles: masterSlot.totalVehicles || 0,
+          bookedVehicles: 0,
+          bookings: [],
         };
-      });
+      }
+      
+      // Count bookings
+      result[dateKey][masterSlotId].bookedVehicles += 1;
+      result[dateKey][masterSlotId].bookings.push(booking);
     });
 
+    // Set display status for each slot based on booking status
     Object.keys(result).forEach((dateKey) => {
       Object.keys(result[dateKey]).forEach((masterSlotId) => {
         const slot = result[dateKey][masterSlotId];
         const hasBooked = slot.bookedVehicles > 0;
-        const hasAvailable = slot.availableVehicles > 0;
         
-        if (hasBooked && hasAvailable) {
-          slot.displayStatus = `${slot.availableVehicles} trống / ${slot.bookedVehicles} đã đặt`;
-          slot.statusColor = "text-orange-600 bg-orange-50";
-        } else if (hasBooked) {
-          slot.displayStatus = "đã đặt hết";
-          slot.statusColor = "text-red-600 bg-red-50";
-        } else if (hasAvailable) {
+        if (hasBooked && slot.bookings.length > 0) {
+          const booking = slot.bookings[0]; // Get first booking
+          const bookingStatus = booking.status;
+          
+          // Map booking status to display text and color
+          const statusMap = {
+            BOOKED: { 
+              text: "Đã đặt", 
+              color: "text-blue-600 bg-blue-50" 
+            },
+            CHECKED_IN: { 
+              text: "Đã check-in", 
+              color: "text-yellow-600 bg-yellow-50" 
+            },
+            COMPLETED: { 
+              text: "Hoàn thành", 
+              color: "text-green-600 bg-green-50" 
+            },
+            CANCELLED: { 
+              text: "Đã hủy", 
+              color: "text-red-600 bg-red-50" 
+            },
+            CANCELED: { 
+              text: "Đã hủy", 
+              color: "text-red-600 bg-red-50" 
+            },
+          };
+          
+          const statusInfo = statusMap[bookingStatus] || { 
+            text: bookingStatus, 
+            color: "text-gray-600 bg-gray-50" 
+          };
+          
+          slot.displayStatus = statusInfo.text;
+          slot.statusColor = statusInfo.color;
+        } else {
           slot.displayStatus = "còn trống";
           slot.statusColor = "text-green-600 bg-green-50";
-        } else {
-          slot.displayStatus = "chưa có xe";
-          slot.statusColor = "text-gray-600 bg-gray-50";
         }
       });
     });
 
+    console.log("🔍 Processed schedule:", result);
     return result;
   }, [scheduleData, weekDates]);
 
@@ -369,48 +451,50 @@ const TestDriveBookingsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {[1, 2, 3, 4].map((slotNumber) => (
-                  <tr key={slotNumber}>
+                {masterSlots.slice(0, 4).map((masterSlot, slotIndex) => {
+                  const slotNumber = slotIndex + 1;
+                  return (
+                  <tr key={masterSlot.id}>
                     <td className="border border-gray-300 bg-gray-50 p-3 text-center font-semibold text-sm">
                       Slot {slotNumber}
                     </td>
                     {weekDates.map((dateItem, dateIndex) => {
-                      const slots = getSlotsForDate(dateItem.dateStr);
-                      const slot = slots[slotNumber - 1];
+                      // Find booking for this specific masterSlotId on this date
+                      const slotData = processedSchedule[dateItem.dateStr]?.[masterSlot.id];
 
                       return (
                         <td
                           key={dateIndex}
                           className="border border-gray-300 p-2 align-top"
                         >
-                          {slot ? (
+                          {slotData ? (
                             <div 
                               className="text-xs space-y-1 cursor-pointer hover:bg-blue-50 p-2 rounded transition-colors"
                               onClick={() => {
-                                const dateStr = slot.date;
-                                const masterSlotId = slot.masterSlotId;
-                                if (masterSlotId && dateStr) {
-                                  navigate(`/dealer-staff/test-drive-bookings/${dateStr}/${masterSlotId}`);
+                                // Navigate to booking detail with bookingId
+                                const bookingId = slotData.bookings?.[0]?.id;
+                                if (bookingId) {
+                                  navigate(`/dealer-staff/test-drive-bookings/${bookingId}`);
                                 }
                               }}
                             >
                               <div className="font-bold text-blue-700">
-                                {slot.code}
+                                {slotData.code}
                               </div>
-                              <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${slot.statusColor}`}>
-                                ({slot.displayStatus})
+                              <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${slotData.statusColor}`}>
+                                ({slotData.displayStatus})
                               </div>
                               <div className="text-green-700 font-medium">
-                                ({minutesToTime(slot.startOffsetMinutes)}-
-                                {minutesToTime(slot.startOffsetMinutes + slot.durationMinutes)})
+                                ({minutesToTime(masterSlot.startOffsetMinutes)}-
+                                {minutesToTime(masterSlot.startOffsetMinutes + masterSlot.durationMinutes)})
                               </div>
                             </div>
                           ) : (
                             <div 
                               className="text-center text-gray-400 cursor-pointer hover:bg-green-50 p-4 rounded transition-colors"
                               onClick={() => {
-                                // Navigate to create page with date param
-                                navigate(`/dealer-staff/test-drive-bookings/create?date=${dateItem.dateStr}`);
+                                // Navigate to create page with date and slotNumber params
+                                navigate(`/dealer-staff/test-drive-bookings/create?date=${dateItem.dateStr}&slotNumber=${slotNumber}`);
                               }}
                               title="Click để tạo đặt chỗ"
                             >
@@ -421,7 +505,8 @@ const TestDriveBookingsPage = () => {
                       );
                     })}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

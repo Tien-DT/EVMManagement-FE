@@ -426,6 +426,8 @@ const OrdersPage = () => {
   const [showContractModal, setShowContractModal] = useState(false);
   const [selectedOrderForContract, setSelectedOrderForContract] = useState(null);
   const [activeTab, setActiveTab] = useState("PREORDER"); // B2C_P = Đặt trước, B2C = Có sẵn
+  const [preorderTotalCount, setPreorderTotalCount] = useState(0);
+  const [availableTotalCount, setAvailableTotalCount] = useState(0);
 
   const statusSequence = useMemo(
     () => [
@@ -690,6 +692,51 @@ const OrdersPage = () => {
     fetchDealerId();
   }, [user?.id]);
 
+  // Fetch count for each orderType
+  useEffect(() => {
+    const fetchOrderCounts = async () => {
+      if (!dealerId) return;
+
+      try {
+        // Fetch preorder count (orderType = 2 or B2C_P)
+        const preorderResponse = await axiosInstance.get(
+          endpoints.orders.filter,
+          {
+            params: {
+              dealerId: dealerId,
+              orderType: 2,
+              pageNumber: 1,
+              pageSize: 1,
+            },
+          }
+        );
+        if (preorderResponse.success && preorderResponse.data) {
+          setPreorderTotalCount(preorderResponse.data.totalItems || preorderResponse.data.totalCount || 0);
+        }
+
+        // Fetch available count (orderType = 0 or B2C)
+        const availableResponse = await axiosInstance.get(
+          endpoints.orders.filter,
+          {
+            params: {
+              dealerId: dealerId,
+              orderType: 0,
+              pageNumber: 1,
+              pageSize: 1,
+            },
+          }
+        );
+        if (availableResponse.success && availableResponse.data) {
+          setAvailableTotalCount(availableResponse.data.totalItems || availableResponse.data.totalCount || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching order counts:", error);
+      }
+    };
+
+    fetchOrderCounts();
+  }, [dealerId]);
+
   const {
     orders,
     isLoading,
@@ -710,7 +757,7 @@ const OrdersPage = () => {
   }, [user, dealerId, orders, isLoading, error]);
 
   const statusCounts = useMemo(() => {
-    const counts = { ALL: orders.length };
+    const counts = { ALL: pagination.totalItems || 0 };
 
     statusSequence.forEach((status) => {
       counts[status] = 0;
@@ -726,7 +773,7 @@ const OrdersPage = () => {
     });
 
     return counts;
-  }, [orders, statusSequence]);
+  }, [orders, statusSequence, pagination.totalItems]);
 
   const summaryCards = useMemo(() => {
     const formatNumber = (value) =>
@@ -751,8 +798,8 @@ const OrdersPage = () => {
       {
         key: "total",
         title: "Tổng đơn hàng",
-        value: formatNumber(orders.length),
-        caption: `${formatNumber(completedCount)} đơn đã hoàn tất`,
+        value: formatNumber(pagination.totalItems || 0),
+        caption: "Tổng đơn hàng trên hệ thống",
         icon: <ShoppingCartOutlined />,
         iconColor: "#1890ff",
         iconBg: "rgba(24, 144, 255, 0.15)",
@@ -761,7 +808,7 @@ const OrdersPage = () => {
         key: "revenue",
         title: "Giá trị đơn hàng",
         value: `${formatNumber(totalRevenue)} ₫`,
-        caption: "Tổng thành tiền dự kiến",
+        caption: "Tổng giá trị trang hiện tại",
         icon: <DollarCircleOutlined />,
         iconColor: "#52c41a",
         iconBg: "rgba(82, 196, 26, 0.15)",
@@ -772,13 +819,13 @@ const OrdersPage = () => {
         value: formatNumber(awaitingCount + readyCount),
         caption: `${formatNumber(awaitingCount)} chờ đặt cọc • ${formatNumber(
           readyCount
-        )} sẵn sàng bàn giao`,
+        )} sẵn sàng bàn giao (trang hiện tại)`,
         icon: <FieldTimeOutlined />,
         iconColor: "#fa8c16",
         iconBg: "rgba(250, 140, 22, 0.15)",
       },
     ];
-  }, [orders]);
+  }, [orders, pagination.totalItems]);
 
   const statusFilterOptions = useMemo(() => {
     const baseOptions = [
@@ -864,16 +911,16 @@ const OrdersPage = () => {
     () => [
       {
         key: "PREORDER",
-        label: `Đặt trước (${preorderOrders.length})`,
+        label: `Đặt trước (${preorderTotalCount})`,
         children: null,
       },
       {
         key: "AVAILABLE",
-        label: `Có sẵn (${availableOrders.length})`,
+        label: `Có sẵn (${availableTotalCount})`,
         children: null,
       },
     ],
-    [preorderOrders.length, availableOrders.length]
+    [preorderTotalCount, availableTotalCount]
   );
 
   const filteredOrders = useMemo(() => {
@@ -1526,15 +1573,6 @@ const OrdersPage = () => {
             Theo dõi tiến độ và nâng cao trải nghiệm bàn giao cho khách hàng.
           </Text>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          className="orders-hero-card__cta"
-          onClick={() => navigate("/dealer-staff/orders/create")}
-        >
-          Tạo đơn hàng mới
-        </Button>
       </div>
 
       <Row gutter={[16, 16]} className="orders-metrics">

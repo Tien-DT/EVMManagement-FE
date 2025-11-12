@@ -110,6 +110,7 @@ import ContractDetailPage from "../features/dealer-staff/pages/ContractDetailPag
 import TestDriveBookingsPage from "../features/dealer-staff/pages/TestDriveBookingsPage";
 import CreateTestDriveBookingPage from "../features/dealer-staff/pages/CreateTestDriveBookingPage";
 import TestDriveBookingDetailPage from "../features/dealer-staff/pages/TestDriveBookingDetailPage";
+import CustomerBookingSearchPage from "../features/dealer-staff/pages/CustomerBookingSearchPage";
 
 // EVM Staff Pages
 import EvmStaffDashboardPage from "../features/evm-staff/pages/EvmStaffDashboardPage";
@@ -117,7 +118,6 @@ import EvmStaffOrderRequestsPage from "../features/evm-staff/pages/EvmStaffOrder
 import EvmStaffQuotationsPage from "../features/evm-staff/pages/EvmStaffQuotationsPage";
 import EvmStaffCreateQuotationPage from "../features/evm-staff/pages/EvmStaffCreateQuotationPage";
 import EvmStaffQuotationDetailPage from "../features/evm-staff/pages/EvmStaffQuotationDetailPage";
-import EvmStaffVehiclesPage from "../features/evm-staff/pages/EvmStaffVehiclesPage";
 import EvmStaffOrdersPage from "../features/evm-staff/pages/EvmStaffOrdersPage";
 import EvmStaffOrderDetailPage from "../features/evm-staff/pages/EvmStaffOrderDetailPage";
 import EvmStaffOrderFormPage from "../features/evm-staff/pages/EvmStaffOrderFormPage";
@@ -135,6 +135,9 @@ import EvmStaffEditWarehousePage from "../features/evm-staff/pages/EditWarehouse
 import EvmStaffContractsPage from "../features/evm-staff/pages/EvmStaffContractsPage";
 import EvmStaffContractDetailPage from "../features/evm-staff/pages/EvmStaffContractDetailPage";
 import EvmStaffCreateContractPage from "../features/evm-staff/pages/EvmStaffCreateContractPage";
+import EvmStaffVehicleModelsPage from "../features/evm-staff/pages/EvmStaffVehicleModelsPage";
+import EvmStaffVehicleModelDetailPage from "../features/evm-staff/pages/EvmStaffVehicleModelDetailPage";
+import EvmStaffVehicleVariantDetailPage from "../features/evm-staff/pages/EvmStaffVehicleVariantDetailPage";
 
 // Payment Pages
 import VNPayReturnPage from "../pages/VNPayReturnPage";
@@ -406,7 +409,7 @@ const AppRouter = () => (
               element={<CreateTestDriveSchedulePage />}
             />
             <Route
-              path="/dealer-manager/test-drive-schedule/:date/:masterSlotId"
+              path="/dealer-manager/test-drive-schedule/:bookingId"
               element={<TestDriveScheduleDetailPage />}
             />
           </Route>
@@ -492,8 +495,12 @@ const AppRouter = () => (
               element={<CreateTestDriveBookingPage />}
             />
             <Route
-              path="/dealer-staff/test-drive-bookings/:date/:masterSlotId"
+              path="/dealer-staff/test-drive-bookings/:bookingId"
               element={<TestDriveBookingDetailPage />}
+            />
+            <Route
+              path="/dealer-staff/customer-booking-search"
+              element={<CustomerBookingSearchPage />}
             />
           </Route>
         </Route>
@@ -535,7 +542,15 @@ const AppRouter = () => (
 
             <Route
               path="/evm-staff/vehicles"
-              element={<EvmStaffVehiclesPage />}
+              element={<EvmStaffVehicleModelsPage />}
+            />
+            <Route
+              path="/evm-staff/vehicles/:id"
+              element={<EvmStaffVehicleModelDetailPage />}
+            />
+            <Route
+              path="/evm-staff/vehicles/:id/variants/:variantId"
+              element={<EvmStaffVehicleVariantDetailPage />}
             />
 
             {/* Order Routes */}
