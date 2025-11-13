@@ -336,7 +336,7 @@ const OrderForm = ({ user, onFormResult, fromCart, cartItems }) => {
         >
           {customers.map((customer) => (
             <Option key={customer.id} value={customer.id}>
-              {customer.fullName} - {customer.phone || customer.phoneNumber || "N/A"}
+              {customer.fullName}
             </Option>
           ))}
         </Select>
