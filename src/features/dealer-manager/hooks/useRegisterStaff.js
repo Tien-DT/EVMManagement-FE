@@ -5,13 +5,16 @@ import { useNavigate } from "react-router-dom";
 import { registerStaffSchema } from "../schemas/registerStaffSchema";
 import { dealerService } from "../services/dealerService";
 import { useAuth } from "../../../context/AuthContext";
+import { useNotification } from "../../../context/NotificationContext";
 
-export const useRegisterStaff = () => {
+export const useRegisterStaff = (options = {}) => {
+  const { skipNavigation = false } = options;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showSuccess, showError } = useNotification();
 
   const form = useForm({
     resolver: zodResolver(registerStaffSchema),
@@ -53,23 +56,28 @@ export const useRegisterStaff = () => {
 
       const response = await dealerService.registerStaff(staffData);
 
-      if (response.success) {
-        console.log("Staff registered successfully");
-        setSuccess(true);
-        form.reset();
-        // Có thể redirect hoặc hiển thị thông báo thành công
+      console.log("✅ Staff registered successfully:", response);
+      setSuccess(true);
+      showSuccess("Đăng ký nhân viên thành công!");
+      form.reset();
+
+      // Only navigate if skipNavigation is false (when used in modal, skipNavigation should be true)
+      if (!skipNavigation) {
         setTimeout(() => {
           navigate("/dealer/dashboard", {
             replace: true,
             state: { message: "Đăng ký nhân viên thành công!" },
           });
-        }, 2000);
-      } else {
-        throw new Error(response.message || "Đăng ký nhân viên thất bại");
+        }, 1500);
       }
     } catch (err) {
-      console.error("Register staff error:", err);
-      setError(err.message || "Đăng ký nhân viên thất bại. Vui lòng thử lại.");
+      console.error("❌ Register staff error:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Đăng ký nhân viên thất bại. Vui lòng thử lại.";
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
