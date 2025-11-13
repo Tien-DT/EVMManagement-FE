@@ -163,6 +163,22 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
     setSelectedOrderId(orderId);
   };
 
+  // Get minimum datetime (tomorrow at 00:00)
+  const getMinDateTime = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    // Format to YYYY-MM-DDTHH:mm in local timezone
+    const year = tomorrow.getFullYear();
+    const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const day = String(tomorrow.getDate()).padStart(2, '0');
+    const hours = String(tomorrow.getHours()).padStart(2, '0');
+    const minutes = String(tomorrow.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   // Auto-update dropoff location when order is selected
   useEffect(() => {
     if (selectedOrderId) {
@@ -238,8 +254,12 @@ const CreateTransportModal = ({ visible, preselectedOrderId, onClose, onSuccess 
                 onChange={(e) =>
                   setFormData({ ...formData, scheduledPickupAt: e.target.value })
                 }
+                min={getMinDateTime()}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Chỉ có thể chọn thời gian từ ngày mai trở đi
+              </p>
             </div>
 
             <div>

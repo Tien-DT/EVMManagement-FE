@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Plus,
   Search,
   FileText,
   User,
@@ -143,13 +142,6 @@ const QuotationsPage = () => {
             Danh sách báo giá và thông tin chi tiết
           </p>
         </div>
-        <button
-          onClick={() => navigate("/dealer-staff/quotations/create")}
-          className="inline-flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          <Plus size={20} />
-          <span>Tạo báo giá mới</span>
-        </button>
       </div>
 
       {/* Search and Filter */}
@@ -307,19 +299,8 @@ const QuotationsPage = () => {
                       <p className="text-gray-600 mb-4">
                         {searchTerm
                           ? "Thử điều chỉnh từ khóa tìm kiếm"
-                          : "Tạo báo giá đầu tiên để bắt đầu"}
+                          : "Chưa có báo giá nào"}
                       </p>
-                      {!searchTerm && (
-                        <button
-                          onClick={() =>
-                            navigate("/evm-staff/quotations/create")
-                          }
-                          className="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                        >
-                          <Plus size={20} />
-                          <span>Tạo báo giá mới</span>
-                        </button>
-                      )}
                     </div>
                   </td>
                 </tr>

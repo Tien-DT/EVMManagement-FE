@@ -17,7 +17,6 @@ import {
   Select,
 } from "antd";
 import {
-  PlusOutlined,
   EyeOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -28,6 +27,7 @@ import {
 import { useAuth } from "../../../hooks/useAuth";
 import { contractService } from "../../dealer-staff/services/contractService";
 import moment from "moment";
+import EditContractModal from "../components/EditContractModal";
 
 const EvmStaffContractsPage = () => {
   const navigate = useNavigate();
@@ -42,6 +42,8 @@ const EvmStaffContractsPage = () => {
     pageSize: 10,
     total: 0,
   });
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedContract, setSelectedContract] = useState(null);
 
   const { Text } = Typography;
   const { Search } = Input;
@@ -168,6 +170,23 @@ const EvmStaffContractsPage = () => {
       console.error("Error deleting contract:", error);
       message.error("Lỗi khi xóa hợp đồng");
     }
+  };
+
+  const handleEdit = async (contract) => {
+    try {
+      // Fetch full contract details to ensure we have all fields
+      const response = await contractService.getContractById(contract.id);
+      const fullContract = response.data || response;
+      setSelectedContract(fullContract);
+      setEditModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching contract details:", error);
+      message.error("Không thể tải thông tin hợp đồng");
+    }
+  };
+
+  const handleEditSuccess = () => {
+    fetchContracts();
   };
 
   const filteredContracts = useMemo(() => {
@@ -310,7 +329,7 @@ const EvmStaffContractsPage = () => {
           <Button
             type="default"
             icon={<EditOutlined />}
-            onClick={() => navigate(`/evm-staff/contracts/edit/${record.id}`)}
+            onClick={() => handleEdit(record)}
             size="small"
             title="Chỉnh sửa"
             style={{ opacity: 1 }}
@@ -516,15 +535,6 @@ const EvmStaffContractsPage = () => {
             Theo dõi và quản lý tất cả các hợp đồng kinh doanh với khách hàng.
           </Text>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          className="contracts-hero-card__cta"
-          onClick={() => navigate("/evm-staff/contracts/create")}
-        >
-          Tạo hợp đồng mới
-        </Button>
       </div>
 
       <Card className="contracts-card" bordered={false}>
@@ -601,6 +611,19 @@ const EvmStaffContractsPage = () => {
           }
         />
       </Card>
+
+      {/* Edit Contract Modal */}
+      {editModalVisible && (
+        <EditContractModal
+          visible={editModalVisible}
+          onClose={() => {
+            setEditModalVisible(false);
+            setSelectedContract(null);
+          }}
+          contract={selectedContract}
+          onSuccess={handleEditSuccess}
+        />
+      )}
 
       <style jsx>{pageStyles}</style>
     </div>

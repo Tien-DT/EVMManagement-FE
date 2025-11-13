@@ -34,6 +34,7 @@ const CreateTestDriveBookingPage = () => {
     cardId: "",
     gender: "",
   });
+  const [isCreatingNewCustomer, setIsCreatingNewCustomer] = useState(false);
   
   const [note, setNote] = useState("");
 
@@ -240,9 +241,12 @@ const CreateTestDriveBookingPage = () => {
           rawGender: customerData.gender
         });
         
-        showSuccess("Tìm thấy thông tin khách hàng");
+        setIsCreatingNewCustomer(false);
+        showSuccess("✅ Tìm thấy thông tin khách hàng");
       } else {
-        showError("Không tìm thấy khách hàng. Vui lòng nhập thủ công.");
+        setIsCreatingNewCustomer(true);
+        showError("⚠️ Không tìm thấy khách hàng với số điện thoại này. Vui lòng nhập thông tin khách hàng mới bên dưới.");
+        // Clear form for manual input
         setCustomer({
           fullName: "",
           email: "",
@@ -254,7 +258,9 @@ const CreateTestDriveBookingPage = () => {
       }
     } catch (error) {
       console.error("Error searching customer:", error);
-      showError("Không tìm thấy khách hàng. Vui lòng nhập thủ công.");
+      setIsCreatingNewCustomer(true);
+      showError("⚠️ Không tìm thấy khách hàng với số điện thoại này. Vui lòng nhập thông tin khách hàng mới bên dưới.");
+      // Clear form for manual input
       setCustomer({
         fullName: "",
         email: "",
@@ -275,6 +281,58 @@ const CreateTestDriveBookingPage = () => {
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
   };
 
+  // Validate email uniqueness
+  const validateEmail = async (email) => {
+    if (!email || !email.trim()) return true;
+    
+    try {
+      const response = await axiosInstance.get(endpoints.customers.getAll, {
+        params: { pageSize: 1000 }
+      });
+      
+      const customers = response.data?.items || response.data || [];
+      const existingCustomer = customers.find(
+        c => c.email && c.email.toLowerCase() === email.trim().toLowerCase() && c.phone !== customerPhone.trim()
+      );
+      
+      if (existingCustomer) {
+        showError(`Email ${email} đã được sử dụng bởi khách hàng khác (SĐT: ${existingCustomer.phone})`);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error validating email:", error);
+      return true; // Skip validation if API fails
+    }
+  };
+
+  // Validate cardId uniqueness
+  const validateCardId = async (cardId) => {
+    if (!cardId || !cardId.trim()) return true;
+    
+    try {
+      const response = await axiosInstance.get(endpoints.customers.getAll, {
+        params: { pageSize: 1000 }
+      });
+      
+      const customers = response.data?.items || response.data || [];
+      const existingCustomer = customers.find(
+        c => c.cardId && c.cardId === cardId.trim() && c.phone !== customerPhone.trim()
+      );
+      
+      if (existingCustomer) {
+        showError(`CCCD/CMND ${cardId} đã được sử dụng bởi khách hàng khác (SĐT: ${existingCustomer.phone})`);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error validating cardId:", error);
+      return true; // Skip validation if API fails
+    }
+  };
+
   // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -286,6 +344,24 @@ const CreateTestDriveBookingPage = () => {
 
     setLoading(true);
     try {
+      // Validate email uniqueness
+      if (customer.email && customer.email.trim()) {
+        const isEmailValid = await validateEmail(customer.email);
+        if (!isEmailValid) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Validate cardId uniqueness
+      if (customer.cardId && customer.cardId.trim()) {
+        const isCardIdValid = await validateCardId(customer.cardId);
+        if (!isCardIdValid) {
+          setLoading(false);
+          return;
+        }
+      }
+
       const payload = {
         bookingDate: new Date(bookingDate).toISOString(),
         masterSlotId: selectedMasterSlotId,
@@ -467,7 +543,10 @@ const CreateTestDriveBookingPage = () => {
               <input
                 type="tel"
                 value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
+                onChange={(e) => {
+                  setCustomerPhone(e.target.value);
+                  setIsCreatingNewCustomer(false); // Reset flag when phone changes
+                }}
                 required
                 placeholder="Nhập số điện thoại"
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -483,6 +562,27 @@ const CreateTestDriveBookingPage = () => {
               </button>
             </div>
           </div>
+
+          {/* New Customer Banner */}
+          {isCreatingNewCustomer && (
+            <div className="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-yellow-800">
+                    Tạo mới khách hàng
+                  </p>
+                  <p className="mt-1 text-sm text-yellow-700">
+                    Số điện thoại chưa có trong hệ thống. Vui lòng nhập đầy đủ thông tin để tạo khách hàng mới. Email và CCCD sẽ được kiểm tra trùng lặp.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Customer Info */}
           <div className="grid grid-cols-2 gap-4 mb-4">

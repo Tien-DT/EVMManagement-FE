@@ -490,16 +490,39 @@ const TestDriveBookingsPage = () => {
                               </div>
                             </div>
                           ) : (
-                            <div 
-                              className="text-center text-gray-400 cursor-pointer hover:bg-green-50 p-4 rounded transition-colors"
-                              onClick={() => {
-                                // Navigate to create page with date and slotNumber params
-                                navigate(`/dealer-staff/test-drive-bookings/create?date=${dateItem.dateStr}&slotNumber=${slotNumber}`);
-                              }}
-                              title="Click để tạo đặt chỗ"
-                            >
-                              <div className="text-gray-300 hover:text-green-600 transition-colors">+</div>
-                            </div>
+                            (() => {
+                              // Check if date is in the past
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0); // Reset to start of today
+                              
+                              const cellDate = new Date(dateItem.dateObj);
+                              cellDate.setHours(0, 0, 0, 0); // Reset to start of cell date
+                              
+                              const isPastDate = cellDate < today;
+                              
+                              if (isPastDate) {
+                                // Past date - show empty cell without + button
+                                return (
+                                  <div className="text-center text-gray-200 p-4">
+                                    {/* Empty cell for past dates */}
+                                  </div>
+                                );
+                              } else {
+                                // Future date or today - show + button
+                                return (
+                                  <div 
+                                    className="text-center text-gray-400 cursor-pointer hover:bg-green-50 p-4 rounded transition-colors"
+                                    onClick={() => {
+                                      // Navigate to create page with date and slotNumber params
+                                      navigate(`/dealer-staff/test-drive-bookings/create?date=${dateItem.dateStr}&slotNumber=${slotNumber}`);
+                                    }}
+                                    title="Click để tạo đặt chỗ"
+                                  >
+                                    <div className="text-gray-300 hover:text-green-600 transition-colors">+</div>
+                                  </div>
+                                );
+                              }
+                            })()
                           )}
                         </td>
                       );

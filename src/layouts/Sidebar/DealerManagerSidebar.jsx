@@ -18,6 +18,7 @@ import {
   BarChart3,
   Package,
   Calendar,
+  ClipboardCheck,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import axiosInstance from "../../api/axiosInstance";
@@ -105,6 +106,11 @@ const DealerManagerSidebar = () => {
       path: "/dealer-manager/deposits",
       icon: CreditCard,
       label: "Đặt cọc",
+    },
+    {
+      path: "/dealer-manager/handover-records",
+      icon: ClipboardCheck,
+      label: "Bàn giao xe",
     },
     {
       path: "/dealer-manager/master-time-slots",

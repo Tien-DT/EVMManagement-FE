@@ -20,6 +20,7 @@ const endpoints = {
     getById: (id) => `/v1/DealerContracts/${id}`,
     getByDealer: (dealerId) => `/v1/DealerContracts/dealer/${dealerId}`,
     create: "/v1/DealerContracts",
+    update: (id) => `/v1/DealerContracts/${id}`,
     verifyOtp: (dealerId) => `/v1/DealerContracts/${dealerId}/verify-otp`,
   },
   auth: {
@@ -191,6 +192,7 @@ const endpoints = {
   // Handover Records endpoints
   handoverRecords: {
     getAll: "/v1/HandoverRecords",
+    lookup: "/v1/HandoverRecords/lookup", // Query with dealerId, orderId, vehicleId, etc.
     getById: (id) => `/v1/HandoverRecords/${id}`,
     create: "/v1/HandoverRecords",
     update: (id) => `/v1/HandoverRecords/${id}`,
@@ -283,6 +285,7 @@ const endpoints = {
     create: "/v1/Transports",
     update: (id) => `/v1/Transports/${id}`,
     delete: (id) => `/v1/Transports/${id}`,
+    confirmHandover: (id) => `/v1/Transports/${id}/handover/confirm`,
   },
 
   // Transport Details endpoints

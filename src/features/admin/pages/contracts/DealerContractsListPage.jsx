@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, FileText, Search, Filter, X } from 'lucide-react';
+import { FileText, Search, Filter, X } from 'lucide-react';
 import dealerContractService from '../../../evm-staff/services/dealerContractService';
 import dealerService from '../../../dealer/services/dealerService';
 
@@ -203,18 +203,9 @@ const DealerContractsListPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Hợp đồng Dealer</h1>
-          <p className="text-sm text-gray-600 mt-1">Quản lý hợp đồng giữa EVM và Dealer</p>
-        </div>
-        <button
-          onClick={() => navigate('/admin/dealer-contracts/create')}
-          className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2"
-        >
-          <Plus size={18} />
-          Tạo hợp đồng mới
-        </button>
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900">Hợp đồng Dealer</h1>
+        <p className="text-sm text-gray-600 mt-1">Quản lý hợp đồng giữa EVM và Dealer</p>
       </div>
 
       {/* Search and Filters */}

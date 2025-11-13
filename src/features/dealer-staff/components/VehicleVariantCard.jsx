@@ -20,11 +20,13 @@ const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false
       style={{
         opacity: isOutOfStock ? 0.6 : 1,
         cursor: isOutOfStock ? "default" : "pointer",
+        height: "100%",
       }}
+      bodyStyle={{ padding: "12px" }}
       cover={
         <div
           style={{
-            height: 200,
+            height: 140,
             overflow: "hidden",
             display: "flex",
             alignItems: "center",
@@ -40,7 +42,7 @@ const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover",
+                objectFit: "contain",
               }}
             />
           ) : (
@@ -69,36 +71,36 @@ const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false
     >
       <Card.Meta
         title={
-          <div style={{ fontSize: 16, fontWeight: 600 }}>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>
             {variant.color || "Không có màu"}
           </div>
         }
         description={
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1890ff", marginBottom: 8 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#1890ff", marginBottom: 6 }}>
               {formatPrice(variant.price)}
             </div>
             {variant.engine && (
-              <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>
+              <div style={{ fontSize: 12, color: "#666", marginBottom: 3 }}>
                 Động cơ: {variant.engine}
               </div>
             )}
             {variant.batteryType && (
-              <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>
+              <div style={{ fontSize: 12, color: "#666", marginBottom: 3 }}>
                 Pin: {variant.batteryType}
               </div>
             )}
             {variant.maximumSpeed && (
-              <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>
+              <div style={{ fontSize: 12, color: "#666", marginBottom: 3 }}>
                 Tốc độ tối đa: {variant.maximumSpeed} km/h
               </div>
             )}
-            <div style={{ fontSize: 14, fontWeight: 600, color: isOutOfStock ? "#ff4d4f" : "#52c41a", marginTop: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: isOutOfStock ? "#ff4d4f" : "#52c41a", marginTop: 6 }}>
               {isOutOfStock ? "Hết hàng" : `Có sẵn: ${variant.availableStock} xe`}
             </div>
             
             {isB2BMode ? (
-              <div style={{ marginTop: 12 }}>
+              <div style={{ marginTop: 10 }}>
                 <Button
                   type="primary"
                   icon={<ShoppingCartOutlined />}
@@ -107,6 +109,7 @@ const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false
                     onAddToB2BCart && onAddToB2BCart(variant);
                   }}
                   block
+                  size="small"
                   style={{
                     backgroundColor: "#1890ff",
                     borderColor: "#1890ff",
@@ -115,7 +118,7 @@ const VehicleVariantCard = ({ variant, onClick, onPreOrder, hidePreOrder = false
                 >
                   Đặt từ hãng
                 </Button>
-                <div style={{ fontSize: 12, color: "#999", marginTop: 6, textAlign: "center", fontStyle: "italic" }}>
+                <div style={{ fontSize: 11, color: "#999", marginTop: 4, textAlign: "center", fontStyle: "italic" }}>
                   {isOutOfStock ? "Đặt xe từ nhà sản xuất" : `Còn ${variant.availableStock} xe - Đặt thêm từ hãng`}
                 </div>
               </div>

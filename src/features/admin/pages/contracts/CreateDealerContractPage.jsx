@@ -148,7 +148,7 @@ const CreateDealerContractPage = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-900">Trạng thái</h3>
                 <p className="text-xs text-gray-500 mt-1">
-                  Tạo ở trạng thái "Bản nháp"
+                  Tạo ở trạng thái "Chờ ký"
                 </p>
               </div>
             </div>

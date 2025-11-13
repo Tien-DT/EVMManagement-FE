@@ -62,10 +62,15 @@ export const dealerService = {
     }
   },
 
-  deleteWarehouse: async (id) => {
+  deleteWarehouse: async (id, isDeleted = true) => {
     try {
       const response = await axiosInstance.delete(
-        `${endpoints.dealer.warehouses}/${id}`
+        `${endpoints.dealer.warehouses}/${id}`,
+        {
+          params: {
+            isDeleted,
+          },
+        }
       );
       console.log("Delete warehouse response:", response);
       return response;

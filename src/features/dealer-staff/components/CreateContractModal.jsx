@@ -229,6 +229,14 @@ const CreateContractModal = ({ visible, onClose, order, onSuccess }) => {
       cancelText="Hủy"
       width={700}
       confirmLoading={loading}
+      okButtonProps={{
+        style: {
+          backgroundColor: '#1890ff',
+          borderColor: '#1890ff',
+          color: '#ffffff',
+          opacity: 1
+        }
+      }}
     >
       <div className="space-y-4 mb-4">
         {/* Order Info */}
@@ -266,14 +274,6 @@ const CreateContractModal = ({ visible, onClose, order, onSuccess }) => {
               </div>
             )}
           </div>
-        </div>
-
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-          <p className="text-sm text-yellow-800">
-            <strong>Lưu ý:</strong> Hợp đồng sẽ được tạo với trạng thái "PENDING_SIGNATURE" (Chờ ký). 
-            Sau khi vào chi tiết hợp đồng và upload PDF hợp đồng đã ký, trạng thái sẽ tự động chuyển sang "ACTIVE" (Đang hoạt động),
-            đồng thời cập nhật thời gian ký và đơn hàng chuyển sang trạng thái "SIGNED_CONTRACT".
-          </p>
         </div>
       </div>
 

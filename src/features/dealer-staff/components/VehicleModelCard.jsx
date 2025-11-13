@@ -17,11 +17,13 @@ const VehicleModelCard = ({ model, basePath = "/dealer-staff/vehicles" }) => {
       style={{
         opacity: isOutOfStock ? 0.75 : 1,
         cursor: "pointer",
+        height: "100%",
       }}
+      bodyStyle={{ padding: "12px" }}
       cover={
         <div
           style={{
-            height: 200,
+            height: 140,
             overflow: "hidden",
             display: "flex",
             alignItems: "center",
@@ -37,7 +39,7 @@ const VehicleModelCard = ({ model, basePath = "/dealer-staff/vehicles" }) => {
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover",
+                objectFit: "contain",
               }}
             />
           ) : (
@@ -66,22 +68,22 @@ const VehicleModelCard = ({ model, basePath = "/dealer-staff/vehicles" }) => {
     >
       <Card.Meta
         title={
-          <div style={{ fontSize: 18, fontWeight: 600 }}>
+          <div style={{ fontSize: 16, fontWeight: 600 }}>
             {model.name}
           </div>
         }
         description={
           <div>
-            <div style={{ color: "#666", marginBottom: 4 }}>
+            <div style={{ color: "#666", marginBottom: 3, fontSize: 12 }}>
               Mã: {model.code}
             </div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#1890ff", marginBottom: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#1890ff", marginBottom: 3 }}>
               Số lượng: {model.availableStock || 0} xe
             </div>
             {model.description && (
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: 12,
                   color: "#999",
                   overflow: "hidden",
                   textOverflow: "ellipsis",

@@ -481,26 +481,6 @@ const DealerManagerOrderDetailPage = () => {
 
   return (
     <div style={{ padding: "24px" }}>
-      {/* Debug Panel - TODO: Remove in production */}
-      <Card 
-        style={{ marginBottom: 16, background: "#fff3cd", borderColor: "#ffc107" }}
-        size="small"
-      >
-        <Text strong style={{ color: "#856404" }}>🔍 DEBUG INFO:</Text>
-        <div style={{ marginTop: 8, fontSize: 12 }}>
-          <div><strong>orderType:</strong> {JSON.stringify(orderData.orderType)} (isB2B: {isB2B ? "✅" : "❌"}, isPreorder: {isPreorder ? "✅" : "❌"})</div>
-          <div><strong>status:</strong> {orderData.status}</div>
-          <div><strong>quotationId:</strong> {orderData.quotationId || "null"}</div>
-          <div style={{ marginTop: 8, color: "#666" }}>
-            <strong>Buttons logic:</strong><br/>
-            • Đặt xe (B2B): {isPreorder && orderData.status === "AWAITING_CONFIRM" ? "✅ SHOW" : "❌ HIDE"} (B2C_P only)<br/>
-            • Xem báo giá: {isB2B && orderData.status === "QUOTATION_RECEIVED" ? "✅ SHOW" : "❌ HIDE"} (B2B only)<br/>
-            • Đặt cọc: {isB2B && orderData.status === "AWAITING_DEPOSIT" ? "✅ SHOW" : "❌ HIDE"} (B2B only)<br/>
-            • Trả tiền: {isB2B && orderData.status === "READY_FOR_HANDOVER" ? "✅ SHOW" : "❌ HIDE"} (B2B only)
-          </div>
-        </div>
-      </Card>
-      
       {/* Header */}
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

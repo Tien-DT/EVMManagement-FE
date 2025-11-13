@@ -96,6 +96,36 @@ const dealerContractService = {
   },
 
   /**
+   * PUT /api/v1/DealerContracts/{id}
+   * Update dealer contract
+   * @param {string} id - Contract UUID
+   * @param {Object} contractData
+   */
+  updateContract: async (id, contractData) => {
+    try {
+      console.log('📝 Service: Updating dealer contract:', id);
+      console.log('📝 Service: Update data:', JSON.stringify(contractData, null, 2));
+      
+      // Ensure dates are properly formatted
+      const formattedData = {
+        ...contractData,
+        effectiveDate: contractData.effectiveDate ? new Date(contractData.effectiveDate).toISOString() : null,
+        expirationDate: contractData.expirationDate ? new Date(contractData.expirationDate).toISOString() : null,
+      };
+      
+      console.log('📝 Service: Formatted update data:', JSON.stringify(formattedData, null, 2));
+      
+      const response = await axiosInstance.put(endpoints.dealerContracts.update(id), formattedData);
+      console.log('✅ Service: Dealer contract updated:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Service: Error updating dealer contract:', error);
+      console.error('❌ Service: Error response:', error.response?.data);
+      throw error;
+    }
+  },
+
+  /**
    * POST /api/v1/DealerContracts/{dealerId}/verify-otp
    * Verify OTP for dealer contract
    * @param {string} dealerId - Dealer UUID

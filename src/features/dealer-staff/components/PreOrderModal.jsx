@@ -90,7 +90,6 @@ const PreOrderModal = ({ visible, onClose, variant, dealerId, onSuccess }) => {
       // Validate ALL fields including hidden ones from previous steps
       const values = await form.validateFields([
         'customerId',
-        'depositMethod',
         'note',
         'depositNote'
       ]);
@@ -115,7 +114,6 @@ const PreOrderModal = ({ visible, onClose, variant, dealerId, onSuccess }) => {
         customerId: values.customerId,
         variantId: variant.id,
         note: values.note || "",
-        depositMethod: values.depositMethod || 0,
         depositNote: values.depositNote || "",
       });
 
@@ -318,20 +316,6 @@ const PreOrderModal = ({ visible, onClose, variant, dealerId, onSuccess }) => {
             </div>
 
             <Form.Item
-              name="depositMethod"
-              label="Phương thức thanh toán"
-              rules={[{ required: true, message: "Vui lòng chọn phương thức thanh toán" }]}
-              initialValue={0}
-            >
-              <Radio.Group>
-                <Radio value={0}>Tiền mặt</Radio>
-                <Radio value={1}>Chuyển khoản</Radio>
-                <Radio value={2}>Thẻ tín dụng</Radio>
-                <Radio value={3}>Ví điện tử</Radio>
-              </Radio.Group>
-            </Form.Item>
-
-            <Form.Item
               name="depositNote"
               label="Ghi chú đặt cọc"
             >
@@ -366,7 +350,16 @@ const PreOrderModal = ({ visible, onClose, variant, dealerId, onSuccess }) => {
           </Button>
         )}
         {currentStep < 2 && (
-          <Button type="primary" onClick={handleNext}>
+          <Button 
+            type="primary" 
+            onClick={handleNext}
+            style={{
+              backgroundColor: "#1890ff",
+              borderColor: "#1890ff",
+              color: "#ffffff",
+              opacity: 1
+            }}
+          >
             Tiếp tục
           </Button>
         )}
@@ -375,7 +368,12 @@ const PreOrderModal = ({ visible, onClose, variant, dealerId, onSuccess }) => {
             type="primary"
             onClick={handleSubmit}
             loading={submitting}
-            style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+            style={{ 
+              backgroundColor: "#52c41a", 
+              borderColor: "#52c41a",
+              color: "#ffffff",
+              opacity: 1
+            }}
           >
             Xác nhận đặt trước
           </Button>

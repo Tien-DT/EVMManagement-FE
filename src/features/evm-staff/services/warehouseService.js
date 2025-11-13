@@ -84,7 +84,7 @@ export const warehouseService = {
   },
 
   // Delete warehouse
-  deleteWarehouse: async (id, isDeleted = false) => {
+  deleteWarehouse: async (id, isDeleted = true) => {
     try {
       const response = await axiosInstance.delete(
         endpoints.admin.warehousesById(id),

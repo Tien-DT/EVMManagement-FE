@@ -434,10 +434,6 @@ const EvmStaffContractDetailPage = () => {
     return <Tag color={config.color}>{config.text}</Tag>;
   };
 
-  const handleEdit = () => {
-    navigate(`/evm-staff/contracts/edit/${id}`);
-  };
-
   const handleDelete = async () => {
     if (window.confirm("Bạn có chắc chắn muốn xóa hợp đồng này không?")) {
       try {
@@ -625,13 +621,6 @@ const EvmStaffContractDetailPage = () => {
                 onClick={handleDownloadPdf}
               >
                 Tải hợp đồng PDF
-              </Button>
-              <Button 
-                type="primary" 
-                icon={<EditOutlined />} 
-                onClick={handleEdit}
-              >
-                Chỉnh sửa
               </Button>
               <Button 
                 danger 

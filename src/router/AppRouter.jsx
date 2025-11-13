@@ -85,6 +85,8 @@ import EditMasterTimeSlotPage from "../features/dealer-manager/pages/EditMasterT
 import TestDriveSchedulePage from "../features/dealer-manager/pages/TestDriveSchedulePage";
 import CreateTestDriveSchedulePage from "../features/dealer-manager/pages/CreateTestDriveSchedulePage";
 import TestDriveScheduleDetailPage from "../features/dealer-manager/pages/TestDriveScheduleDetailPage";
+import DealerManagerHandoverRecordsPage from "../features/dealer-manager/pages/HandoverRecordsPage";
+import DealerManagerHandoverRecordDetailPage from "../features/dealer-manager/pages/HandoverRecordDetailPage";
 
 // Dealer Staff Pages
 import CustomersPage from "../features/dealer-staff/pages/CustomersPage";
@@ -412,6 +414,19 @@ const AppRouter = () => (
               path="/dealer-manager/test-drive-schedule/:bookingId"
               element={<TestDriveScheduleDetailPage />}
             />
+
+            {/* Handover Record Routes */}
+            <Route
+              path="/dealer-manager/handover-records"
+              element={<DealerManagerHandoverRecordsPage />}
+            />
+            <Route
+              path="/dealer-manager/handover-records/:id"
+              element={<DealerManagerHandoverRecordDetailPage />}
+            />
+
+            {/* Profile Route */}
+            <Route path="/dealer-manager/profile" element={<ProfilePage />} />
           </Route>
         </Route>
       </Route>
@@ -502,6 +517,9 @@ const AppRouter = () => (
               path="/dealer-staff/customer-booking-search"
               element={<CustomerBookingSearchPage />}
             />
+
+            {/* Profile Route */}
+            <Route path="/dealer-staff/profile" element={<ProfilePage />} />
           </Route>
         </Route>
       </Route>

@@ -256,45 +256,35 @@ const EditDealerManagerForm = ({ manager, onSuccess, onCancel }) => {
           )}
         </div>
 
-        {/* Dealer Selection */}
+        {/* Dealer - Read only */}
         <div className="md:col-span-2">
           <label
             htmlFor="dealerId"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Dealer <span className="text-red-600">*</span>
+            Dealer
           </label>
-          <select
-            {...register("dealerId", {
-              required: "Dealer là bắt buộc"
-            })}
-            id="dealerId"
-            disabled={isLoading || loadingDealers}
-            className={`w-full px-4 py-2.5 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-0 transition ${
-              errors.dealerId
-                ? "border-red-300 focus:ring-red-500"
-                : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-            } disabled:bg-gray-50 disabled:cursor-not-allowed`}
-          >
-            <option value="">Chọn dealer</option>
-            {dealers.map((dealer) => (
-              <option key={dealer.id} value={dealer.id}>
-                {dealer.name} {dealer.code ? `(${dealer.code})` : ""}
-              </option>
-            ))}
-          </select>
-          {loadingDealers && (
-            <p className="mt-1.5 text-sm text-gray-600 flex items-center gap-1">
-              <Loader2 size={14} className="animate-spin" />
-              <span>Đang tải danh sách dealer...</span>
-            </p>
+          {loadingDealers ? (
+            <div className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-md bg-gray-50">
+              <Loader2 size={14} className="animate-spin text-gray-400" />
+              <span className="text-sm text-gray-600">Đang tải dealer...</span>
+            </div>
+          ) : (
+            <>
+              <div className="px-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+                <div className="font-medium">
+                  {manager?.dealer?.name || dealers.find(d => d.id === manager?.dealerId)?.name || "N/A"}
+                  {(manager?.dealer?.code || dealers.find(d => d.id === manager?.dealerId)?.code) && 
+                    ` (${manager?.dealer?.code || dealers.find(d => d.id === manager?.dealerId)?.code})`}
+                </div>
+              </div>
+              <p className="mt-1.5 text-xs text-gray-500 italic">
+                Dealer không thể thay đổi
+              </p>
+            </>
           )}
-          {errors.dealerId && (
-            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-              <AlertCircle size={14} />
-              <span>{errors.dealerId.message}</span>
-            </p>
-          )}
+          {/* Hidden input to preserve dealerId */}
+          <input type="hidden" {...register("dealerId")} value={manager?.dealerId || ""} />
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Row, Col, Spin, Empty, Card, Breadcrumb, Badge, Button, Input } from "antd";
+import { Spin, Breadcrumb, Badge, Button, Input } from "antd";
 import { HomeOutlined, CarOutlined, ShoppingCartOutlined, SearchOutlined } from "@ant-design/icons";
 import { useAuth } from "../../../context/AuthContext";
 import { useDealerVehicleModels } from "../../dealer-staff/hooks/useDealerVehicleModels";
@@ -94,68 +94,75 @@ const DealerManagerVehicleModelsPage = () => {
   }, [models, searchTerm]);
 
   return (
-    <div style={{ padding: "24px" }}>
-      <Breadcrumb style={{ marginBottom: 24 }}>
-        <Breadcrumb.Item>
-          <HomeOutlined />
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>
-          <CarOutlined />
-          <span style={{ marginLeft: 8 }}>Đặt xe từ hãng</span>
-        </Breadcrumb.Item>
-      </Breadcrumb>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="mb-6">
+        <Breadcrumb>
+          <Breadcrumb.Item>
+            <HomeOutlined />
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <CarOutlined />
+            <span className="ml-2">Đặt xe từ hãng</span>
+          </Breadcrumb.Item>
+        </Breadcrumb>
+      </div>
 
-      <Card>
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>
-              Danh sách mẫu xe (B2B)
-            </h2>
-          <Badge count={cartItems.length} showZero>
-            <Button
-              type="primary"
-              size="large"
-              icon={<ShoppingCartOutlined />}
-              onClick={() => setCartVisible(true)}
-              style={{
-                backgroundColor: '#1890ff',
-                borderColor: '#1890ff',
-                fontWeight: 600
-              }}
-            >
-              Giỏ hàng B2B
-            </Button>
-          </Badge>
-          </div>
-
-          {/* Search Filter */}
-          <Search
-            placeholder="Tìm kiếm mẫu xe theo tên..."
-            allowClear
-            enterButton={<SearchOutlined />}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onSearch={(value) => setSearchTerm(value)}
-            style={{ maxWidth: 400 }}
-          />
+      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Danh sách mẫu xe (B2B)</h1>
+          <p className="text-gray-600 mt-1">Chọn mẫu xe để xem các biến thể</p>
         </div>
+        <Badge count={cartItems.length} showZero>
+          <Button
+            type="primary"
+            size="large"
+            icon={<ShoppingCartOutlined />}
+            onClick={() => setCartVisible(true)}
+            style={{
+              backgroundColor: '#1890ff',
+              borderColor: '#1890ff',
+              fontWeight: 600
+            }}
+          >
+            Giỏ hàng B2B
+          </Button>
+        </Badge>
+      </div>
 
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "50px 0" }}>
-            <Spin size="large" />
+      <div className="mb-6">
+        <Search
+          placeholder="Tìm kiếm mẫu xe theo tên..."
+          allowClear
+          enterButton={<SearchOutlined />}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onSearch={(value) => setSearchTerm(value)}
+          style={{ maxWidth: 400 }}
+        />
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Spin size="large" />
+          <span className="ml-3 text-gray-600">Loading...</span>
+        </div>
+      ) : filteredModels.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <span className="text-2xl">🚗</span>
           </div>
-        ) : filteredModels.length === 0 ? (
-          <Empty description={searchTerm ? "Không tìm thấy mẫu xe phù hợp" : "Không có mẫu xe nào trong kho"} />
-        ) : (
-          <Row gutter={[16, 16]}>
-            {filteredModels.map((model) => (
-              <Col key={model.id} xs={24} sm={12} md={8} lg={6}>
-                <VehicleModelCard model={model} basePath="/dealer/vehicles" />
-              </Col>
-            ))}
-          </Row>
-        )}
-      </Card>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {searchTerm ? "Không tìm thấy mẫu xe phù hợp" : "Không có mẫu xe nào trong kho"}
+          </h3>
+          <p className="text-gray-500">Vui lòng thử lại sau</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredModels.map((model) => (
+            <VehicleModelCard key={model.id} model={model} basePath="/dealer/vehicles" />
+          ))}
+        </div>
+      )}
 
       <OrderCartB2B
         visible={cartVisible}

@@ -17,13 +17,15 @@ const DealerContractForm = ({
   onCancel, 
   initialData = null, 
   loading = false,
-  dealers = []
+  dealers = [],
+  dealerInfo = null,
+  isEditing = false
 }) => {
   const [formData, setFormData] = useState({
     contractCode: '',
     dealerId: '',
     terms: '',
-    status: 'DRAFT',
+    status: 'PENDING_SIGNATURE',
     effectiveDate: '',
     expirationDate: '',
     contractLink: ''
@@ -183,32 +185,48 @@ const DealerContractForm = ({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Dealer <span className="text-red-500">*</span>
           </label>
-          <select
-            name="dealerId"
-            value={formData.dealerId}
-            onChange={handleInputChange}
-            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm ${
-              errors.dealerId ? 'border-red-500 bg-red-50' : 'border-gray-300'
-            }`}
-            disabled={loading}
-          >
-            <option value="">Chọn Dealer ({dealers.length} dealers)</option>
-            {dealers.length === 0 ? (
-              <option disabled>Không có dealer nào</option>
-            ) : (
-              dealers.map((dealer) => (
-                <option key={dealer.id} value={dealer.id}>
-                  {dealer.dealerName || dealer.name || 'Dealer'}
-                  {dealer.address && ` - ${dealer.address}`}
-                </option>
-              ))
-            )}
-          </select>
-          {errors.dealerId && (
-            <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-              <AlertCircle size={14} />
-              {errors.dealerId}
-            </p>
+          {isEditing ? (
+            <div className="px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-700">
+              <div className="font-medium">
+                {dealerInfo?.dealerName || dealerInfo?.name || 'N/A'}
+              </div>
+              {dealerInfo?.address && (
+                <div className="text-xs text-gray-500 mt-1">{dealerInfo.address}</div>
+              )}
+              <p className="text-xs text-gray-500 mt-2 italic">
+                Dealer không thể thay đổi
+              </p>
+            </div>
+          ) : (
+            <>
+              <select
+                name="dealerId"
+                value={formData.dealerId}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm ${
+                  errors.dealerId ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                }`}
+                disabled={loading}
+              >
+                <option value="">Chọn Dealer ({dealers.length} dealers)</option>
+                {dealers.length === 0 ? (
+                  <option disabled>Không có dealer nào</option>
+                ) : (
+                  dealers.map((dealer) => (
+                    <option key={dealer.id} value={dealer.id}>
+                      {dealer.dealerName || dealer.name || 'Dealer'}
+                      {dealer.address && ` - ${dealer.address}`}
+                    </option>
+                  ))
+                )}
+              </select>
+              {errors.dealerId && (
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <AlertCircle size={14} />
+                  {errors.dealerId}
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -294,25 +312,6 @@ const DealerContractForm = ({
               </a>
             </div>
           )}
-        </div>
-
-        {/* Status */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Trạng thái
-          </label>
-          <select
-            name="status"
-            value={formData.status}
-            onChange={handleInputChange}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-            disabled={loading}
-          >
-            <option value="DRAFT">Bản nháp</option>
-            <option value="PENDING_SIGNATURE">Chờ ký</option>
-            <option value="ACTIVE">Đang hoạt động</option>
-            <option value="CANCELED">Đã hủy</option>
-          </select>
         </div>
 
         {/* Actions */}

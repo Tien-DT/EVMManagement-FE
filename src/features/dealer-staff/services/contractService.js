@@ -4,13 +4,20 @@ import endpoints from "../../../api/endpoints";
 
 export const contractService = {
   // Lấy tất cả contracts với phân trang
-  getAllContracts: async (pageNumber = 1, pageSize = 10) => {
+  getAllContracts: async (pageNumber = 1, pageSize = 10, contractType = null) => {
     try {
+      const params = {
+        pageNumber,
+        pageSize,
+      };
+      
+      // Add contractType filter if provided
+      if (contractType !== null && contractType !== undefined) {
+        params.contractType = contractType;
+      }
+      
       const response = await axiosInstance.get(endpoints.contracts.getAll, {
-        params: {
-          pageNumber,
-          pageSize,
-        },
+        params,
       });
       console.log("Get all contracts response:", response);
       return response;

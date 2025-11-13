@@ -484,16 +484,6 @@ const EvmStaffTransportsPage = () => {
                           <CheckCircle size={16} />
                         </button>
                       )}
-                      {/* Show Complete button only for DELIVERED status */}
-                      {(transport.status === 2 || transport.status === 'DELIVERED' || transport.status?.toUpperCase() === 'DELIVERED') && (
-                        <button
-                          onClick={() => handleMarkAsCompleted(transport)}
-                          className="text-green-600 hover:bg-green-50 p-2 rounded-md transition-colors"
-                          title="Hoàn thành vận chuyển"
-                        >
-                          <CheckCircle size={16} />
-                        </button>
-                      )}
                       <button
                         onClick={() => {
                           setSelectedTransport(transport);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Spin, Empty, Card, Button, Badge, Breadcrumb, message } from "antd";
+import { Spin, Button, Badge, Breadcrumb, message } from "antd";
 import { ShoppingCartOutlined, HomeOutlined, CarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -133,76 +133,83 @@ const DealerManagerVehicleVariantsPage = () => {
   };
 
   return (
-    <div style={{ padding: "24px" }}>
-      <Breadcrumb style={{ marginBottom: 24 }}>
-        <Breadcrumb.Item>
-          <HomeOutlined />
-        </Breadcrumb.Item>
-        <Breadcrumb.Item onClick={() => navigate("/dealer/vehicles")} style={{ cursor: "pointer" }}>
-          <CarOutlined />
-          <span style={{ marginLeft: 8 }}>Đặt xe từ hãng</span>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>Biến thể xe</Breadcrumb.Item>
-      </Breadcrumb>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="mb-6">
+        <Breadcrumb>
+          <Breadcrumb.Item>
+            <HomeOutlined />
+          </Breadcrumb.Item>
+          <Breadcrumb.Item onClick={() => navigate("/dealer/vehicles")} className="cursor-pointer">
+            <CarOutlined />
+            <span className="ml-2">Đặt xe từ hãng</span>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>Biến thể xe</Breadcrumb.Item>
+        </Breadcrumb>
+      </div>
 
-      <Card>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/dealer/vehicles")}>
-              Quay lại
-            </Button>
-            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>
-              Danh sách biến thể xe (B2B)
-            </h2>
+      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/dealer/vehicles")}>
+            Quay lại
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Danh sách biến thể xe (B2B)</h1>
+            <p className="text-gray-600 mt-1">Chọn biến thể xe để đặt từ hãng</p>
           </div>
-          <Badge 
-            count={cartItems.length} 
-            showZero
-            className={addingToCart ? 'cart-badge-bounce' : ''}
-            style={{ 
-              backgroundColor: '#52c41a',
-              boxShadow: '0 0 0 1px #fff inset'
+        </div>
+        <Badge 
+          count={cartItems.length} 
+          showZero
+          className={addingToCart ? 'cart-badge-bounce' : ''}
+          style={{ 
+            backgroundColor: '#52c41a',
+            boxShadow: '0 0 0 1px #fff inset'
+          }}
+        >
+          <Button
+            type="primary"
+            size="large"
+            icon={<ShoppingCartOutlined />}
+            onClick={() => setCartVisible(true)}
+            className={addingToCart ? 'cart-button-pulse' : ''}
+            style={{
+              backgroundColor: '#1890ff',
+              borderColor: '#1890ff',
+              fontWeight: 600
             }}
           >
-            <Button
-              type="primary"
-              size="large"
-              icon={<ShoppingCartOutlined />}
-              onClick={() => setCartVisible(true)}
-              className={addingToCart ? 'cart-button-pulse' : ''}
-              style={{
-                backgroundColor: '#1890ff',
-                borderColor: '#1890ff',
-                fontWeight: 600
-              }}
-            >
-              Giỏ hàng B2B
-            </Button>
-          </Badge>
-        </div>
+            Giỏ hàng B2B
+          </Button>
+        </Badge>
+      </div>
 
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "50px 0" }}>
-            <Spin size="large" />
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Spin size="large" />
+          <span className="ml-3 text-gray-600">Loading...</span>
+        </div>
+      ) : variants.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <span className="text-2xl">🚗</span>
           </div>
-        ) : variants.length === 0 ? (
-          <Empty description="Không có biến thể xe nào còn hàng" />
-        ) : (
-          <Row gutter={[16, 16]}>
-            {variants.map((variant) => (
-              <Col key={variant.id} xs={24} sm={12} md={8} lg={6}>
-                <VehicleVariantCard
-                  variant={variant}
-                  onClick={handleVariantClick}
-                  hidePreOrder={true}
-                  isB2BMode={true}
-                  onAddToB2BCart={handleAddVariantToCart}
-                />
-              </Col>
-            ))}
-          </Row>
-        )}
-      </Card>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Không có biến thể xe nào</h3>
+          <p className="text-gray-500">Chưa có biến thể xe nào còn hàng</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {variants.map((variant) => (
+            <VehicleVariantCard
+              key={variant.id}
+              variant={variant}
+              onClick={handleVariantClick}
+              hidePreOrder={true}
+              isB2BMode={true}
+              onAddToB2BCart={handleAddVariantToCart}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Modal for B2B ordering - only show variant details and "Order from Manufacturer" button */}
       <VehicleVariantDetailModal

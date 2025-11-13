@@ -59,9 +59,6 @@ const DealerVehicleVariantsPage = () => {
         if (userStr) {
           try {
             const userData = JSON.parse(userStr);
-            if (userData.id && !userId) {
-              setUserId(userData.id);
-            }
 
             // If still no dealerId, fetch from API
             if (!cachedDealerId && userData.id) {

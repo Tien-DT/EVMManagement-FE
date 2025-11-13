@@ -11,7 +11,6 @@ import {
   Calendar,
   User,
   DollarSign,
-  Plus,
   Send
 } from 'lucide-react';
 import useQuotations from '../hooks/useQuotations';
@@ -119,16 +118,9 @@ const EvmStaffQuotationsPage = () => {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quotation Management</h1>
-          <p className="text-gray-600 mt-1">Create and track quotations for customers</p>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý báo giá</h1>
+          <p className="text-gray-600 mt-1">Theo dõi báo giá cho khách hàng</p>
         </div>
-        <button
-          onClick={() => navigate('/evm-staff/quotations/create')}
-          className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 flex items-center gap-2"
-        >
-          <Plus size={16} />
-          Create New Quotation
-        </button>
       </div>
 
       {/* Stats Cards */}
@@ -139,7 +131,7 @@ const EvmStaffQuotationsPage = () => {
               <FileText size={20} className="text-blue-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Total Quotations</p>
+              <p className="text-sm text-gray-600">Tổng số báo giá</p>
               <p className="text-xl font-bold text-gray-900">{quotations.length}</p>
             </div>
           </div>
@@ -151,7 +143,7 @@ const EvmStaffQuotationsPage = () => {
               <Send size={20} className="text-blue-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Sent</p>
+              <p className="text-sm text-gray-600">Đã gửi</p>
               <p className="text-xl font-bold text-gray-900">
                 {quotations.filter(q => q.status?.toUpperCase() === 'SENT').length}
               </p>
@@ -179,7 +171,7 @@ const EvmStaffQuotationsPage = () => {
               <XCircle size={20} className="text-red-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-gray-600">Rejected</p>
+              <p className="text-sm text-gray-600">Bị từ chối</p>
               <p className="text-xl font-bold text-gray-900">
                 {quotations.filter(q => q.status?.toUpperCase() === 'REJECTED').length}
               </p>
@@ -196,7 +188,7 @@ const EvmStaffQuotationsPage = () => {
               <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by quotation code, customer..."
+                placeholder="Tìm kiếm theo mã báo giá, khách hàng..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -208,7 +200,7 @@ const EvmStaffQuotationsPage = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
-            <option value="all">All Status</option>
+            <option value="all">Tất cả trạng thái</option>
             <option value="DRAFT">Bản nháp</option>
             <option value="SENT">Đã gửi</option>
             <option value="APPROVED">Đã duyệt</option>
@@ -232,25 +224,25 @@ const EvmStaffQuotationsPage = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Quotation
+                    Báo giá
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
+                    Khách hàng
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Dealer
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total Value
+                    Tổng giá trị
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Trạng thái
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created Date
+                    Ngày tạo
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Thao tác
                   </th>
                 </tr>
               </thead>

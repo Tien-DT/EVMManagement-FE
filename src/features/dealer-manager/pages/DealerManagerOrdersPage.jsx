@@ -916,7 +916,7 @@ const DealerManagerOrdersPage = () => {
             <span style={{ fontSize: "18px", fontWeight: 600 }}>
               Quản lý đơn hàng
             </span>
-            <Badge count={cartItems.length} showZero>
+            <Badge count={cartItems.length} showZero offset={[-5, 5]}>
               <Button
                 type="primary"
                 icon={<ShoppingCartOutlined />}
@@ -925,7 +925,15 @@ const DealerManagerOrdersPage = () => {
                 style={{
                   backgroundColor: '#1890ff',
                   borderColor: '#1890ff',
+                  color: '#ffffff',
                   fontWeight: 600,
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
+                  padding: '8px 20px',
+                  height: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
                 }}
               >
                 Giỏ B2B

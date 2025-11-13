@@ -408,6 +408,18 @@ const pageStyles = `
     border: none !important;
     box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
   }
+
+  /* Force create contract button to be always visible */
+  :global(.create-contract-button),
+  :global(.create-contract-button:hover),
+  :global(.create-contract-button:focus),
+  :global(.create-contract-button:active) {
+    background-color: #1890ff !important;
+    border-color: #1890ff !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.35) !important;
+  }
 `;
 
 const { Option } = Select;
@@ -1442,11 +1454,14 @@ const OrdersPage = () => {
                 icon={<FileTextOutlined />}
                 onClick={() => handleCreateContract(record)}
                 title="Tạo hợp đồng"
+                className="create-contract-button"
                 style={{ 
-                  backgroundColor: "#1890ff", 
+                  backgroundColor: "#1890ff",
                   borderColor: "#1890ff",
+                  color: "#ffffff",
                   padding: "4px 12px",
-                  fontSize: "12px"
+                  fontSize: "12px",
+                  opacity: 1
                 }}
               >
                 Tạo hợp đồng

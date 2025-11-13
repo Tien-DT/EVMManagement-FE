@@ -8,8 +8,6 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  Edit,
-  Trash2,
 } from "lucide-react";
 import dealerContractService from "../../../evm-staff/services/dealerContractService";
 import dealerService from "../../../dealer/services/dealerService";
@@ -20,8 +18,6 @@ const DealerContractDetailPage = () => {
   const [contract, setContract] = useState(null);
   const [dealerInfo, setDealerInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetchContractDetails();
@@ -62,20 +58,6 @@ const DealerContractDetailPage = () => {
       navigate("/admin/dealer-contracts");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      // Implement delete if API exists
-      alert("Tính năng xóa sẽ được cập nhật sau");
-      setShowDeleteModal(false);
-    } catch (error) {
-      console.error("Error deleting contract:", error);
-      alert("Lỗi khi xóa hợp đồng");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -153,39 +135,20 @@ const DealerContractDetailPage = () => {
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate("/admin/dealer-contracts")}
-            className="p-2 hover:bg-gray-100 rounded-md"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Dealer Contract: {contract.contractCode || contract.code || `DC-${contract.id?.slice(-8).toUpperCase()}`}
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Chi tiết hợp đồng Dealer
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate(`/admin/dealer-contracts/${id}/edit`)}
-            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 flex items-center gap-2"
-          >
-            <Edit size={16} />
-            Edit
-          </button>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 flex items-center gap-2"
-          >
-            <Trash2 size={16} />
-            Delete
-          </button>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate("/admin/dealer-contracts")}
+          className="p-2 hover:bg-gray-100 rounded-md"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Dealer Contract: {contract.contractCode || contract.code || `DC-${contract.id?.slice(-8).toUpperCase()}`}
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Chi tiết hợp đồng Dealer
+          </p>
         </div>
       </div>
 
@@ -367,56 +330,6 @@ const DealerContractDetailPage = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-100 rounded-full">
-                <Trash2 size={20} className="text-red-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Xóa hợp đồng
-              </h3>
-            </div>
-
-            <p className="text-sm text-gray-600 mb-6">
-              Bạn có chắc chắn muốn xóa hợp đồng{" "}
-              <strong className="font-mono">
-                {contract.contractCode || contract.code || `DC-${contract.id?.slice(-8).toUpperCase()}`}
-              </strong>
-              ? Hành động này không thể hoàn tác.
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                {isDeleting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    Đang xóa...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={16} />
-                    Xóa hợp đồng
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
