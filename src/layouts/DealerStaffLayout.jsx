@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../features/auth/services/authService";
-import DealerStaffSidebar from "./Sidebar/DealerStaffSidebar";
+import DealerStaffSidebar from "./sidebar/DealerStaffSidebar.jsx";
 import CartIcon from "../features/dealer-staff/components/CartIcon";
 
 const DealerStaffLayout = () => {

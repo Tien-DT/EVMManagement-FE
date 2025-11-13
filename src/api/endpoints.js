@@ -271,11 +271,17 @@ const endpoints = {
     getVehiclesByDealerAndVariant: (dealerId, variantId) => `/v1/Vehicles/dealer/${dealerId}/variant/${variantId}`,
   },
 
-  // Payments endpoints (VNPAY Integration)
+  // Payments endpoints (VNPAY & SEPAY Integration)
   payments: {
+    // VNPay endpoints (kept for reference)
     vnpayCreate: "/v1/Payments/vnpay/create",
     vnpayCallback: "/v1/Payments/vnpay/callback",
     vnpayReturn: "/v1/Payments/vnpay/return",
+    // SEPay endpoints (now using)
+    sepayCreate: "/v1/Payments/sepay/create",
+    sepayCallback: "/v1/Payments/sepay/callback",
+    sepayReturn: "/v1/Payments/sepay/return",
+    sepayCheckStatus: (transactionCode) => `/v1/Payments/sepay/status/${transactionCode}`,
   },
 
   // Transport endpoints

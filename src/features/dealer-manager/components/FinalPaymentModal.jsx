@@ -82,6 +82,7 @@ const FinalPaymentModal = ({ visible, order, onClose, onSuccess }) => {
   };
 
   return (
+    //modal for final payment
     <Modal
       title={
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

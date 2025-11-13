@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../features/auth/services/authService";
-import AdminSidebar from "./Sidebar/AdminSidebar";
+import AdminSidebar from "./sidebar/AdminSidebar.jsx";
 
 const AdminLayout = () => {
   const { user, setUser, logout } = useAuth();
