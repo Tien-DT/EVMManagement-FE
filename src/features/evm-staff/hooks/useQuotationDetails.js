@@ -13,7 +13,9 @@ const useQuotationDetails = () => {
     setError(null);
     try {
       const response = await quotationDetailService.getAllQuotationDetails();
-      const data = response?.data?.items || [];
+      // axiosInstance already returns response.data, so response is the data object
+      // It could be { items: [...] } or just an array
+      const data = response?.items || (Array.isArray(response) ? response : []);
       setQuotationDetails(data);
       return data;
     } catch (err) {
@@ -33,7 +35,11 @@ const useQuotationDetails = () => {
     setError(null);
     try {
       const response = await quotationDetailService.getQuotationDetailsByQuotationId(quotationId);
-      const data = response?.data?.items || [];
+      console.log("🔍 [useQuotationDetails] Raw response:", response);
+      // axiosInstance already returns response.data, so response is the data object
+      // It could be { items: [...] } or just an array
+      const data = response?.items || (Array.isArray(response) ? response : []);
+      console.log("🔍 [useQuotationDetails] Processed data:", data);
       setQuotationDetails(data);
       return data;
     } catch (err) {
