@@ -47,22 +47,23 @@ const EvmStaffQuotationDetailPage = () => {
         const quotationResponse = await getQuotationById(id);
         console.log("📋 [QUOTATION] Response:", quotationResponse);
 
-        // Handle different response structures
+        // quotationService.getQuotationById returns the data directly (axiosInstance already extracts response.data)
+        // It could be the quotation object directly, or wrapped in a data property
         const quotationData = quotationResponse?.data || quotationResponse;
+        console.log("📋 [QUOTATION] Processed data:", quotationData);
         setQuotation(quotationData);
 
-        // Fetch quotation details
-        const detailsResponse = await fetchQuotationDetailsByQuotationId(id);
-        console.log("📋 [QUOTATION DETAILS] Response:", detailsResponse);
-
-        // Handle different response structures
-        const detailsData =
-          detailsResponse?.data?.items ||
-          detailsResponse?.items ||
-          detailsResponse ||
-          [];
-        console.log("📋 [QUOTATION DETAILS] Processed:", detailsData);
-        setQuotationDetails(detailsData);
+        // Check if quotationDetails are already in the quotation object
+        if (quotationData?.quotationDetails && Array.isArray(quotationData.quotationDetails) && quotationData.quotationDetails.length > 0) {
+          console.log("📋 [QUOTATION DETAILS] Found in quotation object:", quotationData.quotationDetails);
+          setQuotationDetails(quotationData.quotationDetails);
+        } else {
+          // Fetch quotation details separately if not included
+          const detailsData = await fetchQuotationDetailsByQuotationId(id);
+          console.log("📋 [QUOTATION DETAILS] Fetched:", detailsData);
+          // Hook already returns the processed array
+          setQuotationDetails(Array.isArray(detailsData) ? detailsData : []);
+        }
       } catch (error) {
         console.error("❌ [QUOTATION] Error:", error);
         showError("Không thể tải thông tin báo giá");
@@ -262,9 +263,9 @@ const EvmStaffQuotationDetailPage = () => {
               <div className="flex items-center gap-2 text-gray-900 bg-gray-50 px-4 py-3 rounded-xl">
                 <Calendar size={20} className="text-blue-600" />
                 <span className="font-bold">
-                  {new Date(
-                    quotation.createdAt || Date.now()
-                  ).toLocaleDateString("vi-VN")}
+                  {quotation.createdDate || quotation.createdAt
+                    ? new Date(quotation.createdDate || quotation.createdAt).toLocaleDateString("vi-VN")
+                    : "N/A"}
                 </span>
               </div>
             </div>
@@ -457,13 +458,21 @@ const EvmStaffQuotationDetailPage = () => {
             <div className="flex justify-between items-center p-4 bg-white rounded-xl">
               <span className="text-gray-700 font-medium">Tổng giá trị:</span>
               <span className="font-bold text-gray-900">
-                {formatCurrency(quotation.totalValue || 0)}
+                {formatCurrency(quotation.subtotal || quotation.totalValue || 0)}
               </span>
             </div>
+            {quotation.tax && quotation.tax > 0 && (
+              <div className="flex justify-between items-center p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+                <span className="text-gray-700 font-medium">Thuế (VAT):</span>
+                <span className="font-bold text-blue-900">
+                  {formatCurrency(quotation.tax)}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-center p-6 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-lg">
               <span className="text-xl font-bold text-white">Thành tiền:</span>
               <span className="text-2xl font-black text-white">
-                {formatCurrency(quotation.totalValue || 0)}
+                {formatCurrency(quotation.total || quotation.totalValue || 0)}
               </span>
             </div>
             <div className="flex justify-between items-center p-4 bg-blue-50 rounded-xl border-2 border-blue-200">

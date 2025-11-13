@@ -24,7 +24,8 @@ const quotationService = {
       console.log('Service: Fetching quotation by ID:', id);
       const response = await axiosInstance.get(endpoints.quotations.getById(id));
       console.log('Service: Quotation by ID response:', response);
-      return response.data;
+      // axiosInstance already returns response.data, so just return response
+      return response;
     } catch (error) {
       console.error('Service: Error fetching quotation by ID:', error);
       throw error;
