@@ -143,6 +143,8 @@ import EvmStaffVehicleVariantDetailPage from "../features/evm-staff/pages/EvmSta
 
 // Payment Pages
 import VNPayReturnPage from "../pages/VNPayReturnPage";
+import SEPayReturnPage from "../pages/SEPayReturnPage";
+import SEPayPollingPage from "../pages/SEPayPollingPage";
 
 const AppRouter = () => (
   <Router>
@@ -175,6 +177,8 @@ const AppRouter = () => (
 
       {/* Payment Return Routes - Public */}
       <Route path="/payment/vnpay-return" element={<VNPayReturnPage />} />
+      <Route path="/payment/sepay-return" element={<SEPayReturnPage />} />
+      <Route path="/payment/sepay-polling" element={<SEPayPollingPage />} />
 
       {/* Admin Routes - ✅ Support EVM_ADMIN role */}
       <Route element={<PrivateRoute />}>
