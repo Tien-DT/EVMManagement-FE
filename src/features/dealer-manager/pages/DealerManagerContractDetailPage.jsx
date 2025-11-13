@@ -17,7 +17,6 @@ import {
 } from "antd";
 import { 
   ArrowLeftOutlined, 
-  EditOutlined, 
   DeleteOutlined,
   FilePdfOutlined,
   DownloadOutlined
@@ -389,7 +388,7 @@ const DealerManagerContractDetailPage = () => {
     }
   };
 
-  const getStatusTag = (status) => {
+  const getStatusTag = (status, orderStatus) => {
     const statusConfig = {
       DRAFT: { color: "default", text: "Bản nháp" },
       PENDING_SIGNATURE: { color: "orange", text: "Chờ ký" },
@@ -398,10 +397,16 @@ const DealerManagerContractDetailPage = () => {
     };
 
     const normalizedStatus = status?.toUpperCase?.() || "";
-    const config = statusConfig[normalizedStatus] || {
+    let config = statusConfig[normalizedStatus] || {
       color: "default",
       text: normalizedStatus || "Không xác định",
     };
+
+    // If contract is ACTIVE and order status is DEALER_SIGNED_CONTRACT, show "Dealer đã ký"
+    if (normalizedStatus === 'ACTIVE' && orderStatus?.toUpperCase?.() === 'DEALER_SIGNED_CONTRACT') {
+      config = { color: "cyan", text: "Dealer đã ký" };
+    }
+
     return (
       <Tag color={config.color} style={{ padding: "4px 8px", fontSize: "14px" }}>
         {config.text}
@@ -435,11 +440,6 @@ const DealerManagerContractDetailPage = () => {
       text: normalized || "Không xác định",
     };
     return <Tag color={config.color}>{config.text}</Tag>;
-  };
-
-  const handleEdit = () => {
-    // Dealer can't edit contracts
-    message.warning('Không thể chỉnh sửa hợp đồng');
   };
 
   const handleDelete = async () => {
@@ -615,7 +615,7 @@ const DealerManagerContractDetailPage = () => {
               <Title level={4} style={{ margin: 0 }}>
                 Chi tiết hợp đồng: <span style={{ color: "#1890ff" }}>{contract.code}</span>
               </Title>
-              {getStatusTag(contract.status)}
+              {getStatusTag(contract.status, contract.order?.status)}
             </Space>
             <Space>
               <Button 
@@ -629,13 +629,6 @@ const DealerManagerContractDetailPage = () => {
                 onClick={handleDownloadPdf}
               >
                 Tải hợp đồng PDF
-              </Button>
-              <Button 
-                type="primary" 
-                icon={<EditOutlined />} 
-                onClick={handleEdit}
-              >
-                Chỉnh sửa
               </Button>
               <Button 
                 danger 
@@ -653,7 +646,7 @@ const DealerManagerContractDetailPage = () => {
           <Col span={24}>
             <Card type="inner" title="📋 Thông tin cơ bản" style={{ borderRadius: "8px" }}>
               <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} size="small">
-                <Descriptions.Item label="Trạng thái">{getStatusTag(contract.status)}</Descriptions.Item>
+                <Descriptions.Item label="Trạng thái">{getStatusTag(contract.status, contract.order?.status)}</Descriptions.Item>
                 <Descriptions.Item label="Ngày tạo">
                   {contract.createdDate ? moment(contract.createdDate).format("DD/MM/YYYY HH:mm") : "N/A"}
                 </Descriptions.Item>
@@ -806,19 +799,8 @@ const DealerManagerContractDetailPage = () => {
           <Col span={24}>
             <Card type="inner" title="📄 Tài liệu hợp đồng" style={{ borderRadius: "8px" }}>
               <Space direction="vertical" style={{ width: "100%" }} size={16}>
-                <Text>
-                  Sử dụng nút "Tải hợp đồng PDF" để tải bản nháp. Sau khi ký, tải file PDF đã ký lên đây để lưu trữ.
-                </Text>
-                <Spin spinning={updatingContractLink} tip="Đang cập nhật tài liệu...">
-                  <FileUpload
-                    acceptedFileTypes=".pdf"
-                    onUploadComplete={handleSignedContractUpload}
-                    maxFileSize={20}
-                  />
-                </Spin>
                 {contract.contractLink ? (
                   <Space direction="vertical" style={{ width: "100%" }}>
-                    <Divider style={{ margin: "8px 0" }} />
                     <div
                       style={{
                         display: "flex",
@@ -844,9 +826,21 @@ const DealerManagerContractDetailPage = () => {
                     </Text>
                   </Space>
                 ) : (
-                  <Text type="secondary">
-                    Chưa có tài liệu hợp đồng đã ký được tải lên.
-                  </Text>
+                  <>
+                    <Text>
+                      Sử dụng nút "Tải hợp đồng PDF" để tải bản nháp. Sau khi ký, tải file PDF đã ký lên đây để lưu trữ.
+                    </Text>
+                    <Spin spinning={updatingContractLink} tip="Đang cập nhật tài liệu...">
+                      <FileUpload
+                        acceptedFileTypes=".pdf"
+                        onUploadComplete={handleSignedContractUpload}
+                        maxFileSize={20}
+                      />
+                    </Spin>
+                    <Text type="secondary">
+                      Chưa có tài liệu hợp đồng đã ký được tải lên.
+                    </Text>
+                  </>
                 )}
               </Space>
             </Card>

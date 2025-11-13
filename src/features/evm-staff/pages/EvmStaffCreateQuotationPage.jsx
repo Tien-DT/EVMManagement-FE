@@ -10,9 +10,7 @@ import {
   FileText,
   AlertCircle,
   Calendar,
-  Package,
-  Tag,
-  Percent
+  Package
 } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 import { useCreateQuotation } from '../hooks/useCreateQuotation';
@@ -21,7 +19,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import orderService from '../services/orderService';
 import axiosInstance from '../../../api/axiosInstance';
 import endpoints from '../../../api/endpoints';
-import { usePromotions } from '../../promotion/hooks/usePromotions';
+
 
 const EvmStaffCreateQuotationPage = () => {
   const navigate = useNavigate();
@@ -60,36 +58,7 @@ const EvmStaffCreateQuotationPage = () => {
     ]
   });
 
-  // Fetch promotions
-  const { promotions, loading: loadingPromotions } = usePromotions();
-  
-  // Filter active promotions (isActive = true and within date range)
-  const activePromotions = promotions.filter(promotion => {
-    if (!promotion || !promotion.id) return false;
-    if (promotion.isActive === false || promotion.isActive === 0) return false;
-    
-    // Check date range if dates are provided
-    if (promotion.startAt && promotion.endAt) {
-      try {
-        const now = new Date();
-        const startAt = new Date(promotion.startAt);
-        const endAt = new Date(promotion.endAt);
-        
-        // Validate dates
-        if (isNaN(startAt.getTime()) || isNaN(endAt.getTime())) {
-          return false;
-        }
-        
-        return now >= startAt && now <= endAt;
-      } catch (error) {
-        console.error('Error parsing promotion dates:', error);
-        return false;
-      }
-    }
-    
-    // If no dates, only check isActive status
-    return promotion.isActive === true || promotion.isActive === 1;
-  });
+
 
   // Set user ID when user is loaded
   useEffect(() => {
@@ -541,67 +510,7 @@ const EvmStaffCreateQuotationPage = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Trạng thái
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-bold transition-all"
-                >
-                  <option value="DRAFT">📝 Bản nháp</option>
-                  <option value="SENT">📤 Đã gửi</option>
-                  <option value="APPROVED">✅ Đã duyệt</option>
-                  <option value="REJECTED">❌ Bị từ chối</option>
-                </select>
-              </div>
 
-              {/* Promotion Selection */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <Tag size={16} className="text-blue-600" />
-                  Khuyến mãi
-                </label>
-                <select
-                  value={formData.promotionId || ''}
-                  onChange={(e) => handleInputChange('promotionId', e.target.value || null)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
-                >
-                  <option value="">-- Không chọn khuyến mãi --</option>
-                  {loadingPromotions ? (
-                    <option disabled>Đang tải khuyến mãi...</option>
-                  ) : activePromotions.length === 0 ? (
-                    <option disabled>Không có khuyến mãi khả dụng</option>
-                  ) : (
-                    activePromotions.map((promotion) => (
-                      <option key={promotion.id} value={promotion.id}>
-                        {promotion.code} - {promotion.name} ({promotion.discountPercent}% giảm)
-                      </option>
-                    ))
-                  )}
-                </select>
-                {formData.promotionId && (
-                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    {(() => {
-                      const selectedPromotion = activePromotions.find(p => p.id === formData.promotionId);
-                      return selectedPromotion ? (
-                        <div className="flex items-center gap-2 text-sm text-green-800">
-                          <Percent size={16} />
-                          <span>
-                            <strong>{selectedPromotion.name}</strong> - Giảm {selectedPromotion.discountPercent}%
-                            {selectedPromotion.description && (
-                              <span className="block text-xs text-green-600 mt-1">
-                                {selectedPromotion.description}
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                      ) : null;
-                    })()}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 

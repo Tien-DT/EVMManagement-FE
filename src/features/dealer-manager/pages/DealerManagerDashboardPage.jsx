@@ -286,11 +286,12 @@ const DealerManagerDashboardPage = () => {
 
   const columns = [
     {
-      title: "Mã đơn hàng",
+      title: <div style={{ textAlign: 'center' }}>Mã đơn hàng</div>,
       dataIndex: "code",
       key: "code",
       width: 150,
       fixed: "left",
+      align: "left",
       render: (text) => (
         <span style={{ fontWeight: 600, color: "#1890ff", fontSize: "13px" }}>
           {text || "N/A"}
@@ -298,16 +299,17 @@ const DealerManagerDashboardPage = () => {
       ),
     },
     {
-      title: "Khách hàng",
+      title: <div style={{ textAlign: 'center' }}>Khách hàng</div>,
       key: "customer",
       width: 160,
+      align: "left",
       ellipsis: true,
       render: (_, record) => {
         return record.customer?.fullName || <span style={{ color: "#999" }}>N/A</span>;
       },
     },
     {
-      title: "Loại đơn",
+      title: <div style={{ textAlign: 'center' }}>Loại đơn</div>,
       dataIndex: "orderType",
       key: "orderType",
       width: 110,
@@ -323,7 +325,7 @@ const DealerManagerDashboardPage = () => {
       },
     },
     {
-      title: "Tổng tiền",
+      title: <div style={{ textAlign: 'center' }}>Tổng tiền</div>,
       dataIndex: "totalAmount",
       key: "totalAmount",
       width: 130,
@@ -335,7 +337,7 @@ const DealerManagerDashboardPage = () => {
       ),
     },
     {
-      title: "Thành tiền",
+      title: <div style={{ textAlign: 'center' }}>Thành tiền</div>,
       dataIndex: "finalAmount",
       key: "finalAmount",
       width: 140,
@@ -347,10 +349,11 @@ const DealerManagerDashboardPage = () => {
       ),
     },
     {
-      title: "Ngày giao",
+      title: <div style={{ textAlign: 'center' }}>Ngày giao</div>,
       dataIndex: "expectedDeliveryAt",
       key: "expectedDeliveryAt",
       width: 110,
+      align: "center",
       render: (date) => (
         <span style={{ fontSize: "13px" }}>
           {date ? moment(date).format("DD/MM/YYYY") : "N/A"}
@@ -358,10 +361,11 @@ const DealerManagerDashboardPage = () => {
       ),
     },
     {
-      title: "Trạng thái",
+      title: <div style={{ textAlign: 'center' }}>Trạng thái</div>,
       dataIndex: "status",
       key: "status",
       width: 180,
+      align: "center",
       render: (status) => {
         const config = statusConfig[status] || statusConfig.CONFIRMED;
         return (
@@ -372,10 +376,11 @@ const DealerManagerDashboardPage = () => {
       },
     },
     {
-      title: "Thao tác",
+      title: <div style={{ textAlign: 'center' }}>Thao tác</div>,
       key: "actions",
       width: 280,
       fixed: "right",
+      align: "center",
       render: (_, record) => (
         <Space size={4} wrap>
           <Button

@@ -242,7 +242,7 @@ const DealerManagerQuotationDetailPage = () => {
       ),
     },
     {
-      title: "Giảm giá",
+      title: "Chiết khấu",
       key: "discount",
       width: 150,
       align: "right",
@@ -268,7 +268,7 @@ const DealerManagerQuotationDetailPage = () => {
       },
     },
     {
-      title: "Tổng phụ",
+      title: "Tổng",
       key: "lineTotal",
       width: 150,
       align: "right",

@@ -67,6 +67,7 @@ import DealerManagerContractDetailPage from "../features/dealer-manager/pages/De
 import DealerManagerDepositsPage from "../features/dealer-manager/pages/DealerManagerDepositsPage";
 import WarehousesPage from "../features/dealer-manager/pages/WarehousesPage";
 import CreateWarehousePage from "../features/dealer-manager/pages/CreateWarehousePage";
+import WarehouseDetailPage from "../features/dealer-manager/pages/WarehouseDetailPage";
 import TransportPage from "../features/dealer-manager/pages/TransportPage";
 import RegisterStaffPage from "../features/dealer-manager/pages/RegisterStaffPage";
 import DealerManagerVehicleModelsPage from "../features/dealer-manager/pages/DealerManagerVehicleModelsPage";
@@ -333,6 +334,10 @@ const AppRouter = () => (
             <Route
               path="/dealer/warehouses/create"
               element={<CreateWarehousePage />}
+            />
+            <Route
+              path="/dealer/warehouses/:id"
+              element={<WarehouseDetailPage />}
             />
             <Route
               path="/dealer/register-staff"

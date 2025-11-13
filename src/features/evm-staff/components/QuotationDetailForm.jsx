@@ -170,7 +170,7 @@ const QuotationDetailForm = ({ details, onChange }) => {
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                       <Percent size={16} className="text-orange-600" />
-                      Giảm giá (%)
+                      Chiết khấu (%)
                     </label>
                     <input
                       type="number"
@@ -238,7 +238,7 @@ const QuotationDetailForm = ({ details, onChange }) => {
               </p>
             </div>
             <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 text-center">
-              <p className="text-sm font-medium text-orange-600 mb-1">Giảm giá TB</p>
+              <p className="text-sm font-medium text-orange-600 mb-1">Chiết khấu TB</p>
               <p className="text-2xl font-bold text-orange-900">
                 {details.length > 0 
                   ? (details.reduce((sum, d) => sum + (d.discountPercent || 0), 0) / details.length).toFixed(1)

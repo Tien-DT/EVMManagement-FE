@@ -165,7 +165,7 @@ const DealerManagerSidebar = () => {
           text-gray-800 transition-transform duration-300 ease-in-out z-40
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0 lg:fixed
-          w-64 shadow-lg overflow-y-auto border-r border-gray-200
+          w-64 shadow-lg overflow-hidden border-r border-gray-200
         `}
       >
         {/* Header */}

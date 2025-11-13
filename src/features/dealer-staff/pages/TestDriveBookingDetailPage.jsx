@@ -182,7 +182,7 @@ const TestDriveBookingDetailPage = () => {
     setActionLoading(true);
     try {
       const response = await axiosInstance.patch(
-        `${endpoints.testDriveBookings.cancel(bookingId)}?isDeleted=true`
+        `${endpoints.testDriveBookings.updateStatus(bookingId)}?status=CANCELED`
       );
 
       if (response.success) {

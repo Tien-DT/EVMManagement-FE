@@ -158,6 +158,21 @@ export const testDriveBookingService = {
     }
   },
 
+  // Cancel test drive booking (using PATCH with status query param)
+  cancelBooking: async (id) => {
+    try {
+      console.log("Canceling test drive booking:", id);
+      const response = await axiosInstance.patch(
+        `${endpoints.testDriveBookings.updateStatus(id)}?status=CANCELED`
+      );
+      console.log("Cancel test drive booking response:", response);
+      return response;
+    } catch (error) {
+      console.error("Cancel test drive booking error:", error);
+      throw error;
+    }
+  },
+
   // Delete test drive booking
   delete: async (id) => {
     try {

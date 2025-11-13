@@ -171,6 +171,7 @@ const endpoints = {
     create: "/v1/TestDriveBookings",
     createByStaff: "/v1/TestDriveBookings/create-by-staff",
     update: (id) => `/v1/TestDriveBookings/${id}`,
+    updateStatus: (id) => `/v1/TestDriveBookings/${id}/status`,
     delete: (id) => `/v1/TestDriveBookings/${id}`,
     cancel: (id) => `/v1/TestDriveBookings/${id}/is-deleted`,
     sendConfirmation: (id) => `/v1/TestDriveBookings/${id}/send-confirmation`,

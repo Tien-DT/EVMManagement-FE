@@ -504,8 +504,17 @@ const OrdersPage = () => {
       normalizedRole.includes("dealer-staff") ||
       numericRole === 3;
 
-    return isDealerStaff ? { orderType: 0 } : {};
-  }, [user?.role]);
+    // Map activeTab to orderType
+    if (isDealerStaff) {
+      if (activeTab === "PREORDER") {
+        return { orderType: 2 }; // B2C_P - Đặt trước
+      } else {
+        return { orderType: 0 }; // B2C - Có sẵn
+      }
+    }
+
+    return {};
+  }, [user?.role, activeTab]);
 
   // Cấu hình status với màu sắc và icon đẹp hơn
   const statusConfig = useMemo(

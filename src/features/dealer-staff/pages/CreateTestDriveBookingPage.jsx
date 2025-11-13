@@ -35,6 +35,7 @@ const CreateTestDriveBookingPage = () => {
     gender: "",
   });
   const [isCreatingNewCustomer, setIsCreatingNewCustomer] = useState(false);
+  const [dobError, setDobError] = useState("");
   
   const [note, setNote] = useState("");
 
@@ -281,6 +282,32 @@ const CreateTestDriveBookingPage = () => {
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
   };
 
+  // Validate age (must be 18+)
+  const validateAge = (dob) => {
+    if (!dob) {
+      setDobError("");
+      return true;
+    }
+
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 18) {
+      setDobError("Khách hàng phải đủ 18 tuổi để đăng ký lái thử");
+      showError("Khách hàng phải đủ 18 tuổi để đăng ký lái thử");
+      return false;
+    }
+
+    setDobError("");
+    return true;
+  };
+
   // Validate email uniqueness
   const validateEmail = async (email) => {
     if (!email || !email.trim()) return true;
@@ -339,6 +366,11 @@ const CreateTestDriveBookingPage = () => {
 
     if (!bookingDate || !selectedMasterSlotId || !selectedVehicleId || !customerPhone.trim() || !customer.fullName.trim()) {
       showError("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
+    // Validate age again before submit
+    if (customer.dob && !validateAge(customer.dob)) {
       return;
     }
 
@@ -616,9 +648,20 @@ const CreateTestDriveBookingPage = () => {
               <input
                 type="date"
                 value={customer.dob}
-                onChange={(e) => setCustomer({ ...customer, dob: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  const newDob = e.target.value;
+                  setCustomer({ ...customer, dob: newDob });
+                  validateAge(newDob);
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                  dobError
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-blue-500"
+                }`}
               />
+              {dobError && (
+                <p className="mt-1 text-sm text-red-600">{dobError}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
