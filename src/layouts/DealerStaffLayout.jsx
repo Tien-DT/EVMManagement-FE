@@ -43,12 +43,12 @@ const DealerStaffLayout = () => {
       { type: "divider" },
       {
         key: "profile",
-        label: "Hồ sơ",
+        label: "Profile",
         onClick: () => navigate("/dealer-staff/profile"),
       },
       {
         key: "logout",
-        label: <span className="text-red-600">Đăng xuất</span>,
+        label: <span className="text-red-600">Logout</span>,
         onClick: handleLogout,
       },
     ],

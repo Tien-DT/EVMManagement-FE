@@ -17,14 +17,14 @@ const CreateTestDriveBookingPage = () => {
       
       // Ensure dealerStaffId is set
       if (!formData.dealerStaffId) {
-        showError("Không xác định được nhân viên. Vui lòng đăng nhập lại.");
+        showError("Unable to identify the staff member. Please sign in again.");
         return;
       }
 
       const result = await createBooking(formData);
       
       if (result.success) {
-        showSuccess("Tạo đặt chỗ lái thử thành công!");
+        showSuccess("Test drive booking created successfully!");
         // Navigate to test drive bookings list after 1 second
         setTimeout(() => {
           navigate("/dealer-staff/test-drive-bookings");
@@ -32,7 +32,7 @@ const CreateTestDriveBookingPage = () => {
       }
     } catch (error) {
       console.error("Error creating test drive booking:", error);
-      showError("Có lỗi xảy ra khi tạo đặt chỗ lái thử");
+      showError("Something went wrong while creating the test drive booking.");
     }
   };
 
@@ -49,10 +49,10 @@ const CreateTestDriveBookingPage = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Tạo đặt chỗ lái thử
+              Create Test Drive Booking
             </h1>
             <p className="text-gray-600 mt-1">
-              Tạo đặt chỗ lái thử mới cho khách hàng
+              Set up a new test drive booking for your customer
             </p>
           </div>
         </div>

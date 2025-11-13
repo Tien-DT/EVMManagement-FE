@@ -17,10 +17,10 @@ export const useCreateTestDriveBooking = () => {
       const result = response?.data || response;
       
       if (response?.success !== false && result) {
-        showSuccess("Tạo đặt chỗ lái thử thành công!");
+        showSuccess("Test drive booking created successfully!");
         return { success: true, data: result };
       } else {
-        throw new Error(response?.message || "Tạo đặt chỗ lái thử thất bại");
+        throw new Error(response?.message || "Failed to create test drive booking");
       }
     } catch (error) {
       console.error("Error creating test drive booking:", error);
@@ -29,7 +29,7 @@ export const useCreateTestDriveBooking = () => {
         error.response?.data?.title ||
         error.response?.data?.errors?.[0] ||
         error.message ||
-        "Không thể tạo đặt chỗ lái thử";
+        "Unable to create test drive booking";
       showError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -46,10 +46,10 @@ export const useCreateTestDriveBooking = () => {
       const result = response?.data || response;
       
       if (response?.success !== false && result) {
-        showSuccess("Gửi xác nhận thành công!");
+        showSuccess("Confirmation sent successfully!");
         return { success: true, data: result };
       } else {
-        throw new Error(response?.message || "Gửi xác nhận thất bại");
+        throw new Error(response?.message || "Failed to send confirmation");
       }
     } catch (error) {
       console.error("Error sending confirmation:", error);
@@ -58,7 +58,7 @@ export const useCreateTestDriveBooking = () => {
         error.response?.data?.title ||
         error.response?.data?.errors?.[0] ||
         error.message ||
-        "Không thể gửi xác nhận";
+        "Unable to send confirmation";
       showError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -77,10 +77,10 @@ export const useCreateTestDriveBooking = () => {
       const result = response?.data || response;
       
       if (response?.success !== false && result) {
-        showSuccess(`Gửi nhắc nhở thành công cho ${idsArray.length} đặt chỗ!`);
+        showSuccess(`Sent reminders successfully for ${idsArray.length} bookings!`);
         return { success: true, data: result };
       } else {
-        throw new Error(response?.message || "Gửi nhắc nhở thất bại");
+        throw new Error(response?.message || "Failed to send reminder");
       }
     } catch (error) {
       console.error("Error sending reminder:", error);
@@ -89,7 +89,7 @@ export const useCreateTestDriveBooking = () => {
         error.response?.data?.title ||
         error.response?.data?.errors?.[0] ||
         error.message ||
-        "Không thể gửi nhắc nhở";
+        "Unable to send reminder";
       showError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -105,16 +105,16 @@ export const useCreateTestDriveBooking = () => {
       // Validation - only validate for manual updates (when action is null)
       if (!action) {
         if (!checkinAt && !checkoutAt) {
-          showError("Vui lòng nhập ít nhất một thời gian");
-          return { success: false, error: "Vui lòng nhập ít nhất một thời gian" };
+          showError("Please enter at least one time value");
+          return { success: false, error: "Please enter at least one time value" };
         }
 
         if (checkinAt && checkoutAt) {
           const checkin = new Date(checkinAt);
           const checkout = new Date(checkoutAt);
           if (checkout < checkin) {
-            showError("Thời gian check-out phải sau thời gian check-in");
-            return { success: false, error: "Thời gian check-out phải sau thời gian check-in" };
+            showError("Checkout time must be after the check-in time");
+            return { success: false, error: "Checkout time must be after the check-in time" };
           }
         }
       }
@@ -130,14 +130,14 @@ export const useCreateTestDriveBooking = () => {
       
       if (response?.success !== false && result) {
         const message = action === "checkin" 
-          ? "Check-in thành công!" 
+          ? "Check-in successful!" 
           : action === "checkout" 
-          ? "Check-out thành công!" 
-          : "Cập nhật check-in/check-out thành công!";
+          ? "Check-out successful!" 
+          : "Check-in/check-out updated successfully!";
         showSuccess(message);
         return { success: true, data: result };
       } else {
-        throw new Error(response?.message || "Cập nhật thất bại");
+        throw new Error(response?.message || "Update failed");
       }
     } catch (error) {
       console.error("Error updating check-in/check-out:", error);
@@ -146,7 +146,7 @@ export const useCreateTestDriveBooking = () => {
         error.response?.data?.title ||
         error.response?.data?.errors?.[0] ||
         error.message ||
-        "Không thể cập nhật check-in/check-out";
+        "Unable to update check-in/check-out";
       showError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {

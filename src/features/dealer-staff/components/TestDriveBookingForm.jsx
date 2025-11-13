@@ -90,17 +90,17 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
 
     // Validation
     if (!formData.vehicleTimeslotId) {
-      alert("Vui lòng chọn xe và thời gian");
+      alert("Please choose a vehicle and time slot");
       return;
     }
 
     if (!formData.customerId) {
-      alert("Vui lòng chọn khách hàng");
+      alert("Please choose a customer");
       return;
     }
 
     if (!formData.dealerStaffId) {
-      alert("Không xác định được nhân viên. Vui lòng đăng nhập lại.");
+      alert("Unable to identify the staff member. Please sign in again.");
       return;
     }
 
@@ -114,7 +114,7 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
     const vehicleName = vehicle.vehicleName || vehicle.vehicle?.name || "N/A";
     const slotName = vehicle.slotName || vehicle.masterTimeSlot?.name || "N/A";
     const slotDate = vehicle.slotDate 
-      ? new Date(vehicle.slotDate).toLocaleDateString("vi-VN")
+      ? new Date(vehicle.slotDate).toLocaleDateString("en-US")
       : "N/A";
     
     return `${vehicleName} - ${slotName} - ${slotDate}`;
@@ -126,17 +126,17 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
         <label className="block text-sm font-bold text-gray-700 mb-2">
           <Car className="inline-block mr-2" size={18} />
-          Chọn xe và thời gian <span className="text-red-500">*</span>
+          Choose vehicle and time <span className="text-red-500">*</span>
         </label>
         {isLoadingVehicles ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-            <span className="ml-2 text-gray-600">Đang tải danh sách xe...</span>
+            <span className="ml-2 text-gray-600">Loading vehicles...</span>
           </div>
         ) : availableVehicles.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Car className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>Không có xe nào khả dụng</p>
+            <p>No vehicles available</p>
           </div>
         ) : (
           <select
@@ -145,7 +145,7 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
             required
           >
-            <option value="">-- Chọn xe và thời gian --</option>
+            <option value="">-- Select vehicle and time --</option>
             {availableVehicles.map((vehicle) => (
               <option key={vehicle.id} value={vehicle.id}>
                 {getVehicleTimeslotDisplay(vehicle)}
@@ -159,17 +159,17 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
         <label className="block text-sm font-bold text-gray-700 mb-2">
           <User className="inline-block mr-2" size={18} />
-          Chọn khách hàng <span className="text-red-500">*</span>
+          Choose customer <span className="text-red-500">*</span>
         </label>
         {isLoadingCustomers ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-            <span className="ml-2 text-gray-600">Đang tải danh sách khách hàng...</span>
+            <span className="ml-2 text-gray-600">Loading customers...</span>
           </div>
         ) : customers.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <User className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>Không có khách hàng nào</p>
+            <p>No customers available</p>
           </div>
         ) : (
           <select
@@ -178,7 +178,7 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
             required
           >
-            <option value="">-- Chọn khách hàng --</option>
+            <option value="">-- Select customer --</option>
             {customers.map((customer) => (
               <option key={customer.id} value={customer.id}>
                 {customer.fullName || customer.name} - {customer.phone || ""}
@@ -192,17 +192,17 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
         <label className="block text-sm font-bold text-gray-700 mb-2">
           <Calendar className="inline-block mr-2" size={18} />
-          Trạng thái
+          Status
         </label>
         <select
           value={formData.status}
           onChange={(e) => handleInputChange("status", e.target.value)}
           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
         >
-          <option value="BOOKED">Đã đặt</option>
-          <option value="CHECKED_IN">Đã check-in</option>
-          <option value="COMPLETED">Hoàn thành</option>
-          <option value="CANCELED">Đã hủy</option>
+          <option value="BOOKED">Booked</option>
+          <option value="CHECKED_IN">Checked in</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="CANCELED">Canceled</option>
         </select>
       </div>
 
@@ -210,14 +210,14 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
         <label className="block text-sm font-bold text-gray-700 mb-2">
           <FileText className="inline-block mr-2" size={18} />
-          Ghi chú
+          Notes
         </label>
         <textarea
           value={formData.note}
           onChange={(e) => handleInputChange("note", e.target.value)}
           rows={4}
           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all"
-          placeholder="Nhập ghi chú (nếu có)..."
+          placeholder="Enter notes (optional)..."
         />
       </div>
 
@@ -231,11 +231,11 @@ const TestDriveBookingForm = ({ onSubmit, isSubmitting }) => {
           {isSubmitting ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Đang xử lý...</span>
+              <span>Processing...</span>
             </>
           ) : (
             <>
-              <span>Tạo đặt chỗ</span>
+              <span>Create booking</span>
             </>
           )}
         </button>

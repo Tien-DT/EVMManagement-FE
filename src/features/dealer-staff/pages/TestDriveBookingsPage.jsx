@@ -102,7 +102,7 @@ const TestDriveBookingsPage = () => {
   };
 
   const handleSendConfirmation = async (bookingId) => {
-    if (window.confirm("Bạn có chắc chắn muốn gửi xác nhận cho đặt chỗ này?")) {
+    if (window.confirm("Are you sure you want to send a confirmation for this booking?")) {
       const result = await sendConfirmation(bookingId);
       if (result.success) {
         refresh();
@@ -130,11 +130,15 @@ const TestDriveBookingsPage = () => {
 
   const handleSendReminder = async () => {
     if (selectedBookings.length === 0) {
-      alert("Vui lòng chọn ít nhất một đặt chỗ để gửi nhắc nhở");
+      alert("Please select at least one booking to send a reminder");
       return;
     }
 
-    if (window.confirm(`Bạn có chắc chắn muốn gửi nhắc nhở cho ${selectedBookings.length} đặt chỗ đã chọn?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to send reminders for the ${selectedBookings.length} selected bookings?`
+      )
+    ) {
       const result = await sendReminder(selectedBookings);
       if (result.success) {
         setSelectedBookings([]);
@@ -174,10 +178,10 @@ const TestDriveBookingsPage = () => {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      BOOKED: { color: "bg-blue-100 text-blue-800", text: "Đã đặt" },
-      CHECKED_IN: { color: "bg-yellow-100 text-yellow-800", text: "Đã check-in" },
-      COMPLETED: { color: "bg-green-100 text-green-800", text: "Hoàn thành" },
-      CANCELED: { color: "bg-red-100 text-red-800", text: "Đã hủy" },
+      BOOKED: { color: "bg-blue-100 text-blue-800", text: "Booked" },
+      CHECKED_IN: { color: "bg-yellow-100 text-yellow-800", text: "Checked in" },
+      COMPLETED: { color: "bg-green-100 text-green-800", text: "Completed" },
+      CANCELED: { color: "bg-red-100 text-red-800", text: "Canceled" },
     };
 
     const statusInfo = statusMap[status] || { color: "bg-gray-100 text-gray-800", text: status };
@@ -190,7 +194,7 @@ const TestDriveBookingsPage = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("vi-VN");
+    return new Date(dateString).toLocaleString("en-US");
   };
 
   if (loading && !bookings.length) {
@@ -198,7 +202,7 @@ const TestDriveBookingsPage = () => {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
-          <p className="text-gray-600">Đang tải danh sách đặt chỗ...</p>
+          <p className="text-gray-600">Loading booking list...</p>
         </div>
       </div>
     );
@@ -209,13 +213,13 @@ const TestDriveBookingsPage = () => {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Có lỗi xảy ra</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => refresh()}
             className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            Thử lại
+            Try again
           </button>
         </div>
       </div>
@@ -227,15 +231,15 @@ const TestDriveBookingsPage = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý đặt chỗ lái thử</h1>
-          <p className="text-gray-600 mt-1">Danh sách đặt chỗ lái thử và thông tin chi tiết</p>
+          <h1 className="text-2xl font-bold text-gray-900">Test Drive Booking Management</h1>
+          <p className="text-gray-600 mt-1">Browse and manage test drive bookings</p>
         </div>
         <button
           onClick={() => navigate("/dealer-staff/test-drive-bookings/create")}
           className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>Tạo đặt chỗ mới</span>
+          <span>Create booking</span>
         </button>
       </div>
 
@@ -244,14 +248,14 @@ const TestDriveBookingsPage = () => {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Khách hàng
+              Customer
             </label>
             <select
               value={filters.customerId}
               onChange={(e) => handleFilterChange("customerId", e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Tất cả khách hàng</option>
+              <option value="">All customers</option>
               {customers.map((customer) => (
                 <option key={customer.id} value={customer.id}>
                   {customer.fullName || customer.name} - {customer.phone || ""}
@@ -262,18 +266,18 @@ const TestDriveBookingsPage = () => {
 
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Trạng thái
+              Status
             </label>
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange("status", e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Tất cả trạng thái</option>
-              <option value="BOOKED">Đã đặt</option>
-              <option value="CHECKED_IN">Đã check-in</option>
-              <option value="COMPLETED">Hoàn thành</option>
-              <option value="CANCELED">Đã hủy</option>
+              <option value="">All statuses</option>
+              <option value="BOOKED">Booked</option>
+              <option value="CHECKED_IN">Checked in</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELED">Canceled</option>
             </select>
           </div>
 
@@ -285,7 +289,7 @@ const TestDriveBookingsPage = () => {
                 className="inline-flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
               >
                 <Bell size={18} />
-                <span>Gửi nhắc nhở ({selectedBookings.length})</span>
+                <span>Send reminder ({selectedBookings.length})</span>
               </button>
             )}
             <button
@@ -293,7 +297,7 @@ const TestDriveBookingsPage = () => {
               className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
               <RefreshCw size={18} />
-              <span>Làm mới</span>
+              <span>Refresh</span>
             </button>
           </div>
         </div>
@@ -314,13 +318,13 @@ const TestDriveBookingsPage = () => {
                   />
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Khách hàng
+                  Customer
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Xe
+                  Vehicle
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Thời gian tạo
+                  Created at
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Check-in
@@ -329,13 +333,13 @@ const TestDriveBookingsPage = () => {
                   Check-out
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Trạng thái
+                  Status
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Ghi chú
+                  Notes
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Thao tác
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -419,7 +423,7 @@ const TestDriveBookingsPage = () => {
                           onClick={() => handleSendConfirmation(booking.id)}
                           disabled={isSubmitting}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-                          title="Gửi xác nhận"
+                          title="Send confirmation"
                         >
                           <Send size={18} />
                         </button>
@@ -427,7 +431,7 @@ const TestDriveBookingsPage = () => {
                       <button
                         onClick={() => navigate(`/dealer-staff/test-drive-bookings/${booking.id}`)}
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Xem chi tiết"
+                        title="View details"
                       >
                         <Eye size={18} />
                       </button>
@@ -444,12 +448,12 @@ const TestDriveBookingsPage = () => {
           <div className="text-center py-12">
             <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Không có đặt chỗ nào
+              No bookings found
             </h3>
             <p className="text-gray-600 mb-4">
               {filters.customerId || filters.status
-                ? "Thử điều chỉnh bộ lọc"
-                : "Tạo đặt chỗ đầu tiên để bắt đầu"}
+                ? "Try adjusting the filters"
+                : "Create the first booking to get started"}
             </p>
             {!filters.customerId && !filters.status && (
               <button
@@ -457,7 +461,7 @@ const TestDriveBookingsPage = () => {
                 className="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
               >
                 <Plus size={20} />
-                <span>Tạo đặt chỗ mới</span>
+                <span>Create booking</span>
               </button>
             )}
           </div>
@@ -467,7 +471,7 @@ const TestDriveBookingsPage = () => {
         {pagination.totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              Hiển thị {bookings.length} trong tổng số {pagination.totalItems} đặt chỗ
+              Showing {bookings.length} of {pagination.totalItems} bookings
             </div>
             <div className="flex items-center space-x-2">
               <button
@@ -475,17 +479,17 @@ const TestDriveBookingsPage = () => {
                 disabled={pagination.currentPage === 1}
                 className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Trước
+                Previous
               </button>
               <span className="text-sm text-gray-600">
-                Trang {pagination.currentPage} / {pagination.totalPages}
+                Page {pagination.currentPage} / {pagination.totalPages}
               </span>
               <button
                 onClick={() => changePage(pagination.currentPage + 1)}
                 disabled={pagination.currentPage === pagination.totalPages}
                 className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sau
+                Next
               </button>
             </div>
           </div>

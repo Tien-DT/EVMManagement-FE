@@ -47,38 +47,38 @@ const DealerStaffSidebar = () => {
     {
       path: "/dealer-staff/vehicles",
       icon: Car,
-      label: "Xe",
+      label: "Vehicles",
       exact: true, // Only match exact path, not sub-routes
     },
     {
       path: "/dealer-staff/vehicles/compare",
       icon: GitCompare,
-      label: "So sánh xe",
+      label: "Compare Vehicles",
     },
     {
       path: "/dealer-staff/customers",
       icon: Users,
-      label: "Khách hàng",
+      label: "Customers",
     },
     {
       path: "/dealer-staff/orders",
       icon: ShoppingBag,
-      label: "Đơn hàng",
+      label: "Orders",
     },
     {
       path: "/dealer-staff/quotations",
       icon: FileText,
-      label: "Báo giá",
+      label: "Quotations",
     },
     {
       path: "/dealer-staff/contracts",
       icon: FileCheck,
-      label: "Hợp đồng",
+      label: "Contracts",
     },
     {
       path: "/dealer-staff/test-drive-bookings",
       icon: Calendar,
-      label: "Đặt chỗ lái thử",
+      label: "Test Drive Bookings",
     },
   ];
 
@@ -133,7 +133,7 @@ const DealerStaffSidebar = () => {
           <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
             <div className="flex items-center space-x-2 mb-1">
               <User size={16} className="text-gray-600" />
-              <p className="text-xs text-gray-600 font-medium">Xin chào,</p>
+              <p className="text-xs text-gray-600 font-medium">Hello,</p>
               <p className="text-sm font-semibold text-gray-900 truncate">
                 {userProfile?.fullName ||
                   user?.fullName ||
@@ -147,7 +147,7 @@ const DealerStaffSidebar = () => {
         {/* Navigation Menu */}
         <nav className="p-4 space-y-1">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3">
-            Menu Chính
+            Main Menu
           </p>
 
           {menuItems.map((item) => {
