@@ -517,6 +517,23 @@ const DealerManagerOrderDetailPage = () => {
               </Button>
             )}
 
+            {/* Preorder - Add to Cart Button for IN_PROGRESS status (Repeat Order) */}
+            {isPreorder && orderData.status === "IN_PROGRESS" && (
+              <Button
+                type="primary"
+                icon={<ShoppingCartOutlined />}
+                onClick={handleAddToB2BCart}
+                style={{ 
+                  backgroundColor: "#1890ff", 
+                  borderColor: "#1890ff",
+                  color: "#ffffff",
+                  opacity: 1,
+                }}
+              >
+                Đặt xe (B2B)
+              </Button>
+            )}
+
             {/* B2B Orders - View Quotation */}
             {isB2B && orderData.status === "QUOTATION_RECEIVED" && (
               <Button
