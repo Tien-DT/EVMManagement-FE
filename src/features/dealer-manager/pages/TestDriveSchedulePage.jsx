@@ -447,7 +447,7 @@ const TestDriveSchedulePage = () => {
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[1200px]">
+            <table className="w-full border-collapse" style={{ fontSize: "clamp(0.75rem, 0.875rem, 1rem)" }}>
               <thead>
                 <tr>
                   <th className="border border-gray-300 bg-gray-100 p-3 w-24 text-left text-sm font-semibold">

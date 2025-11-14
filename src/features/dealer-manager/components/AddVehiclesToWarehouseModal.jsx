@@ -14,79 +14,77 @@ import endpoints from '../../../api/endpoints';
 
 const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [transports, setTransports] = useState([]);
+  const [selectedTransport, setSelectedTransport] = useState(null);
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicles, setSelectedVehicles] = useState([]);
   const [vinInputs, setVinInputs] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Load completed B2B orders
+  // Load completed transports
   useEffect(() => {
     if (isOpen && dealerId) {
-      loadOrders();
+      loadTransports();
     }
   }, [isOpen, dealerId]);
 
-  const loadOrders = async () => {
+  const loadTransports = async () => {
     setLoading(true);
     try {
-      console.log('Loading completed B2B orders for dealerId:', dealerId);
+      console.log('Loading completed transports for dealerId:', dealerId);
       
-      // Use filter endpoint for better performance
-      const response = await axiosInstance.get(endpoints.orders.filter, {
+      // Load transports by dealer
+      const response = await axiosInstance.get(endpoints.transports.getByDealer(dealerId), {
         params: {
-          dealerId: dealerId,
           pageNumber: 1,
           pageSize: 100,
         }
       });
       
-      console.log('Orders API response:', response);
+      console.log('Transports API response:', response);
       
-      // Extract orders from response
-      let ordersList = [];
+      // Extract transports from response
+      let transportsList = [];
       if (response.data?.items) {
-        ordersList = response.data.items;
+        transportsList = response.data.items;
       } else if (response.data?.data?.items) {
-        ordersList = response.data.data.items;
+        transportsList = response.data.data.items;
       } else if (Array.isArray(response.data?.data)) {
-        ordersList = response.data.data;
+        transportsList = response.data.data;
       } else if (Array.isArray(response.data)) {
-        ordersList = response.data;
+        transportsList = response.data;
       }
       
-      console.log('Extracted orders list:', ordersList);
+      console.log('Extracted transports list:', transportsList);
       
-      // Filter B2B orders with PAY_SUCCESS status
-      const completedB2BOrders = ordersList.filter(order => {
-        const isB2B = order.orderType === 1 || order.orderType === 'B2B' || String(order.orderType).toUpperCase() === 'B2B';
-        const isPaid = order.status?.toUpperCase() === 'PAY_SUCCESS';
-        console.log(`Order ${order.code}: isB2B=${isB2B}, isPaid=${isPaid}, orderType=${order.orderType}, status=${order.status}`);
-        return isB2B && isPaid;
+      // Filter transports with COMPLETED status
+      const completedTransports = transportsList.filter(transport => {
+        const isCompleted = transport.status?.toUpperCase() === 'COMPLETED';
+        console.log(`Transport ${transport.id}: status=${transport.status}, isCompleted=${isCompleted}`);
+        return isCompleted;
       });
       
-      console.log('Filtered PAY_SUCCESS B2B orders:', completedB2BOrders);
+      console.log('Filtered COMPLETED transports:', completedTransports);
       
-      if (completedB2BOrders.length === 0) {
-        console.warn('No PAY_SUCCESS B2B orders found. Total orders loaded:', ordersList.length);
+      if (completedTransports.length === 0) {
+        console.warn('No COMPLETED transports found. Total transports loaded:', transportsList.length);
       }
       
-      setOrders(completedB2BOrders);
+      setTransports(completedTransports);
       
     } catch (error) {
-      console.error('Error loading orders:', error);
+      console.error('Error loading transports:', error);
       console.error('Error details:', error.response?.data);
-      alert('Không thể tải danh sách đơn hàng: ' + (error.response?.data?.message || error.message));
+      alert('Không thể tải danh sách vận chuyển: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
   };
 
-  // Load order details and extract vehicles
-  const handleOrderSelect = async (orderId) => {
-    if (!orderId) {
-      setSelectedOrder(null);
+  // Load transport details and extract vehicles
+  const handleTransportSelect = async (transportId) => {
+    if (!transportId) {
+      setSelectedTransport(null);
       setVehicles([]);
       setSelectedVehicles([]);
       setVinInputs({});
@@ -95,47 +93,51 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
 
     setLoading(true);
     try {
-      console.log('Loading order details for orderId:', orderId);
+      console.log('Loading transport details for transportId:', transportId);
       
-      // Load order WITH DETAILS - this endpoint includes orderDetails
-      const response = await axiosInstance.get(endpoints.orders.getByIdWithDetails(orderId));
+      // Load transport details
+      const response = await axiosInstance.get(endpoints.transports.getById(transportId));
       
-      console.log('Order API response:', response);
+      console.log('Transport API response:', response);
       
       // Handle response structure - could be response.data or response.data.data
-      let order = response.data?.data || response.data;
+      let transport = response.data?.data || response.data;
       
-      console.log('Order details:', order);
+      console.log('Transport details:', transport);
       
-      setSelectedOrder(order);
+      setSelectedTransport(transport);
       
-      // Extract vehicles from orderDetails
-      console.log('Checking orderDetails:', order.orderDetails);
-      console.log('orderDetails length:', order.orderDetails?.length);
+      // Extract vehicles from transportDetails
+      console.log('Checking transportDetails:', transport.transportDetails);
+      console.log('transportDetails length:', transport.transportDetails?.length);
       
-      if (order.orderDetails && order.orderDetails.length > 0) {
-        const vehiclesList = order.orderDetails
-          .filter(detail => detail.vehicleVariantId || detail.vehicleVariant?.id)
+      if (transport.transportDetails && transport.transportDetails.length > 0) {
+        const vehiclesList = transport.transportDetails
+          .filter(detail => detail.vehicleId || detail.vehicleVariantId)
           .map((detail, index) => {
-            const variantId = detail.vehicleVariantId || detail.vehicleVariant?.id;
-            const variant = detail.vehicleVariant;
+            const variantId = detail.vehicleVariantId;
+            const variantName = detail.vehicleVariantName || detail.vehicleVariant?.name;
+            const vehicleVin = detail.vehicleVin || detail.vin;
             
-            console.log('Processing detail:', {
+            console.log('Processing transport detail:', {
               detailId: detail.id,
+              vehicleId: detail.vehicleId,
               variantId: variantId,
-              variant: variant
+              variantName: variantName,
+              vin: vehicleVin
             });
             
             return {
               id: `${detail.id}-${index}`,
-              orderDetailId: detail.id,
+              transportDetailId: detail.id,
+              vehicleId: detail.vehicleId,
               variantId: variantId,
-              vehicleVariant: variant,
-              quantity: detail.quantity || 1,
-              modelName: variant?.vehicleModel?.name || variant?.model?.name || 'Unknown Model',
-              color: variant?.color || 'N/A',
-              price: detail.unitPrice || variant?.price || 0,
-              imageUrl: variant?.imageUrl || '',
+              variantName: variantName,
+              vin: vehicleVin,
+              modelName: variantName || 'Unknown Model',
+              color: 'N/A', // Transport details may not have color
+              price: 0, // Transport details may not have price
+              imageUrl: '',
             };
           });
         
@@ -143,19 +145,23 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
         
         if (vehiclesList.length > 0) {
           setVehicles(vehiclesList);
+          
+          // Auto-select all vehicles by default
+          const allVehicleIds = vehiclesList.map(v => v.id);
+          setSelectedVehicles(allVehicleIds);
         } else {
           setVehicles([]);
-          alert('Không tìm thấy thông tin xe trong đơn hàng này');
+          alert('Không tìm thấy thông tin xe trong lô vận chuyển này');
         }
       } else {
-        console.warn('No orderDetails found in order:', order);
+        console.warn('No transportDetails found in transport:', transport);
         setVehicles([]);
-        alert('Đơn hàng này không có xe nào');
+        alert('Lô vận chuyển này không có xe nào');
       }
       
     } catch (error) {
-      console.error('Error loading order details:', error);
-      alert('Không thể tải chi tiết đơn hàng');
+      console.error('Error loading transport details:', error);
+      alert('Không thể tải chi tiết vận chuyển');
     } finally {
       setLoading(false);
     }
@@ -200,45 +206,30 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
   // Submit - Add vehicles to warehouse
   const handleSubmit = async () => {
     // Validate
-    if (selectedVehicles.length === 0) {
-      alert('Vui lòng chọn ít nhất một xe');
+    if (!selectedTransport?.id) {
+      alert('Vui lòng chọn lô vận chuyển');
       return;
     }
 
-    // Check VIN for all selected vehicles
-    const missingVin = selectedVehicles.filter(vehicleId => !vinInputs[vehicleId]?.trim());
-    if (missingVin.length > 0) {
-      alert('Vui lòng nhập VIN cho tất cả xe đã chọn');
+    if (selectedVehicles.length === 0) {
+      alert('Không có xe nào để thêm vào kho');
       return;
     }
 
     setSubmitting(true);
     try {
-      console.log('Adding vehicles to warehouse...');
+      console.log('Adding vehicles to warehouse using simplified API...');
       
-      // Build vehicles array
-      const vehiclesPayload = selectedVehicles.map(vehicleId => {
-        const vehicle = vehicles.find(v => v.id === vehicleId);
-        return {
-          variantId: vehicle.variantId,
-          vin: vinInputs[vehicleId].trim(),
-          status: 'IN_STOCK',
-          purpose: 'FOR_SALE',
-          imageUrl: vehicle.imageUrl || ''
-        };
-      });
-
       const payload = {
-        warehouseId: warehouseId,
-        dealerId: dealerId,
-        vehicles: vehiclesPayload
+        transportId: selectedTransport.id,
+        warehouseId: warehouseId
       };
 
       console.log('Payload:', payload);
 
-      // Call API using endpoint from endpoints.js
+      // Call new simplified API endpoint
       const response = await axiosInstance.post(
-        endpoints.warehouses.dealer.addVehicles,
+        endpoints.transports.addToWarehouse,
         payload
       );
 
@@ -246,48 +237,8 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
 
       alert(`Đã thêm ${selectedVehicles.length} xe vào kho thành công!`);
       
-      // Update order status to COMPLETED
-      if (selectedOrder?.id) {
-        try {
-          console.log('Updating order status to COMPLETED...');
-          
-          // Build order update payload with all required fields
-          const orderUpdateData = {
-            code: selectedOrder.code,
-            dealerId: selectedOrder.dealerId,
-            status: 'COMPLETED',
-            orderType: selectedOrder.orderType,
-          };
-          
-          // Add optional fields if they exist
-          if (selectedOrder.customerId) orderUpdateData.customerId = selectedOrder.customerId;
-          if (selectedOrder.quotationId) orderUpdateData.quotationId = selectedOrder.quotationId;
-          if (selectedOrder.handoverRecordId) orderUpdateData.handoverRecordId = selectedOrder.handoverRecordId;
-          if (selectedOrder.contractId) orderUpdateData.contractId = selectedOrder.contractId;
-          if (selectedOrder.depositId) orderUpdateData.depositId = selectedOrder.depositId;
-          if (selectedOrder.note) orderUpdateData.note = selectedOrder.note;
-          if (selectedOrder.totalAmount) orderUpdateData.totalAmount = selectedOrder.totalAmount;
-          if (selectedOrder.discountAmount) orderUpdateData.discountAmount = selectedOrder.discountAmount;
-          if (selectedOrder.finalAmount) orderUpdateData.finalAmount = selectedOrder.finalAmount;
-          if (selectedOrder.handoverDate) orderUpdateData.handoverDate = selectedOrder.handoverDate;
-          if (selectedOrder.expectedDeliveryAt) orderUpdateData.expectedDeliveryAt = selectedOrder.expectedDeliveryAt;
-          
-          console.log('Order update payload:', orderUpdateData);
-          
-          await axiosInstance.put(
-            endpoints.orders.update(selectedOrder.id),
-            orderUpdateData
-          );
-          
-          console.log('Order status updated to COMPLETED successfully');
-        } catch (orderError) {
-          console.error('Error updating order status:', orderError);
-          alert('Đã thêm xe vào kho nhưng không thể cập nhật trạng thái đơn hàng');
-        }
-      }
-      
       // Reset and close
-      setSelectedOrder(null);
+      setSelectedTransport(null);
       setVehicles([]);
       setSelectedVehicles([]);
       setVinInputs({});
@@ -320,7 +271,7 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Thêm xe vào kho</h2>
-              <p className="text-sm text-blue-100">Chọn đơn hàng và xe để thêm vào kho</p>
+              <p className="text-sm text-blue-100">Chọn lô vận chuyển và xe để thêm vào kho</p>
             </div>
           </div>
           <button
@@ -333,21 +284,21 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
 
         {/* Body */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-          {/* Order Selection */}
+          {/* Transport Selection */}
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-700 mb-2">
-              Chọn đơn hàng (B2B - Đã thanh toán) <span className="text-red-500">*</span>
+              Chọn lô vận chuyển (Đã hoàn thành) <span className="text-red-500">*</span>
             </label>
             <select
-              value={selectedOrder?.id || ''}
-              onChange={(e) => handleOrderSelect(e.target.value)}
+              value={selectedTransport?.id || ''}
+              onChange={(e) => handleTransportSelect(e.target.value)}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
               disabled={loading}
             >
-              <option value="">-- Chọn đơn hàng --</option>
-              {orders.map(order => (
-                <option key={order.id} value={order.id}>
-                  {order.code} - {order.dealerName || order.dealer?.name || 'N/A'} ({order.orderDetails?.length || 0} xe)
+              <option value="">-- Chọn lô vận chuyển --</option>
+              {transports.map(transport => (
+                <option key={transport.id} value={transport.id}>
+                  {transport.orderCode || 'N/A'} - {transport.providerName || 'N/A'} ({transport.transportDetails?.length || 0} xe)
                 </option>
               ))}
             </select>
@@ -364,48 +315,21 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
             <div>
               <div className="flex items-center justify-between mb-4">
                 <label className="text-sm font-bold text-gray-700">
-                  Chọn xe ({selectedVehicles.length}/{vehicles.length})
+                  Danh sách xe ({vehicles.length} xe sẽ được thêm vào kho)
                 </label>
-                <button
-                  onClick={handleSelectAll}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                >
-                  {selectedVehicles.length === vehicles.length ? (
-                    <>
-                      <Square size={16} />
-                      <span>Bỏ chọn tất cả</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckSquare size={16} />
-                      <span>Chọn tất cả</span>
-                    </>
-                  )}
-                </button>
               </div>
 
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {vehicles.map(vehicle => (
                   <div
                     key={vehicle.id}
-                    className={`border-2 rounded-xl p-4 transition-all ${
-                      selectedVehicles.includes(vehicle.id)
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className="border-2 border-green-500 bg-green-50 rounded-xl p-4"
                   >
                     <div className="flex items-start gap-4">
-                      {/* Checkbox */}
-                      <button
-                        onClick={() => toggleVehicleSelection(vehicle.id)}
-                        className="mt-1"
-                      >
-                        {selectedVehicles.includes(vehicle.id) ? (
-                          <CheckSquare size={24} className="text-blue-600" />
-                        ) : (
-                          <Square size={24} className="text-gray-400" />
-                        )}
-                      </button>
+                      {/* Checkmark Icon */}
+                      <div className="mt-1">
+                        <CheckSquare size={24} className="text-green-600" />
+                      </div>
 
                       {/* Vehicle Image */}
                       <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
@@ -425,24 +349,8 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
                       {/* Vehicle Info */}
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-900">{vehicle.modelName}</h4>
-                        <p className="text-sm text-gray-600">
-                          Màu: {vehicle.color} | Giá: {vehicle.price.toLocaleString('vi-VN')} ₫
-                        </p>
-
-                        {/* VIN Input (only show if selected) */}
-                        {selectedVehicles.includes(vehicle.id) && (
-                          <div className="mt-3">
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                              VIN (Số khung) <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={vinInputs[vehicle.id] || ''}
-                              onChange={(e) => handleVinChange(vehicle.id, e.target.value)}
-                              placeholder="Nhập số VIN"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                            />
-                          </div>
+                        {vehicle.vin && (
+                          <p className="text-sm text-gray-600 mt-1">VIN: {vehicle.vin}</p>
                         )}
                       </div>
                     </div>
@@ -453,10 +361,10 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
           )}
 
           {/* Empty State */}
-          {selectedOrder && vehicles.length === 0 && !loading && (
+          {selectedTransport && vehicles.length === 0 && !loading && (
             <div className="text-center py-12">
               <AlertCircle size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">Đơn hàng này không có xe nào</p>
+              <p className="text-gray-600">Lô vận chuyển này không có xe nào</p>
             </div>
           )}
 
@@ -466,11 +374,10 @@ const AddVehiclesToWarehouseModal = ({ isOpen, onClose, warehouseId, dealerId, o
               <div className="flex items-start gap-3">
                 <AlertCircle size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-800">
-                  <p className="font-semibold mb-1">Thông tin xe sẽ được thêm:</p>
+                  <p className="font-semibold mb-1">Tất cả xe trong lô vận chuyển sẽ được thêm vào kho:</p>
                   <ul className="space-y-1">
-                    <li>• Trạng thái: <strong>IN_STOCK</strong> (Có sẵn trong kho)</li>
-                    <li>• Mục đích: <strong>FOR_SALE</strong> (Để bán)</li>
-                    <li>• Số lượng đã chọn: <strong>{selectedVehicles.length} xe</strong></li>
+                    <li>• Số lượng: <strong>{selectedVehicles.length} xe</strong></li>
+                    <li>• Tất cả xe sẽ được thêm vào kho đã chọn</li>
                   </ul>
                 </div>
               </div>

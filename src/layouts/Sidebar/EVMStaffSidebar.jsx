@@ -112,7 +112,8 @@ const EvmStaffSidebar = () => {
           transition-transform duration-300 ease-in-out z-40
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 lg:fixed
-          w-64 shadow-sm overflow-y-auto
+          w-64 shadow-sm overflow-x-hidden
+          flex flex-col
         `}
       >
         {/* Header / Logo */}
@@ -129,7 +130,7 @@ const EvmStaffSidebar = () => {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="p-4 space-y-6">
+        <nav className="p-4 space-y-6 flex-1 overflow-y-auto scrollbar-hide">
           {menuGroups.map((group) => (
             <div key={group.title}>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">

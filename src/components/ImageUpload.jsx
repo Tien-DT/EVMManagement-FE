@@ -109,7 +109,8 @@ const ImageUpload = ({ value, onChange, disabled = false }) => {
           <img
             src={preview}
             alt="Preview"
-            className="h-48 w-full rounded-lg object-cover border border-slate-200"
+            className="w-full rounded-lg object-cover border border-slate-200"
+            style={{ height: "clamp(150px, 12rem, 250px)" }}
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/400x300?text=Image+Error';
             }}

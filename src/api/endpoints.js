@@ -293,6 +293,7 @@ const endpoints = {
     update: (id) => `/v1/Transports/${id}`,
     delete: (id) => `/v1/Transports/${id}`,
     confirmHandover: (id) => `/v1/Transports/${id}/handover/confirm`,
+    addToWarehouse: "/v1/Transports/add-to-warehouse",
   },
 
   // Transport Details endpoints

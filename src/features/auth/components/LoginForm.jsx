@@ -16,6 +16,8 @@ const LoginForm = () => {
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center relative"
       style={{
         backgroundImage: `url(${loginBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
       {/* Blue Overlay */}

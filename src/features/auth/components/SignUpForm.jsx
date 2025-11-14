@@ -20,7 +20,7 @@ const SignUpForm = () => {
           className="relative overflow-hidden bg-cover bg-center rounded-2xl sm:rounded-3xl"
           style={{
             backgroundImage: `url(${signupBg})`,
-            minHeight: "280px",
+            height: "clamp(200px, 30vh, 320px)",
           }}
         >
           <div className="relative z-10 text-center py-12 sm:py-16 px-4">
