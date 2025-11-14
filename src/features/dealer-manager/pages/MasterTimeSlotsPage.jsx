@@ -13,7 +13,6 @@ import {
   PowerOff,
   CheckCircle,
   XCircle,
-  Calendar as CalendarIcon,
 } from "lucide-react";
 import { useMasterTimeSlots } from "../hooks/useMasterTimeSlots";
 import { useNotification } from "../../../context/NotificationContext";
@@ -24,7 +23,6 @@ const MasterTimeSlotsPage = () => {
   const { showSuccess, showError } = useNotification();
   const [searchTerm, setSearchTerm] = useState("");
   const [dealerId, setDealerId] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Get dealerId from localStorage or context
   useEffect(() => {
@@ -126,10 +124,6 @@ const MasterTimeSlotsPage = () => {
     }
   };
 
-  const onDateSelect = (e) => {
-    setSelectedDate(new Date(e.target.value));
-  };
-
   // Loading state - only show initial loading when fetching dealerId
   if (loading && !dealerId) {
     return (
@@ -180,67 +174,21 @@ const MasterTimeSlotsPage = () => {
         </div>
       )}
 
-      {/* Split Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Side - Calendar */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Lịch theo ngày
-            </h2>
-            <div className="border border-gray-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center gap-3 mb-3">
-                <CalendarIcon className="text-blue-600" size={24} />
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {selectedDate.getDate()}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Tháng {selectedDate.getMonth() + 1}, {selectedDate.getFullYear()}
-                  </div>
-                </div>
-              </div>
-              <input
-                type="date"
-                value={selectedDate.toISOString().split("T")[0]}
-                onChange={onDateSelect}
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="space-y-2">
-              {filteredSlots.slice(0, 3).map((slot) => (
-                <div
-                  key={slot.id}
-                  className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                >
-                  <div className="text-sm font-medium text-gray-900">{slot.code}</div>
-                  <div className="text-xs text-gray-600 mt-1">
-                    {getStartTime(slot.startOffsetMinutes)} -{" "}
-                    {getEndTime(slot.startOffsetMinutes, slot.durationMinutes)}
-                  </div>
-                </div>
-              ))}
-              {filteredSlots.length > 3 && (
-                <div className="text-center text-sm text-blue-600 font-medium">
-                  +{filteredSlots.length - 3} slot khác
-                </div>
-              )}
-            </div>
-            <div className="mt-4">
-              <button
-                onClick={() => navigate("/dealer-manager/master-time-slots/create")}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
-              >
-                <Plus size={20} />
-                Tạo Master Slot Mới
-              </button>
-            </div>
-          </div>
+      {/* Create Master Slot Button - Only show if active slots < 4 */}
+      {activeTimeslotsCount < 4 && (
+        <div className="mb-6">
+          <button
+            onClick={() => navigate("/dealer-manager/master-time-slots/create")}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+          >
+            <Plus size={20} />
+            Tạo Master Slot Mới
+          </button>
         </div>
+      )}
 
-        {/* Right Side - Master Time Slots List */}
-        <div className="lg:col-span-2">
+      {/* Master Time Slots List */}
+      <div>
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* Search Bar */}
             <div className="p-4 border-b border-gray-200">
@@ -377,7 +325,6 @@ const MasterTimeSlotsPage = () => {
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 };
