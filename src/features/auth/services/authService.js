@@ -97,9 +97,9 @@ export const authService = {
 
   changePassword: async (data) => {
     try {
-      // Try the most common field names for change password APIs
+      // Support both oldPassword and currentPassword field names
       const payload = {
-        currentPassword: data.currentPassword,
+        oldPassword: data.oldPassword || data.currentPassword,
         newPassword: data.newPassword,
       };
       

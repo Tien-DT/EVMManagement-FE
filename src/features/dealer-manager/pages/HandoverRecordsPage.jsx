@@ -102,32 +102,25 @@ const HandoverRecordsPage = () => {
     if (!searchTerm) return true;
     const lowerSearch = searchTerm.toLowerCase();
     return (
-      record.id?.toString().includes(lowerSearch) ||
-      record.orderId?.toString().includes(lowerSearch) ||
-      record.vehicleId?.toString().includes(lowerSearch)
+      record.order?.code?.toLowerCase().includes(lowerSearch) ||
+      record.transport?.providerName?.toLowerCase().includes(lowerSearch)
     );
   });
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-    },
-    {
       title: 'Mã đơn hàng',
-      dataIndex: 'orderId',
-      key: 'orderId',
-      width: 120,
-      render: (orderId) => <span className="font-mono text-blue-600">#{orderId}</span>,
+      dataIndex: ['order', 'code'],
+      key: 'orderCode',
+      width: 200,
+      render: (code) => <span className="font-mono text-blue-600">{code || '-'}</span>,
     },
     {
-      title: 'Mã xe',
-      dataIndex: 'vehicleId',
-      key: 'vehicleId',
-      width: 120,
-      render: (vehicleId) => <span className="font-mono">#{vehicleId}</span>,
+      title: 'Nhà vận chuyển',
+      dataIndex: ['transport', 'providerName'],
+      key: 'providerName',
+      width: 150,
+      render: (name) => name || '-',
     },
     {
       title: 'Ngày bàn giao',
@@ -138,13 +131,6 @@ const HandoverRecordsPage = () => {
         if (!date) return '-';
         return new Date(date).toLocaleDateString('vi-VN');
       },
-    },
-    {
-      title: 'Người nhận',
-      dataIndex: 'recipientName',
-      key: 'recipientName',
-      width: 180,
-      render: (name) => name || '-',
     },
     {
       title: 'Trạng thái',
@@ -206,7 +192,7 @@ const HandoverRecordsPage = () => {
           </h2>
 
           <Search
-            placeholder="Tìm kiếm theo ID, mã đơn hàng, mã xe..."
+            placeholder="Tìm kiếm theo mã đơn hàng, nhà vận chuyển..."
             allowClear
             enterButton={<SearchOutlined />}
             size="large"

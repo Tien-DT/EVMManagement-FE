@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Dropdown } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../features/auth/services/authService";
-import EvmStaffSidebar from "./sidebar/EVMStaffSidebar";
+import EvmStaffSidebar from "./Sidebar/EVMStaffSidebar";
 
 const EvmStaffLayout = () => {
   const { user, logout } = useAuth();

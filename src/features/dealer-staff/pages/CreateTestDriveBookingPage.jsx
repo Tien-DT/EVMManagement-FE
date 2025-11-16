@@ -22,6 +22,8 @@ const CreateTestDriveBookingPage = () => {
   
   const [warehouses, setWarehouses] = useState([]);
   const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
+  const [models, setModels] = useState([]);
+  const [selectedModelId, setSelectedModelId] = useState("");
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState("");
   
@@ -151,9 +153,33 @@ const CreateTestDriveBookingPage = () => {
     fetchWarehouses();
   }, [dealerId, showError]);
 
-  // Fetch vehicles when warehouse selected
+  // Fetch vehicle models when dealer selected
   useEffect(() => {
-    if (!selectedWarehouseId) {
+    if (!dealerId) return;
+
+    const fetchModels = async () => {
+      try {
+        const response = await axiosInstance.get(
+          endpoints.vehicleModels.getByDealer(dealerId)
+        );
+        
+        const modelList = Array.isArray(response.data)
+          ? response.data
+          : response.data?.items || [];
+        
+        setModels(modelList);
+      } catch (error) {
+        console.error("Error fetching models:", error);
+        showError("Không thể tải danh sách mẫu xe");
+      }
+    };
+
+    fetchModels();
+  }, [dealerId, showError]);
+
+  // Fetch vehicles when warehouse and model selected
+  useEffect(() => {
+    if (!selectedWarehouseId || !selectedModelId) {
       setVehicles([]);
       setSelectedVehicleId("");
       return;
@@ -162,23 +188,24 @@ const CreateTestDriveBookingPage = () => {
     const fetchVehicles = async () => {
       try {
         const response = await axiosInstance.get(
-          "/v1/Warehouses/dealer-warehouse",
+          `/v1/Warehouses/${selectedWarehouseId}/vehicles-by-model`,
           {
             params: {
-              warehouseId: selectedWarehouseId,
+              modelId: selectedModelId,
               purpose: "TEST_DRIVE",
               status: "IN_STOCK",
             },
           }
         );
         
-        // Response structure: { items: [{ vehicles: [...] }] }
+        // Response structure might be array or object with items
         let vehicleList = [];
         if (Array.isArray(response.data)) {
           vehicleList = response.data;
         } else if (response.data?.items) {
-          // Flatten vehicles from all warehouses
-          vehicleList = response.data.items.flatMap(warehouse => warehouse.vehicles || []);
+          vehicleList = response.data.items;
+        } else if (response.data?.data) {
+          vehicleList = Array.isArray(response.data.data) ? response.data.data : [];
         }
         
         setVehicles(vehicleList);
@@ -190,7 +217,7 @@ const CreateTestDriveBookingPage = () => {
 
     fetchVehicles();
     setSelectedVehicleId("");
-  }, [selectedWarehouseId]);
+  }, [selectedWarehouseId, selectedModelId]);
 
   // Search customer by phone
   const handleSearchCustomer = async () => {
@@ -501,6 +528,7 @@ const CreateTestDriveBookingPage = () => {
               value={selectedWarehouseId}
               onChange={(e) => {
                 setSelectedWarehouseId(e.target.value);
+                setSelectedModelId("");
                 setSelectedVehicleId("");
               }}
               required
@@ -515,8 +543,33 @@ const CreateTestDriveBookingPage = () => {
             </select>
           </div>
 
-          {/* Vehicle List */}
+          {/* Vehicle Model */}
           {selectedWarehouseId && (
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Mẫu xe <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedModelId}
+                onChange={(e) => {
+                  setSelectedModelId(e.target.value);
+                  setSelectedVehicleId("");
+                }}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">-- Chọn mẫu xe --</option>
+                {models.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name} {model.code ? `(${model.code})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Vehicle List */}
+          {selectedWarehouseId && selectedModelId && (
             <div className="mb-4">
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Xe <span className="text-red-500">*</span>
@@ -527,36 +580,56 @@ const CreateTestDriveBookingPage = () => {
                   <p className="text-gray-500">Không có xe lái thử khả dụng trong kho này</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
                   {vehicles.map((vehicle) => (
                     <div
                       key={vehicle.id}
                       onClick={() => setSelectedVehicleId(vehicle.id)}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                         selectedVehicleId === vehicle.id
                           ? "border-blue-500 bg-blue-50"
                           : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="radio"
-                          name="vehicle"
-                          checked={selectedVehicleId === vehicle.id}
-                          onChange={() => setSelectedVehicleId(vehicle.id)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900">{vehicle.variant?.vehicleModel?.name || "N/A"}</p>
-                          <p className="text-sm text-gray-600 mt-1">VIN: {vehicle.vin || "N/A"}</p>
-                          <div className="flex gap-2 mt-2">
-                            <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
-                              {vehicle.variant?.color || "N/A"}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <input
+                            type="radio"
+                            name="vehicle"
+                            checked={selectedVehicleId === vehicle.id}
+                            onChange={() => setSelectedVehicleId(vehicle.id)}
+                            className="w-4 h-4"
+                          />
+                          <div className="flex gap-1">
+                            <span className="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700 font-medium">
+                              {vehicle.purpose || "N/A"}
                             </span>
-                            <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
+                            <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700 font-medium">
                               {vehicle.status}
                             </span>
                           </div>
+                        </div>
+                        
+                        {vehicle.imageUrl ? (
+                          <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
+                            <img
+                              src={vehicle.imageUrl}
+                              alt={vehicle.variant?.vehicleModel?.name || "Vehicle"}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23f3f4f6' width='100' height='100'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-sm">N/A</span>
+                          </div>
+                        )}
+                        
+                        <div className="text-sm text-gray-600 font-medium">
+                          VIN: {vehicle.vin || "N/A"}
                         </div>
                       </div>
                     </div>

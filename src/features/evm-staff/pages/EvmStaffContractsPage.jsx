@@ -193,6 +193,11 @@ const EvmStaffContractsPage = () => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return contracts.filter((contract) => {
+      // Chỉ hiển thị hợp đồng B2B
+      if (contract.contractType !== 'B2B') {
+        return false;
+      }
+
       const matchesStatus =
         statusFilter === "ALL" || contract.status === statusFilter;
 
@@ -201,12 +206,12 @@ const EvmStaffContractsPage = () => {
       }
 
       const code = (contract.code || "").toLowerCase();
-      const customerName = (contract.customer?.fullName || "").toLowerCase();
+      const dealerName = (contract.dealer?.name || contract.order?.dealer?.name || "").toLowerCase();
       const orderCode = (contract.order?.code || "").toLowerCase();
 
       const matchesSearch =
         code.includes(normalizedSearch) ||
-        customerName.includes(normalizedSearch) ||
+        dealerName.includes(normalizedSearch) ||
         orderCode.includes(normalizedSearch);
 
       return matchesStatus && matchesSearch;
@@ -244,13 +249,13 @@ const EvmStaffContractsPage = () => {
       ),
     },
     {
-      title: "Khách hàng",
-      key: "customer",
+      title: "Đại lý",
+      key: "dealer",
       width: 170,
       ellipsis: true,
       render: (_, record) => (
         <span style={{ fontWeight: 500 }}>
-          {record.customer?.fullName || record.customerId || "N/A"}
+          {record.dealer?.name || record.order?.dealer?.name || "N/A"}
         </span>
       ),
     },
@@ -561,7 +566,7 @@ const EvmStaffContractsPage = () => {
             </Select>
             <Search
               allowClear
-              placeholder="Tìm kiếm theo mã, đơn hàng hoặc khách hàng"
+              placeholder="Tìm kiếm theo mã, đơn hàng hoặc đại lý"
               className="contracts-card__search"
               onChange={(event) => setSearchTerm(event.target.value)}
               onSearch={(value) => setSearchTerm(value)}

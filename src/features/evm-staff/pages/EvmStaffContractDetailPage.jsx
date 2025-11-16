@@ -82,9 +82,15 @@ const EvmStaffContractDetailPage = () => {
 
     const orderRef = contract.order;
     const customerRef = contract.customer || orderRef?.customer;
+    const dealerRef = contract.dealer || orderRef?.dealer;
     const creatorRef = contract.createdByUser;
     const orderItems = orderRef?.orderDetails || [];
     const depositItems = orderRef?.deposits || [];
+    
+    // For B2B contracts, use dealer info instead of customer info
+    const isB2B = contract.contractType === 'B2B' || orderRef?.orderType === 'B2B';
+    const clientRef = isB2B ? dealerRef : customerRef;
+    const clientLabel = isB2B ? "Thông tin đại lý" : "Thông tin khách hàng";
 
     const statusLabelMap = {
       DRAFT: "Bản nháp",
@@ -145,24 +151,24 @@ const EvmStaffContractDetailPage = () => {
         ],
       },
       {
-        title: "Thông tin khách hàng",
+        title: clientLabel,
         type: "keyValue",
         rows: [
           {
-            label: "Khách hàng",
+            label: isB2B ? "Tên đại lý" : "Khách hàng",
             value:
-              customerRef?.fullName ||
-              customerRef?.name ||
-              contract.customerId ||
+              clientRef?.fullName ||
+              clientRef?.name ||
+              (isB2B ? contract.dealerId : contract.customerId) ||
               "N/A",
           },
-          { label: "Email", value: customerRef?.email || "N/A" },
+          { label: "Email", value: clientRef?.email || "N/A" },
           {
             label: "Số điện thoại",
             value:
-              customerRef?.phone || customerRef?.phoneNumber || "N/A",
+              clientRef?.phone || clientRef?.phoneNumber || "N/A",
           },
-          { label: "Địa chỉ", value: customerRef?.address || "N/A" },
+          { label: "Địa chỉ", value: clientRef?.address || "N/A" },
         ],
       },
       {
@@ -222,7 +228,7 @@ const EvmStaffContractDetailPage = () => {
                 },
                 {
                   label: "Đơn giá",
-                  value: formatCurrency(item.unitPrice),
+                  value: formatCurrency(item.vehicleVariant?.price || item.unitPrice || 0),
                 },
                 item.note
                   ? { label: "Ghi chú", value: item.note }
@@ -479,6 +485,7 @@ const EvmStaffContractDetailPage = () => {
 
   const order = contract.order;
   const customer = contract.customer || order?.customer;
+  const dealer = contract.dealer || order?.dealer;
   const createdByUser = contract.createdByUser;
   const orderDetails = order?.orderDetails || [];
   const digitalSignatures = contract.digitalSignatures || [];
@@ -505,10 +512,9 @@ const EvmStaffContractDetailPage = () => {
     },
     {
       title: "Đơn giá",
-      dataIndex: "unitPrice",
       key: "unitPrice",
       align: "right",
-      render: (value) => formatCurrency(value),
+      render: (_, record) => formatCurrency(record.vehicleVariant?.price || record.unitPrice || 0),
     },
     {
       title: "Ghi chú",
@@ -668,6 +674,28 @@ const EvmStaffContractDetailPage = () => {
                   </Descriptions.Item>
                   <Descriptions.Item label="Địa chỉ" span={3}>
                     {customer.address || "N/A"}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Card>
+            </Col>
+          )}
+
+          {/* Thông tin đại lý (chỉ hiển thị với hợp đồng B2B) */}
+          {contract.contractType === 'B2B' && dealer && (
+            <Col span={24}>
+              <Card type="inner" title="🏢 Thông tin đại lý" style={{ borderRadius: "8px", background: "linear-gradient(135deg, #fff7e6 0%, #e6f7ff 100%)" }}>
+                <Descriptions column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} size="small">
+                  <Descriptions.Item label="Tên đại lý" span={3}>
+                    <Text strong>{dealer.name || "N/A"}</Text>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Email">
+                    {dealer.email || "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Số điện thoại">
+                    {dealer.phone || "N/A"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Địa chỉ" span={3}>
+                    {dealer.address || "N/A"}
                   </Descriptions.Item>
                 </Descriptions>
               </Card>

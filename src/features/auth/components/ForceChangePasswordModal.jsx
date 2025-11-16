@@ -7,8 +7,9 @@ import { useNotification } from "../../../context/NotificationContext";
 import { useAuth } from "../../../context/AuthContext";
 import { KeyRound, X, AlertCircle } from "lucide-react";
 
-// Schema for change password validation (without current password for first-time login)
+// Schema for change password validation (with old password required)
 const forceChangePasswordSchema = z.object({
+  oldPassword: z.string().min(1, "Vui lòng nhập mật khẩu cũ"),
   newPassword: z
     .string()
     .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
@@ -32,6 +33,7 @@ const ForceChangePasswordModal = ({ isOpen, onClose, onSkip, onPasswordChanged }
   const form = useForm({
     resolver: zodResolver(forceChangePasswordSchema),
     defaultValues: {
+      oldPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
@@ -45,13 +47,9 @@ const ForceChangePasswordModal = ({ isOpen, onClose, onSkip, onPasswordChanged }
     try {
       console.log("Changing password for first-time login...");
       
-      // Get temporary password from localStorage (stored during login)
-      const tempPassword = localStorage.getItem("temp_password_for_change") || "";
-      
-      // Use the account's current password (temporary password from admin)
-      // This is the password they just used to login
+      // Use oldPassword from form input
       const response = await authService.changePassword({
-        currentPassword: tempPassword,
+        oldPassword: data.oldPassword,
         newPassword: data.newPassword,
       });
 
@@ -216,6 +214,26 @@ const ForceChangePasswordModal = ({ isOpen, onClose, onSkip, onPasswordChanged }
                     <span className="text-sm">{error}</span>
                   </div>
                 )}
+
+                {/* Old Password */}
+                <div>
+                  <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    Mật khẩu hiện tại <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    {...form.register("oldPassword")}
+                    type="password"
+                    id="oldPassword"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Nhập mật khẩu hiện tại"
+                    autoFocus
+                  />
+                  {form.formState.errors.oldPassword && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {form.formState.errors.oldPassword.message}
+                    </p>
+                  )}
+                </div>
 
                 {/* New Password */}
                 <div>

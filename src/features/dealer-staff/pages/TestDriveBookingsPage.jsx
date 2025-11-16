@@ -481,6 +481,11 @@ const TestDriveBookingsPage = () => {
                               <div className="font-bold text-blue-700">
                                 {slotData.code}
                               </div>
+                              {slotData.bookings?.[0]?.vehicleModelName && (
+                                <div className="text-purple-700 font-semibold">
+                                  {slotData.bookings[0].vehicleModelName}
+                                </div>
+                              )}
                               <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${slotData.statusColor}`}>
                                 ({slotData.displayStatus})
                               </div>

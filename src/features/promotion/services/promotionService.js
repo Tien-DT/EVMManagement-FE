@@ -3,9 +3,15 @@ import endpoints from "../../../api/endpoints";
 
 export const promotionService = {
   // Get all promotions
-  getAll: async () => {
+  getAll: async (params) => {
     try {
-      const response = await axiosInstance.get(endpoints.admin.promotions);
+      const { pageNumber = 1, pageSize = 10 } = params || {};
+      const response = await axiosInstance.get(endpoints.admin.promotions, {
+        params: {
+          pageNumber,
+          pageSize,
+        },
+      });
       console.log("Get promotions API response:", response);
       // Return the response data directly since axiosInstance already handles the response structure
       return response.data || response;

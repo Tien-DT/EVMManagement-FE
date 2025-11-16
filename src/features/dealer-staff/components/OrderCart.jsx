@@ -13,7 +13,6 @@ import {
   Tag,
   InputNumber,
   Popconfirm,
-  Switch,
   Divider,
   Input,
   Select,
@@ -31,7 +30,6 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
   const [form] = Form.useForm();
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isFinanced, setIsFinanced] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [promotions, setPromotions] = useState([]);
@@ -119,19 +117,7 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
   const fetchPromotions = async () => {
     setLoadingPromotions(true);
     try {
-      const uniqueItems = getUniqueCartItems();
-      const variantIds = [...new Set(uniqueItems.map(item => item.variantId).filter(Boolean))];
-      
-      if (variantIds.length === 0) {
-        setPromotions([]);
-        return;
-      }
-
-      // Fetch promotions for the first variant (or combine results from all variants)
-      // For now, we'll fetch for the first variant. If needed, we can enhance to fetch for all variants
-      const variantId = variantIds[0];
-      const response = await promotionService.getVehiclePromotions({
-        variantId: variantId,
+      const response = await promotionService.getAll({
         pageNumber: 1,
         pageSize: 100,
       });
@@ -217,17 +203,9 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
         finalAmount: finalAmount,
         expectedDeliveryAt: values.expectedDeliveryAt.toISOString(),
         orderType: 0,
-        isFinanced: isFinanced,
+        isFinanced: false,
         orderDetails,
       };
-
-      // Add installment plan fields if isFinanced is true
-      if (isFinanced) {
-        orderData.installmentDuration = values.installmentDuration;
-        orderData.monthlyPayment = values.monthlyPayment;
-        orderData.interestRate = values.interestRate || 0;
-        orderData.installmentProvider = values.installmentProvider || "Default Provider";
-      }
 
       await vehicleService.createOrderWithDetails(orderData);
       message.success("Tạo đơn hàng thành công!");
@@ -236,7 +214,6 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
       setShowOrderModal(false);
       onClose();
       form.resetFields();
-      setIsFinanced(false);
     } catch (error) {
       console.error("Error creating order:", error);
       message.error(error.response?.data?.message || "Tạo đơn hàng thất bại");
@@ -550,77 +527,6 @@ const OrderCart = ({ visible, onClose, cartItems, setCartItems, dealerId, userId
               disabled
             />
           </Form.Item>
-
-          <Divider />
-
-          <Form.Item
-            label="Trả góp"
-            style={{ marginBottom: 16 }}
-          >
-            <Switch
-              checked={isFinanced}
-              onChange={(checked) => setIsFinanced(checked)}
-              checkedChildren="Có"
-              unCheckedChildren="Không"
-            />
-          </Form.Item>
-
-          {isFinanced && (
-            <>
-              <Form.Item
-                name="installmentDuration"
-                label="Thời hạn trả góp (tháng)"
-                rules={[{ required: isFinanced, message: "Vui lòng nhập thời hạn trả góp" }]}
-              >
-                <InputNumber
-                  style={{ width: "100%" }}
-                  min={1}
-                  max={120}
-                  placeholder="Ví dụ: 12, 24, 36..."
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="monthlyPayment"
-                label="Số tiền trả mỗi tháng"
-                rules={[{ required: isFinanced, message: "Vui lòng nhập số tiền trả mỗi tháng" }]}
-              >
-                <InputNumber
-                  style={{ width: "100%" }}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                  min={0}
-                  placeholder="Số tiền trả hàng tháng"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="interestRate"
-                label="Lãi suất (%)"
-                initialValue={0}
-              >
-                <InputNumber
-                  style={{ width: "100%" }}
-                  min={0}
-                  max={100}
-                  step={0.1}
-                  placeholder="Ví dụ: 5.5"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="installmentProvider"
-                label="Nhà cung cấp trả góp"
-              >
-                <Input
-                  style={{ width: "100%" }}
-                  placeholder="Ví dụ: Ngân hàng ABC"
-                />
-              </Form.Item>
-            </>
-          )}
 
           <Divider />
 

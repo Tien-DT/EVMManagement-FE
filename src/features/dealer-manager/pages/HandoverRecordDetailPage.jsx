@@ -112,7 +112,7 @@ const HandoverRecordDetailPage = () => {
 
     setConfirming(true);
     try {
-      await axiosInstance.post(endpoints.transports.confirmHandover(transport.id));
+      await axiosInstance.put(endpoints.transports.confirmHandover(transport.id));
       showSuccess('Xác nhận bàn giao thành công!');
       // Reload data
       await fetchRecordDetail();
