@@ -819,19 +819,23 @@ const EvmStaffContractDetailPage = () => {
           <Col span={24}>
             <Card type="inner" title="📄 Tài liệu hợp đồng" style={{ borderRadius: "8px" }}>
               <Space direction="vertical" style={{ width: "100%" }} size={16}>
-                <Text>
-                  Sử dụng nút "Tải hợp đồng PDF" để tải bản nháp. Sau khi ký, tải file PDF đã ký lên đây để lưu trữ.
-                </Text>
-                <Spin spinning={updatingContractLink} tip="Đang cập nhật tài liệu...">
-                  <FileUpload
-                    acceptedFileTypes=".pdf"
-                    onUploadComplete={handleSignedContractUpload}
-                    maxFileSize={20}
-                  />
-                </Spin>
+                {!contract.contractLink && (
+                  <>
+                    <Text>
+                      Sử dụng nút "Tải hợp đồng PDF" để tải bản nháp. Sau khi ký, tải file PDF đã ký lên đây để lưu trữ.
+                    </Text>
+                    <Spin spinning={updatingContractLink} tip="Đang cập nhật tài liệu...">
+                      <FileUpload
+                        acceptedFileTypes=".pdf"
+                        onUploadComplete={handleSignedContractUpload}
+                        maxFileSize={20}
+                      />
+                    </Spin>
+                  </>
+                )}
                 {contract.contractLink ? (
                   <Space direction="vertical" style={{ width: "100%" }}>
-                    <Divider style={{ margin: "8px 0" }} />
+                    {!contract.contractLink && <Divider style={{ margin: "8px 0" }} />}
                     <div
                       style={{
                         display: "flex",
@@ -857,9 +861,11 @@ const EvmStaffContractDetailPage = () => {
                     </Text>
                   </Space>
                 ) : (
-                  <Text type="secondary">
-                    Chưa có tài liệu hợp đồng đã ký được tải lên.
-                  </Text>
+                  !contract.contractLink && (
+                    <Text type="secondary">
+                      Chưa có tài liệu hợp đồng đã ký được tải lên.
+                    </Text>
+                  )
                 )}
               </Space>
             </Card>

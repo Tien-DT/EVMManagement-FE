@@ -15,22 +15,10 @@ const DepositModal = ({ visible, order, onClose, onSuccess }) => {
   // Remaining amount after this deposit
   const remainingAmount = order.totalAmount ? order.totalAmount - depositAmount : 0;
 
-  // SEPay minimum amount is 10,000 VND (same as VNPay)
-  const SEPAY_MIN_AMOUNT = 10000;
-
   const handleDeposit = async () => {
     console.log('=== handleDeposit called ===');
     console.log('Order:', order);
     console.log('Deposit amount:', depositAmount);
-    console.log('SEPay minimum:', SEPAY_MIN_AMOUNT);
-
-    // Validate minimum amount
-    if (depositAmount < SEPAY_MIN_AMOUNT) {
-      const errorMsg = `Số tiền đặt cọc tối thiểu là ${SEPAY_MIN_AMOUNT.toLocaleString('vi-VN')} ₫. Số tiền đặt cọc hiện tại: ${depositAmount.toLocaleString('vi-VN')} ₫`;
-      console.error('Validation failed:', errorMsg);
-      message.error(errorMsg);
-      return;
-    }
 
     setLoading(true);
     try {
@@ -144,16 +132,6 @@ const DepositModal = ({ visible, order, onClose, onSuccess }) => {
           </Descriptions.Item>
         </Descriptions>
 
-        {depositAmount < SEPAY_MIN_AMOUNT && (
-          <Alert
-            message="Cảnh báo"
-            description={`Số tiền đặt cọc (${depositAmount.toLocaleString('vi-VN')} ₫) nhỏ hơn mức tối thiểu của SEPay (${SEPAY_MIN_AMOUNT.toLocaleString('vi-VN')} ₫). Vui lòng kiểm tra lại tổng tiền đơn hàng trong cơ sở dữ liệu.`}
-            type="error"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        )}
-
         <Alert
           message="Lưu ý"
           description={
@@ -161,7 +139,6 @@ const DepositModal = ({ visible, order, onClose, onSuccess }) => {
               <li>Sau khi đặt cọc thành công, đơn hàng sẽ được xác nhận</li>
               <li>Số tiền còn lại sẽ được thanh toán khi nhận xe</li>
               <li>Bạn sẽ được chuyển đến trang thanh toán SEPay</li>
-              <li style={{ color: '#ff4d4f', fontWeight: 500 }}>Lưu ý: Số tiền đặt cọc tối thiểu là {SEPAY_MIN_AMOUNT.toLocaleString('vi-VN')} ₫</li>
             </ul>
           }
           type="warning"
