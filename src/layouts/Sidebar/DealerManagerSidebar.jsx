@@ -19,6 +19,7 @@ import {
   Package,
   Calendar,
   ClipboardCheck,
+  MessageCircle,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import axiosInstance from "../../api/axiosInstance";
@@ -121,6 +122,11 @@ const DealerManagerSidebar = () => {
       path: "/dealer-manager/test-drive-schedule",
       icon: Calendar,
       label: "Lịch Lái Thử",
+    },
+    {
+      path: "/dealer-manager/chat",
+      icon: MessageCircle,
+      label: "Trợ lý ảo",
     },
   ];
 

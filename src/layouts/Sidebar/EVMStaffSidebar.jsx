@@ -10,7 +10,8 @@ import {
   Truck,
   Settings,
   Package,
-  FileSignature
+  FileSignature,
+  MessageCircle
 } from 'lucide-react';
 
 const EvmStaffSidebar = () => {
@@ -70,6 +71,11 @@ const EvmStaffSidebar = () => {
           path: '/evm-staff/transports',
           icon: Truck,
           label: 'Vận chuyển'
+        },
+        {
+          path: '/evm-staff/chat',
+          icon: MessageCircle,
+          label: 'Trợ lý ảo'
         }
       ]
     },

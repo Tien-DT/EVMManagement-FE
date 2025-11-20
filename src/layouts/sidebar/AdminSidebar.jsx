@@ -13,6 +13,7 @@ import {
   Settings,
   FileText,
   Package,
+  MessageCircle,
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -67,6 +68,11 @@ const AdminSidebar = () => {
           path: "/admin/warehouses",
           icon: Package,
           label: "Kho hàng",
+        },
+        {
+          path: "/admin/chat",
+          icon: MessageCircle,
+          label: "Trợ lý ảo",
         },
       ],
     },

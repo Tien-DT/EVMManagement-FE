@@ -12,6 +12,7 @@ import {
   Calendar,
   GitCompare,
   Search,
+  MessageCircle,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
@@ -85,6 +86,11 @@ const DealerStaffSidebar = () => {
       path: "/dealer-staff/customer-booking-search",
       icon: Search,
       label: "Tra cứu lịch đặt",
+    },
+    {
+      path: "/dealer-staff/chat",
+      icon: MessageCircle,
+      label: "Trợ lý ảo",
     },
   ];
 

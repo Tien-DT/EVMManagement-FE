@@ -144,6 +144,9 @@ import EvmStaffVehicleVariantDetailPage from "../features/evm-staff/pages/EvmSta
 
 // Payment Pages
 import VNPayReturnPage from "../pages/VNPayReturnPage";
+
+// Chatbot Pages
+import ChatPage from "../features/chatbot/pages/ChatPage";
 import SEPayReturnPage from "../pages/SEPayReturnPage";
 import SEPayPollingPage from "../pages/SEPayPollingPage";
 
@@ -186,6 +189,7 @@ const AppRouter = () => (
         <Route element={<RoleBasedRoute allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<DashboardPage />} />
+            <Route path="/admin/chat" element={<ChatPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
             <Route path="/admin/register" element={<SignUpForm />} />
             <Route
@@ -434,6 +438,8 @@ const AppRouter = () => (
               element={<DealerManagerHandoverRecordDetailPage />}
             />
 
+            {/* Chat Route */}
+            <Route path="/dealer-manager/chat" element={<ChatPage />} />
             {/* Profile Route */}
             <Route path="/dealer-manager/profile" element={<ProfilePage />} />
           </Route>
@@ -527,6 +533,8 @@ const AppRouter = () => (
               element={<CustomerBookingSearchPage />}
             />
 
+            {/* Chat Route */}
+            <Route path="/dealer-staff/chat" element={<ChatPage />} />
             {/* Profile Route */}
             <Route path="/dealer-staff/profile" element={<ProfilePage />} />
           </Route>
@@ -670,6 +678,7 @@ const AppRouter = () => (
               element={<EvmStaffEditWarehousePage />}
             />
 
+            <Route path="/evm-staff/chat" element={<ChatPage />} />
             <Route path="/evm-staff/profile" element={<ProfilePage />} />
           </Route>
         </Route>

@@ -323,6 +323,11 @@ const endpoints = {
       addVehicles: "/v1/Warehouses/dealer/add-vehicles",
     },
   },
+
+  // Chatbot endpoints
+  chatbot: {
+    chat: "/v1/Chatbot/chat",
+  },
 };
 
 export default endpoints;
