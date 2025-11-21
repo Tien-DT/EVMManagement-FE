@@ -28,12 +28,12 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // Fetch all data in parallel
+        // Fetch all data in parallel with large pageSize to get all records
         const [dealersRes, staffRes, vehiclesRes, promotionsRes] = await Promise.allSettled([
-          axiosInstance.get(endpoints.admin.dealers),
-          axiosInstance.get(endpoints.admin.evmStaff),
-          axiosInstance.get(endpoints.admin.vehicleModels),
-          axiosInstance.get(endpoints.admin.promotions)
+          axiosInstance.get(endpoints.admin.dealers, { params: { pageSize: 1000 } }),
+          axiosInstance.get(endpoints.admin.evmStaff, { params: { pageSize: 1000 } }),
+          axiosInstance.get(endpoints.admin.vehicleModels, { params: { pageSize: 1000 } }),
+          axiosInstance.get(endpoints.admin.promotions, { params: { pageSize: 1000 } })
         ]);
 
         // Process dealers
@@ -106,8 +106,8 @@ const DashboardPage = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome to EVM Management System</p>
+          <h1 className="text-2xl font-bold text-gray-900">Tổng quan</h1>
+          <p className="text-gray-600 mt-1">Chào mừng đến với Hệ thống Quản lý EVM</p>
         </div>
       </div>
 
@@ -115,36 +115,35 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={Building2}
-          title="Total Dealers"
+          title="Tổng số Đại lý"
           value={stats.totalDealers}
-          subtitle={`${stats.activeDealers} active`}
+          subtitle={`${stats.activeDealers} hoạt động`}
           color="bg-gradient-to-br from-blue-500 to-blue-600"
           link="/admin/dealers"
         />
         
         <StatCard
           icon={UserCheck}
-          title="EVM Staff"
+          title="Nhân viên EVM"
           value={stats.totalStaff}
-          subtitle="Team members"
+          subtitle="Thành viên"
           color="bg-gradient-to-br from-green-500 to-green-600"
           link="/admin/evm-staff"
         />
         
         <StatCard
           icon={Car}
-          title="Vehicle Models"
+          title="Model xe"
           value={stats.totalVehicles}
-          subtitle={`${stats.activeVehicles} available`}
           color="bg-gradient-to-br from-purple-500 to-purple-600"
           link="/admin/vehiclemodels"
         />
         
         <StatCard
           icon={Tag}
-          title="Promotions"
+          title="Khuyến mãi"
           value={stats.totalPromotions}
-          subtitle={`${stats.activePromotions} active`}
+          subtitle={`${stats.activePromotions} hoạt động`}
           color="bg-gradient-to-br from-orange-500 to-orange-600"
           link="/admin/promotions"
         />
@@ -152,7 +151,7 @@ const DashboardPage = () => {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Thao tác nhanh</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             to="/admin/dealers/new"
@@ -162,8 +161,8 @@ const DashboardPage = () => {
               <Building2 size={20} className="text-blue-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Add Dealer</p>
-              <p className="text-xs text-gray-500">Create new dealer</p>
+              <p className="font-medium text-gray-900">Thêm Đại lý</p>
+              <p className="text-xs text-gray-500">Tạo đại lý mới</p>
             </div>
           </Link>
 
@@ -175,8 +174,8 @@ const DashboardPage = () => {
               <UserCheck size={20} className="text-green-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Add Staff</p>
-              <p className="text-xs text-gray-500">Register new staff</p>
+              <p className="font-medium text-gray-900">Thêm Nhân viên</p>
+              <p className="text-xs text-gray-500">Đăng ký nhân viên mới</p>
             </div>
           </Link>
 
@@ -188,8 +187,8 @@ const DashboardPage = () => {
               <Car size={20} className="text-purple-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Add Vehicle</p>
-              <p className="text-xs text-gray-500">New vehicle model</p>
+              <p className="font-medium text-gray-900">Thêm Xe</p>
+              <p className="text-xs text-gray-500">Model xe mới</p>
             </div>
           </Link>
 
@@ -201,8 +200,8 @@ const DashboardPage = () => {
               <Tag size={20} className="text-orange-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Add Promotion</p>
-              <p className="text-xs text-gray-500">Create promotion</p>
+              <p className="font-medium text-gray-900">Thêm Khuyến mãi</p>
+              <p className="text-xs text-gray-500">Tạo khuyến mãi</p>
             </div>
           </Link>
         </div>
@@ -213,16 +212,16 @@ const DashboardPage = () => {
         {/* Dealers Overview */}
         <div className="bg-white rounded-xl p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Dealers Status</h2>
+            <h2 className="text-lg font-bold text-gray-900">Trạng thái Đại lý</h2>
             <Link to="/admin/dealers" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View all →
+              Xem tất cả →
             </Link>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">Active Dealers</span>
+                <span className="text-sm font-medium text-gray-700">Đại lý hoạt động</span>
               </div>
               <span className="text-lg font-bold text-green-700">
                 {loading ? '...' : stats.activeDealers}
@@ -231,7 +230,7 @@ const DashboardPage = () => {
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">Inactive Dealers</span>
+                <span className="text-sm font-medium text-gray-700">Đại lý không hoạt động</span>
               </div>
               <span className="text-lg font-bold text-gray-700">
                 {loading ? '...' : stats.totalDealers - stats.activeDealers}
@@ -243,16 +242,16 @@ const DashboardPage = () => {
         {/* Vehicles Overview */}
         <div className="bg-white rounded-xl p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Vehicles Status</h2>
+            <h2 className="text-lg font-bold text-gray-900">Trạng thái Xe</h2>
             <Link to="/admin/vehiclemodels" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View all →
+              Xem tất cả →
             </Link>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">Available Models</span>
+                <span className="text-sm font-medium text-gray-700">Model có sẵn</span>
               </div>
               <span className="text-lg font-bold text-blue-700">
                 {loading ? '...' : stats.activeVehicles}
@@ -261,7 +260,7 @@ const DashboardPage = () => {
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">Inactive Models</span>
+                <span className="text-sm font-medium text-gray-700">Model không hoạt động</span>
               </div>
               <span className="text-lg font-bold text-gray-700">
                 {loading ? '...' : stats.totalVehicles - stats.activeVehicles}

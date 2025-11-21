@@ -10,7 +10,7 @@ export default function VehicleVariantDetailPage() {
   const { deleteVariant } = useVariantMutations();
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this variant?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa phiên bản này?")) return;
     try {
       await deleteVariant(variantId);
       navigate(`/admin/vehiclemodels/${modelId}`);
@@ -22,7 +22,7 @@ export default function VehicleVariantDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600">Loading...</div>
+        <div className="text-gray-600">Đang tải...</div>
       </div>
     );
   }
@@ -30,7 +30,7 @@ export default function VehicleVariantDetailPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-600">Error: {error.message || String(error)}</div>
+        <div className="text-red-600">Lỗi: {error.message || String(error)}</div>
       </div>
     );
   }
@@ -38,7 +38,7 @@ export default function VehicleVariantDetailPage() {
   if (!variant) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600">Variant not found</div>
+        <div className="text-gray-600">Không tìm thấy phiên bản</div>
       </div>
     );
   }
@@ -58,23 +58,23 @@ export default function VehicleVariantDetailPage() {
               </svg>
             </button>
             <h1 className="text-3xl font-bold text-gray-900">
-              {variant.color || "Vehicle Variant"}
+              {variant.color || "Phiên bản Xe"}
             </h1>
           </div>
-          <p className="text-gray-600 mt-1 ml-11">Vehicle variant details and specifications</p>
+          <p className="text-gray-600 mt-1 ml-11">Chi tiết và thông số kỹ thuật phiên bản</p>
         </div>
         <div className="flex space-x-3">
           <Link
             to={`/admin/vehiclemodels/${modelId}/variants/${variantId}/edit`}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
           >
-            Edit Variant
+            Sửa Phiên bản
           </Link>
           <button
             onClick={handleDelete}
             className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
           >
-            Delete
+            Xóa
           </button>
         </div>
       </div>
@@ -105,12 +105,12 @@ export default function VehicleVariantDetailPage() {
           {/* Basic Info Section */}
           <div className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DetailItem label="Color" value={variant.color} />
-              <DetailItem label="Price" value={variant.price != null ? `${variant.price.toLocaleString()} ₫` : null} />
-              <DetailItem label="Engine" value={variant.engine} />
-              <DetailItem label="Maximum Speed" value={variant.maximumSpeed != null ? `${variant.maximumSpeed} km/h` : null} />
+              <DetailItem label="Màu sắc" value={variant.color} />
+              <DetailItem label="Giá" value={variant.price != null ? `${variant.price.toLocaleString()} ₫` : null} />
+              <DetailItem label="Động cơ" value={variant.engine} />
+              <DetailItem label="Vận tốc tối đa" value={variant.maximumSpeed != null ? `${variant.maximumSpeed} km/h` : null} />
               <div className="md:col-span-2">
-                <DetailItem label="Description" value={variant.description} multiline />
+                <DetailItem label="Mô tả" value={variant.description} multiline />
               </div>
             </div>
           </div>
@@ -121,15 +121,15 @@ export default function VehicleVariantDetailPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
           <span className="mr-2">🔋</span>
-          Battery & Power Specifications
+          Thông số Pin & Công suất
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <DetailItem label="Battery Type" value={variant.batteryType} />
-          <DetailItem label="Battery Life" value={variant.batteryLife} />
-          <DetailItem label="Charging Time" value={variant.chargingTime != null ? `${variant.chargingTime} hours` : null} />
-          <DetailItem label="Charging Capacity" value={variant.chargingCapacity != null ? `${variant.chargingCapacity} kW` : null} />
-          <DetailItem label="Distance Per Charge" value={variant.distancePerCharge} />
-          <DetailItem label="Capacity" value={variant.capacity != null ? `${variant.capacity} kWh` : null} />
+          <DetailItem label="Loại pin" value={variant.batteryType} />
+          <DetailItem label="Tuổi thọ pin" value={variant.batteryLife} />
+          <DetailItem label="Thời gian sạc" value={variant.chargingTime != null ? `${variant.chargingTime} giờ` : null} />
+          <DetailItem label="Công suất sạc" value={variant.chargingCapacity != null ? `${variant.chargingCapacity} kW` : null} />
+          <DetailItem label="Quãng đường mỗi lần sạc" value={variant.distancePerCharge} />
+          <DetailItem label="Dung lượng" value={variant.capacity != null ? `${variant.capacity} kWh` : null} />
         </div>
       </div>
 
@@ -137,15 +137,15 @@ export default function VehicleVariantDetailPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
           <span className="mr-2">📐</span>
-          Physical Specifications
+          Thông số Vật lý
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <DetailItem label="Length" value={variant.length != null ? `${variant.length} mm` : null} />
-          <DetailItem label="Width" value={variant.width != null ? `${variant.width} mm` : null} />
-          <DetailItem label="Height" value={variant.height != null ? `${variant.height} mm` : null} />
-          <DetailItem label="Weight" value={variant.weight != null ? `${variant.weight} kg` : null} />
-          <DetailItem label="Ground Clearance" value={variant.groundClearance != null ? `${variant.groundClearance} mm` : null} />
-          <DetailItem label="Trunk Width" value={variant.trunkWidth != null ? `${variant.trunkWidth} mm` : null} />
+          <DetailItem label="Chiều dài" value={variant.length != null ? `${variant.length} mm` : null} />
+          <DetailItem label="Chiều rộng" value={variant.width != null ? `${variant.width} mm` : null} />
+          <DetailItem label="Chiều cao" value={variant.height != null ? `${variant.height} mm` : null} />
+          <DetailItem label="Trọng lượng" value={variant.weight != null ? `${variant.weight} kg` : null} />
+          <DetailItem label="Độ cao gầm" value={variant.groundClearance != null ? `${variant.groundClearance} mm` : null} />
+          <DetailItem label="Rộng cốp xe" value={variant.trunkWidth != null ? `${variant.trunkWidth} mm` : null} />
         </div>
       </div>
 
@@ -153,34 +153,15 @@ export default function VehicleVariantDetailPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
           <span className="mr-2">⚙️</span>
-          Mechanical Specifications
+          Thông số Cơ khí
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <DetailItem label="Shock Absorbers" value={variant.shockAbsorbers} />
-          <DetailItem label="Brakes" value={variant.brakes} />
+          <DetailItem label="Giảm xóc" value={variant.shockAbsorbers} />
+          <DetailItem label="Phanh" value={variant.brakes} />
         </div>
       </div>
 
-      {/* Metadata */}
-      {(variant.createdDate || variant.updatedDate || variant.id) && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <span className="mr-2">ℹ️</span>
-            Metadata
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DetailItem label="Variant ID" value={variant.id} />
-            <DetailItem 
-              label="Created Date" 
-              value={variant.createdDate ? new Date(variant.createdDate).toLocaleString() : null} 
-            />
-            <DetailItem 
-              label="Updated Date" 
-              value={variant.updatedDate ? new Date(variant.updatedDate).toLocaleString() : null} 
-            />
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

@@ -102,9 +102,9 @@ const WarehousesPage = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Warehouses</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Kho hàng</h1>
             <p className="text-gray-600 mt-1">
-              Quản lý kho hàng ({filteredWarehouses.length} warehouses)
+              Quản lý kho hàng ({filteredWarehouses.length} kho)
             </p>
           </div>
           <button
@@ -112,7 +112,7 @@ const WarehousesPage = () => {
             className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <Plus size={20} />
-            <span>Create Warehouse</span>
+            <span>Tạo kho mới</span>
           </button>
         </div>
 
@@ -126,7 +126,7 @@ const WarehousesPage = () => {
               />
               <input
                 type="text"
-                placeholder="Tìm kiếm warehouse..."
+                placeholder="Tìm kiếm kho hàng..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -145,7 +145,7 @@ const WarehousesPage = () => {
             </div>
           </div>
           <h3 className="text-sm font-medium opacity-90 mb-1">
-            Total Warehouses
+            Tổng số kho
           </h3>
           <p className="text-3xl font-bold">
             {pagination.totalCount || warehouses.length}
@@ -159,7 +159,7 @@ const WarehousesPage = () => {
             </div>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">
-            Total Capacity
+            Tổng sức chứa
           </h3>
           <p className="text-3xl font-bold text-gray-900">
             {warehouses.reduce((sum, w) => sum + (w.capacity || 0), 0)}
@@ -173,7 +173,7 @@ const WarehousesPage = () => {
             </div>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">
-            Current Stock
+            Tồn kho hiện tại
           </h3>
           <p className="text-3xl font-bold text-gray-900">
             {warehouses.reduce((sum, w) => sum + (w.currentStock || 0), 0)}
@@ -321,7 +321,7 @@ const WarehousesPage = () => {
                 className="inline-flex items-center space-x-2 bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
               >
                 <Plus size={20} />
-                <span>Create Warehouse</span>
+                <span>Tạo kho mới</span>
               </button>
             )}
           </div>

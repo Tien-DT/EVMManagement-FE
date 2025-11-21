@@ -83,22 +83,22 @@ const ForgotPasswordPage = () => {
             </div>
             <div className="flex justify-between text-xs text-gray-600">
               <span>Email</span>
-              <span>Verify</span>
-              <span>Reset</span>
+              <span>Xác thực</span>
+              <span>Đặt lại</span>
             </div>
           </div>
 
           {/* Header */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {step === 1 && "Forgot Password"}
-              {step === 2 && "Verify Code"}
-              {step === 3 && "Reset Password"}
+              {step === 1 && "Quên mật khẩu"}
+              {step === 2 && "Xác thực mã"}
+              {step === 3 && "Đặt lại mật khẩu"}
             </h2>
             <p className="text-sm text-gray-600">
-              {step === 1 && "Enter your email to receive a verification code"}
-              {step === 2 && "Enter the code sent to your email"}
-              {step === 3 && "Create a new secure password"}
+              {step === 1 && "Nhập email để nhận mã xác thực"}
+              {step === 2 && "Nhập mã đã gửi đến email của bạn"}
+              {step === 3 && "Tạo mật khẩu mới"}
             </p>
           </div>
 
@@ -134,7 +134,7 @@ const ForgotPasswordPage = () => {
             <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Địa chỉ Email
                 </label>
                 <input
                   type="email"
@@ -142,7 +142,7 @@ const ForgotPasswordPage = () => {
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                     emailForm.formState.errors.email ? "border-red-300" : "border-gray-300"
                   }`}
-                  placeholder="Enter your email"
+                  placeholder="Nhập email của bạn"
                   disabled={isLoading}
                 />
                 {emailForm.formState.errors.email && (
@@ -161,7 +161,7 @@ const ForgotPasswordPage = () => {
                     : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
-                {isLoading ? "Sending..." : "Send Reset Code"}
+                {isLoading ? "Đang gửi..." : "Gửi mã đặt lại"}
               </button>
             </form>
           )}
@@ -171,7 +171,7 @@ const ForgotPasswordPage = () => {
             <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Verification Code
+                  Mã xác thực
                 </label>
                 <input
                   type="text"
@@ -189,7 +189,7 @@ const ForgotPasswordPage = () => {
                   </p>
                 )}
                 <p className="mt-2 text-xs text-gray-600">
-                  Code sent to <span className="font-semibold">{userEmail}</span>
+                  Mã đã gửi đến <span className="font-semibold">{userEmail}</span>
                 </p>
               </div>
 
@@ -202,7 +202,7 @@ const ForgotPasswordPage = () => {
                     : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
-                {isLoading ? "Verifying..." : "Verify Code"}
+                {isLoading ? "Đang xác thực..." : "Xác thực mã"}
               </button>
 
               <button
@@ -211,7 +211,7 @@ const ForgotPasswordPage = () => {
                 disabled={isLoading}
                 className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
-                Didn't receive code? Resend
+                Không nhận được mã? Gửi lại
               </button>
             </form>
           )}
@@ -221,7 +221,7 @@ const ForgotPasswordPage = () => {
             <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New Password
+                  Mật khẩu mới
                 </label>
                 <div className="relative">
                   <input
@@ -232,7 +232,7 @@ const ForgotPasswordPage = () => {
                         ? "border-red-300"
                         : "border-gray-300"
                     }`}
-                    placeholder="Enter new password"
+                    placeholder="Nhập mật khẩu mới"
                     disabled={isLoading}
                   />
                   <button
@@ -258,13 +258,13 @@ const ForgotPasswordPage = () => {
                   </p>
                 )}
                 <p className="mt-1 text-xs text-gray-500">
-                  Must be 8+ characters with uppercase, lowercase, and number
+                  Tối thiểu 8 ký tự bao gồm chữ hoa, chữ thường và số
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm Password
+                  Xác nhận mật khẩu
                 </label>
                 <div className="relative">
                   <input
@@ -275,7 +275,7 @@ const ForgotPasswordPage = () => {
                         ? "border-red-300"
                         : "border-gray-300"
                     }`}
-                    placeholder="Confirm new password"
+                    placeholder="Xác nhận mật khẩu mới"
                     disabled={isLoading}
                   />
                   <button
@@ -311,7 +311,7 @@ const ForgotPasswordPage = () => {
                     : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
-                {isLoading ? "Resetting..." : "Reset Password"}
+                {isLoading ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
               </button>
             </form>
           )}
@@ -323,13 +323,13 @@ const ForgotPasswordPage = () => {
                 onClick={goBack}
                 className="w-full text-sm text-gray-600 hover:text-gray-800 font-medium mb-3"
               >
-                ← Go back
+                ← Quay lại
               </button>
             )}
             <p className="text-sm text-gray-600 text-center">
-              Remember your password?{" "}
+              Nhớ mật khẩu?{" "}
               <Link to="/login" className="text-blue-600 font-medium hover:text-blue-700">
-                Back to Sign In
+                Quay lại đăng nhập
               </Link>
             </p>
           </div>

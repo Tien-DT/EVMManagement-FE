@@ -48,10 +48,10 @@ const LoginForm = () => {
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Sign In
+              Đăng nhập
             </h2>
             <p className="text-sm text-gray-600">
-              Enter your credentials to access your account
+              Nhập thông tin đăng nhập của bạn
             </p>
           </div>
 
@@ -80,7 +80,7 @@ const LoginForm = () => {
             {/* Email Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Địa chỉ Email
               </label>
               <input
                 type="email"
@@ -88,7 +88,7 @@ const LoginForm = () => {
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                   errors.email ? "border-red-300" : "border-gray-300"
                 }`}
-                placeholder="Enter your email"
+                placeholder="Nhập email của bạn"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">
@@ -100,7 +100,7 @@ const LoginForm = () => {
             {/* Password Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Mật khẩu
               </label>
               <input
                 type="password"
@@ -108,7 +108,7 @@ const LoginForm = () => {
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                   errors.password ? "border-red-300" : "border-gray-300"
                 }`}
-                placeholder="Enter your password"
+                placeholder="Nhập mật khẩu"
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">
@@ -125,14 +125,14 @@ const LoginForm = () => {
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <span className="ml-2 text-sm text-gray-600">
-                  Remember me
+                  Ghi nhớ đăng nhập
                 </span>
               </label>
               <Link
                 to="/forgot-password"
                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
               >
-                Forgot password?
+                Quên mật khẩu?
               </Link>
             </div>
 
@@ -168,10 +168,10 @@ const LoginForm = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Signing In...
+                  Đang đăng nhập...
                 </div>
               ) : (
-                "Sign In"
+                "Đăng nhập"
               )}
             </button>
           </form>

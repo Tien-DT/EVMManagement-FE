@@ -100,15 +100,15 @@ const DealerVehicleModelsPage = () => {
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Vehicle Models</h1>
-          <p className="text-gray-600 mt-1">Manage your electric vehicle models</p>
+          <h1 className="text-3xl font-bold text-gray-900">Danh sách Model Xe</h1>
+          <p className="text-gray-600 mt-1">Quản lý các mẫu xe điện</p>
         </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Spin size="large" />
-          <span className="ml-3 text-gray-600">Loading...</span>
+          <span className="ml-3 text-gray-600">Đang tải...</span>
         </div>
       ) : models.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm p-12 text-center">

@@ -22,6 +22,7 @@ export default function DealerDetailPage() {
   const navigate = useNavigate();
   const [dealer, setDealer] = useState(null);
   const [managers, setManagers] = useState([]);
+  const [userProfiles, setUserProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -35,7 +36,19 @@ export default function DealerDetailPage() {
         const dealerData = dealerRes?.data || dealerRes;
         setDealer(dealerData);
 
-        // Fetch users/managers for this dealer
+        // Fetch user profiles for this dealer (from API in image 19)
+        try {
+          const profilesRes = await axiosInstance.get(
+            `${endpoints.userProfile.getByDealer(id)}?pageNumber=1&pageSize=100`
+          );
+          const profiles = profilesRes?.data?.items || profilesRes?.data?.data?.items || [];
+          setUserProfiles(profiles);
+        } catch (err) {
+          console.error("Error fetching user profiles:", err);
+          setUserProfiles([]);
+        }
+
+        // Fetch users/managers for this dealer (legacy code kept for compatibility)
         try {
           const usersRes = await axiosInstance.get(`${endpoints.admin.users}`);
           const allUsers = usersRes?.data?.items || usersRes?.data || [];
@@ -75,20 +88,17 @@ export default function DealerDetailPage() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error ? error.message : "Dealer not found"}
+          {error ? error.message : "Không tìm thấy đại lý"}
         </div>
         <button
           onClick={() => navigate("/admin/dealers")}
           className="mt-4 text-blue-600 hover:underline"
         >
-          Back to Dealers
+          Quay lại danh sách đại lý
         </button>
       </div>
     );
   }
-
-  const dealerManagers = managers.filter(m => m.role === "DEALER_MANAGER");
-  const dealerStaff = managers.filter(m => m.role === "DEALER_STAFF");
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -99,7 +109,7 @@ export default function DealerDetailPage() {
           className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
           <ArrowLeft size={20} />
-          <span className="font-medium">Back to Dealers</span>
+          <span className="font-medium">Quay lại danh sách đại lý</span>
         </button>
 
         {/* Header */}
@@ -120,12 +130,12 @@ export default function DealerDetailPage() {
                     {dealer.isActive ? (
                       <>
                         <CheckCircle size={14} className="mr-1" />
-                        Active
+                        Hoạt động
                       </>
                     ) : (
                       <>
                         <XCircle size={14} className="mr-1" />
-                        Inactive
+                        Không hoạt động
                       </>
                     )}
                   </span>
@@ -137,28 +147,28 @@ export default function DealerDetailPage() {
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50 transition"
             >
               <Edit3 size={16} className="mr-2" />
-              Edit Dealer
+              Chỉnh sửa đại lý
             </Link>
           </div>
         </div>
 
         {/* Dealer Information */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Dealer Information</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Thông tin đại lý</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-start">
               <MapPin size={20} className="text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-sm text-gray-500">Address</div>
-                <div className="text-gray-900 mt-1">{dealer.address || "No address"}</div>
+                <div className="text-sm text-gray-500">Địa chỉ</div>
+                <div className="text-gray-900 mt-1">{dealer.address || "Chưa có địa chỉ"}</div>
               </div>
             </div>
 
             <div className="flex items-start">
               <Phone size={20} className="text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-sm text-gray-500">Phone</div>
-                <div className="text-gray-900 mt-1">{dealer.phone || "No phone"}</div>
+                <div className="text-sm text-gray-500">Số điện thoại</div>
+                <div className="text-gray-900 mt-1">{dealer.phone || "Chưa có số điện thoại"}</div>
               </div>
             </div>
 
@@ -166,115 +176,86 @@ export default function DealerDetailPage() {
               <Mail size={20} className="text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
               <div>
                 <div className="text-sm text-gray-500">Email</div>
-                <div className="text-gray-900 mt-1">{dealer.email || "No email"}</div>
-              </div>
-            </div>
-
-            <div className="flex items-start">
-              <Calendar size={20} className="text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
-              <div>
-                <div className="text-sm text-gray-500">Established Date</div>
-                <div className="text-gray-900 mt-1">
-                  {dealer.establishedAt 
-                    ? new Date(dealer.establishedAt).toLocaleDateString() 
-                    : "Not established"}
-                </div>
+                <div className="text-gray-900 mt-1">{dealer.email || "Chưa có email"}</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Dealer Managers */}
+        {/* Hồ sơ tài khoản đại lý */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center space-x-2 mb-4">
             <UserCog className="text-blue-600" size={24} />
             <h2 className="text-lg font-semibold text-gray-900">
-              Dealer Managers ({dealerManagers.length})
+              Hồ sơ tài khoản ({userProfiles.length})
             </h2>
           </div>
 
-          {dealerManagers.length === 0 ? (
+          {userProfiles.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <UserCog size={48} className="mx-auto mb-2 text-gray-300" />
-              <p>No dealer managers registered yet</p>
+              <p>Chưa có hồ sơ tài khoản nào</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {dealerManagers.map((manager) => (
-                <div key={manager.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+              {userProfiles.map((profile) => (
+                <div key={profile.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">{manager.fullName || manager.name}</div>
+                      <div className="font-medium text-gray-900">{profile.fullName}</div>
                       <div className="text-sm text-gray-600 mt-1 space-y-1">
-                        {manager.email && (
+                        {profile.account?.email && (
                           <div className="flex items-center">
                             <Mail size={14} className="mr-2 text-gray-400" />
-                            {manager.email}
+                            {profile.account.email}
                           </div>
                         )}
-                        {manager.phone && (
+                        {profile.phone && (
                           <div className="flex items-center">
                             <Phone size={14} className="mr-2 text-gray-400" />
-                            {manager.phone}
+                            {profile.phone}
                           </div>
                         )}
-                        {manager.cardId && (
+                        {profile.cardId && (
                           <div className="text-xs text-gray-500">
-                            CCCD/CMND: {manager.cardId}
+                            CCCD/CMND: {profile.cardId}
+                          </div>
+                        )}
+                        {profile.createdDate && (
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Calendar size={14} className="mr-2 text-gray-400" />
+                            Ngày tạo: {new Date(profile.createdDate).toLocaleDateString('vi-VN')}
                           </div>
                         )}
                       </div>
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      Manager
-                    </span>
+                    <div className="flex flex-col items-end space-y-2">
+                      {profile.account?.role && (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          profile.account.role === 'DEALER_MANAGER' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {profile.account.role === 'DEALER_MANAGER' ? 'Quản lý' : 
+                           profile.account.role === 'DEALER_STAFF' ? 'Nhân viên' : profile.account.role}
+                        </span>
+                      )}
+                      {profile.account?.isActive !== undefined && (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          profile.account.isActive 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {profile.account.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        {/* Dealer Staff */}
-        {dealerStaff.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <Users className="text-gray-600" size={24} />
-              <h2 className="text-lg font-semibold text-gray-900">
-                Dealer Staff ({dealerStaff.length})
-              </h2>
-            </div>
-
-            <div className="space-y-3">
-              {dealerStaff.map((staff) => (
-                <div key={staff.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{staff.fullName || staff.name}</div>
-                      <div className="text-sm text-gray-600 mt-1 space-y-1">
-                        {staff.email && (
-                          <div className="flex items-center">
-                            <Mail size={14} className="mr-2 text-gray-400" />
-                            {staff.email}
-                          </div>
-                        )}
-                        {staff.phone && (
-                          <div className="flex items-center">
-                            <Phone size={14} className="mr-2 text-gray-400" />
-                            {staff.phone}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      Staff
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

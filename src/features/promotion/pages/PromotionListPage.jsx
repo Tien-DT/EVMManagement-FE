@@ -11,13 +11,13 @@ import {
 } from "lucide-react";
 
 const columns = [
-  { key: "code", label: "Code" },
-  { key: "name", label: "Name" },
-  { key: "description", label: "Description" },
-  { key: "discountPercent", label: "Discount" },
-  { key: "startAt", label: "Start Date" },
-  { key: "endAt", label: "End Date" },
-  { key: "isActive", label: "Status" },
+  { key: "code", label: "Mã" },
+  { key: "name", label: "Tên" },
+  { key: "description", label: "Mô tả" },
+  { key: "discountPercent", label: "Giảm giá" },
+  { key: "startAt", label: "Ngày bắt đầu" },
+  { key: "endAt", label: "Ngày kết thúc" },
+  { key: "isActive", label: "Trạng thái" },
 ];
 
 export default function PromotionListPage() {
@@ -26,7 +26,7 @@ export default function PromotionListPage() {
   const [deletingId, setDeletingId] = useState(null);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this promotion?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa khuyến mãi này?")) return;
     
     setDeletingId(id);
     try {
@@ -64,7 +64,7 @@ export default function PromotionListPage() {
             : "bg-red-100 text-red-800"
         }`}
       >
-        {isActive ? "Active" : "Inactive"}
+        {isActive ? "Hoạt động" : "Không hoạt động"}
       </span>
     );
   };
@@ -84,15 +84,15 @@ export default function PromotionListPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Promotions</h1>
-          <p className="text-gray-600 mt-1">Manage promotional campaigns and discounts</p>
+          <h1 className="text-2xl font-bold text-gray-900">Khuyến mãi</h1>
+          <p className="text-gray-600 mt-1">Quản lý các chương trình khuyến mãi và giảm giá</p>
         </div>
         <Link
           to="/admin/promotions/new"
           className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
         >
           <Plus size={20} className="mr-2" />
-          New Promotion
+          Thêm Khuyến mãi
         </Link>
       </div>
 
@@ -106,7 +106,7 @@ export default function PromotionListPage() {
       {/* Loading State */}
       {(loading || mutating) && (
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700">
-          {loading ? "Loading promotions..." : "Processing..."}
+          {loading ? "Đang tải khuyến mãi..." : "Đang xử lý..."}
         </div>
       )}
 
@@ -125,7 +125,7 @@ export default function PromotionListPage() {
                   </th>
                 ))}
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  Thao tác
                 </th>
               </tr>
             </thead>
@@ -167,7 +167,7 @@ export default function PromotionListPage() {
                     </div>
                     {isPromotionUpcoming(promotion.startAt) && (
                       <span className="inline-block mt-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                        Upcoming
+                        Sắp diễn ra
                       </span>
                     )}
                   </td>
@@ -180,7 +180,7 @@ export default function PromotionListPage() {
                     </div>
                     {isPromotionExpired(promotion.endAt) && (
                       <span className="inline-block mt-1 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-                        Expired
+                        Hết hạn
                       </span>
                     )}
                   </td>
@@ -193,7 +193,7 @@ export default function PromotionListPage() {
                       <Link
                         to={`/admin/promotions/${promotion.id}/edit`}
                         className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Edit"
+                        title="Sửa"
                       >
                         <Edit size={20} />
                       </Link>
@@ -203,7 +203,7 @@ export default function PromotionListPage() {
                         onClick={() => handleDelete(promotion.id)}
                         disabled={deletingId === promotion.id}
                         className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                        title="Delete"
+                        title="Xóa"
                       >
                         {deletingId === promotion.id ? (
                           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -223,14 +223,14 @@ export default function PromotionListPage() {
                   >
                     <div className="flex flex-col items-center">
                       <Tag size={48} className="text-gray-300 mb-4" />
-                      <p className="text-lg font-medium text-gray-900 mb-2">No promotions found</p>
-                      <p className="text-gray-500 mb-4">Get started by creating your first promotion</p>
+                      <p className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy khuyến mãi</p>
+                      <p className="text-gray-500 mb-4">Bắt đầu bằng cách tạo khuyến mãi đầu tiên</p>
                       <Link
                         to="/admin/promotions/new"
                         className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
                       >
                         <Plus size={20} className="mr-2" />
-                        Create Promotion
+                        Tạo Khuyến mãi
                       </Link>
                     </div>
                   </td>

@@ -37,7 +37,7 @@ export default function EvmStaffListPage() {
   }, [staffList, searchTerm]);
 
   const handleDelete = async (staff) => {
-    if (!window.confirm("Are you sure you want to delete this EVM staff? This action cannot be undone.")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa nhân viên EVM này? Hành động này không thể hoàn tác.")) return;
     try {
       const staffId = staff.id;
       let accountId = staff.accountId || staff.account?.id;
@@ -70,15 +70,15 @@ export default function EvmStaffListPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">EVM Staff</h1>
-            <p className="text-gray-600 mt-1">Manage your EVM staff members ({filteredStaff.length} staff)</p>
+            <h1 className="text-3xl font-bold text-gray-900">Nhân viên EVM</h1>
+            <p className="text-gray-600 mt-1">Quản lý các nhân viên EVM ({filteredStaff.length} nhân viên)</p>
           </div>
         <Link
           to="/admin/evm-staff/new"
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
         >
             <Plus size={20} className="mr-2" />
-            Add New Staff
+            Thêm Nhân viên Mới
         </Link>
         </div>
 
@@ -88,7 +88,7 @@ export default function EvmStaffListPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search staff by name, email, or phone..."
+              placeholder="Tìm kiếm nhân viên theo tên, email hoặc số điện thoại..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -108,7 +108,7 @@ export default function EvmStaffListPage() {
       {(loading || mutating) && (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <span className="ml-3 text-gray-600">Loading...</span>
+          <span className="ml-3 text-gray-600">Đang tải...</span>
         </div>
       )}
 
@@ -119,12 +119,12 @@ export default function EvmStaffListPage() {
             <UserCheck size={32} className="text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchTerm ? "No staff found" : "No EVM staff yet"}
+            {searchTerm ? "Không tìm thấy nhân viên" : "Chưa có nhân viên EVM"}
           </h3>
           <p className="text-gray-500 mb-6">
             {searchTerm 
-              ? "Try adjusting your search criteria" 
-              : "Get started by adding your first EVM staff member"}
+              ? "Thử điều chỉnh tiêu chí tìm kiếm" 
+              : "Bắt đầu bằng cách thêm nhân viên EVM đầu tiên"}
           </p>
           {!searchTerm && (
             <Link
@@ -132,7 +132,7 @@ export default function EvmStaffListPage() {
               className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
             >
               <Plus size={16} className="mr-2" />
-              Add First Staff Member
+              Thêm Nhân viên Đầu tiên
             </Link>
           )}
         </div>
@@ -151,9 +151,9 @@ export default function EvmStaffListPage() {
                       {staff.fullName ? staff.fullName.charAt(0).toUpperCase() : 'E'}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{staff.fullName || "No name"}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{staff.fullName || "Chưa có tên"}</h3>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
-                        EVM Staff
+                        Nhân viên EVM
                       </span>
                     </div>
                   </div>
@@ -164,12 +164,12 @@ export default function EvmStaffListPage() {
               <div className="p-6 space-y-3">
                 <div className="flex items-center text-sm text-gray-600">
                   <Phone size={16} className="mr-3 text-gray-400 flex-shrink-0" />
-                  <span>{staff.phone || "No phone"}</span>
+                  <span>{staff.phone || "Chưa có SĐT"}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
                   <Mail size={16} className="mr-3 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{staff.email || "No email"}</span>
+                  <span className="truncate">{staff.email || "Chưa có email"}</span>
                 </div>
                 
                 {staff.cardId && (
@@ -188,7 +188,7 @@ export default function EvmStaffListPage() {
                     className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <UserCheck size={16} className="mr-2" />
-                    View Details
+                    Xem Chi tiết
                   </Link>
                   <div className="flex gap-2">
                     <Link
@@ -196,14 +196,14 @@ export default function EvmStaffListPage() {
                       className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm font-medium"
                     >
                       <Edit3 size={16} className="mr-2" />
-                      Edit
+                      Sửa
                     </Link>
                     <button
                       onClick={() => handleDelete(staff)}
                       className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                     >
                       <Trash2 size={16} className="mr-2" />
-                      Delete
+                      Xóa
                     </button>
                   </div>
                 </div>

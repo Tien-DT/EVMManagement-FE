@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { useVehicles, useVehicleMutations } from "../hooks/useVehicles";
 
 const columns = [
-  { key: "code", label: "Code" },
-  { key: "name", label: "Name" },
-  { key: "launchDate", label: "Launch Date" },
-  { key: "description", label: "Description" },
-  { key: "status", label: "Status" },
-  { key: "ranking", label: "Ranking" },
+  { key: "code", label: "Mã" },
+  { key: "name", label: "Tên" },
+  { key: "launchDate", label: "Ngày ra mắt" },
+  { key: "description", label: "Mô tả" },
+  { key: "status", label: "Trạng thái" },
+  { key: "ranking", label: "Xếp hạng" },
 ];
 
 export default function VehicleListPage() {
@@ -19,7 +19,7 @@ export default function VehicleListPage() {
   const { deleteVehicle, loading: mutating } = useVehicleMutations();
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this vehicle?")) return;
+    if (!window.confirm("Xóa model xe này?")) return;
     try {
       await deleteVehicle(id);
       reload();
@@ -32,14 +32,14 @@ export default function VehicleListPage() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Vehicle Models</h1>
-          <p className="text-gray-600 mt-1">Manage your electric vehicle models</p>
+          <h1 className="text-3xl font-bold text-gray-900">Model Xe</h1>
+          <p className="text-gray-600 mt-1">Quản lý các model xe điện</p>
         </div>
         <Link
           to="/admin/vehiclemodels/new"
           className="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
         >
-          + New Vehicle Model
+          + Thêm Model Xe Mới
         </Link>
       </div>
 
@@ -52,7 +52,7 @@ export default function VehicleListPage() {
       {(loading || mutating) && (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <span className="ml-3 text-gray-600">Loading...</span>
+          <span className="ml-3 text-gray-600">Đang tải...</span>
         </div>
       )}
 
@@ -61,13 +61,13 @@ export default function VehicleListPage() {
           <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <span className="text-2xl">🚗</span>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No vehicle models</h3>
-          <p className="text-gray-500 mb-6">Get started by creating your first vehicle model</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có model xe</h3>
+          <p className="text-gray-500 mb-6">Bắt đầu bằng cách tạo model xe đầu tiên</p>
           <Link
             to="/admin/vehiclemodels/new"
             className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
           >
-            + Create Vehicle Model
+            + Tạo Model Xe
           </Link>
         </div>
       ) : (
@@ -89,7 +89,7 @@ export default function VehicleListPage() {
                 <div className={`text-6xl opacity-20 ${v.imageUrl ? 'hidden' : 'flex'}`}>🚗</div>
                 <div className="absolute top-3 right-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${v.status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                    {v.status ? "Active" : "Inactive"}
+                    {v.status ? "Hoạt động" : "Không hoạt động"}
                   </span>
                 </div>
               </div>
@@ -107,11 +107,11 @@ export default function VehicleListPage() {
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Ranking:</span>
+                    <span className="text-gray-500">Xếp hạng:</span>
                     <span className="font-medium text-gray-900">{v.ranking}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Launch:</span>
+                    <span className="text-gray-500">Ngày ra mắt:</span>
                     <span className="font-medium text-gray-900">{v.launchDate ? new Date(v.launchDate).toLocaleDateString() : "-"}</span>
                   </div>
                 </div>
@@ -122,20 +122,20 @@ export default function VehicleListPage() {
                       to={`/admin/vehiclemodels/${v.id}`}
                       className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-600 transition-colors"
                     >
-                      View Details
+                      Xem Chi tiết
                     </Link>
                     <div className="flex space-x-2">
                       <Link
                         to={`/admin/vehiclemodels/${v.id}/edit`}
                         className="px-3 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900 transition-colors"
                       >
-                        Edit
+                        Sửa
                       </Link>
                       <button
                         onClick={() => handleDelete(v.id)}
                         className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                       >
-                        Delete
+                        Xóa
                       </button>
                     </div>
                   </div>

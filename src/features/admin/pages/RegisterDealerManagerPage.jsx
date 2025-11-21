@@ -181,15 +181,15 @@ const RegisterDealerManagerPage = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dealer Manager</h1>
-            <p className="text-gray-600 mt-1">Manage your dealer manager accounts ({filteredManagers.length} managers)</p>
+            <h1 className="text-3xl font-bold text-gray-900">Quản lý Đại lý</h1>
+            <p className="text-gray-600 mt-1">Quản lý tài khoản quản lý đại lý ({filteredManagers.length} quản lý)</p>
           </div>
         <button
             onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
         >
             <Plus size={20} className="mr-2" />
-            Add New Manager
+            Thêm Quản lý Mới
         </button>
         </div>
 
@@ -199,7 +199,7 @@ const RegisterDealerManagerPage = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search manager by name, email, or phone..."
+              placeholder="Tìm kiếm quản lý theo tên, email hoặc số điện thoại..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -212,7 +212,7 @@ const RegisterDealerManagerPage = () => {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <span className="ml-3 text-gray-600">Loading...</span>
+          <span className="ml-3 text-gray-600">Đang tải...</span>
         </div>
       )}
 
@@ -223,12 +223,12 @@ const RegisterDealerManagerPage = () => {
             <UserCheck size={32} className="text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchTerm ? "No managers found" : "No dealer managers yet"}
+            {searchTerm ? "Không tìm thấy quản lý" : "Chưa có quản lý đại lý"}
           </h3>
           <p className="text-gray-500 mb-6">
             {searchTerm 
-              ? "Try adjusting your search criteria" 
-              : "Get started by adding your first dealer manager"}
+              ? "Thử điều chỉnh tiêu chí tìm kiếm" 
+              : "Bắt đầu bằng cách thêm quản lý đại lý đầu tiên"}
           </p>
           {!searchTerm && (
             <button
@@ -236,7 +236,7 @@ const RegisterDealerManagerPage = () => {
               className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
             >
               <Plus size={16} className="mr-2" />
-              Add First Manager
+              Thêm Quản lý Đầu tiên
             </button>
           )}
         </div>
@@ -255,9 +255,9 @@ const RegisterDealerManagerPage = () => {
                       {manager.fullName ? manager.fullName.charAt(0).toUpperCase() : 'D'}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{manager.fullName || manager.name || "No name"}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{manager.fullName || manager.name || "Chưa có tên"}</h3>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
-                        Dealer Manager
+                        Quản lý Đại lý
                       </span>
                     </div>
                   </div>
@@ -269,18 +269,18 @@ const RegisterDealerManagerPage = () => {
                 {manager.dealer && (
                   <div className="flex items-center text-sm text-gray-600">
                     <Building size={16} className="mr-3 text-gray-400 flex-shrink-0" />
-                    <span className="truncate">{manager.dealer.name || "No dealer"}</span>
+                    <span className="truncate">{manager.dealer.name || "Chưa có đại lý"}</span>
                   </div>
                 )}
                 
                 <div className="flex items-center text-sm text-gray-600">
                   <Phone size={16} className="mr-3 text-gray-400 flex-shrink-0" />
-                  <span>{manager.phone || "No phone"}</span>
+                  <span>{manager.phone || "Chưa có SĐT"}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
                   <Mail size={16} className="mr-3 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{manager.email || "No email"}</span>
+                  <span className="truncate">{manager.email || "Chưa có email"}</span>
                 </div>
                 
                 {manager.cardId && (
@@ -306,7 +306,7 @@ const RegisterDealerManagerPage = () => {
                     className="w-full inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                   >
                     <Trash2 size={16} className="mr-2" />
-                    Delete
+                    Xóa
                   </button>
                 </div>
               </div>

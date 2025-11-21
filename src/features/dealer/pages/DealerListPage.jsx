@@ -35,7 +35,7 @@ export default function DealerListPage() {
   }, [dealers, searchTerm, statusFilter]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this dealer? This action cannot be undone.")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa đại lý này? Hành động này không thể hoàn tác.")) return;
     try {
       await deleteDealer(id);
       reload();
@@ -50,15 +50,15 @@ export default function DealerListPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dealers</h1>
-            <p className="text-gray-600 mt-1">Manage your dealer network ({filteredDealers.length} dealers)</p>
+            <h1 className="text-3xl font-bold text-gray-900">Đại lý</h1>
+            <p className="text-gray-600 mt-1">Quản lý mạng lưới đại lý của bạn ({filteredDealers.length} đại lý)</p>
           </div>
         <Link
           to="/admin/dealers/new"
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
         >
             <Plus size={20} className="mr-2" />
-            Add New Dealer
+            Thêm Đại lý Mới
         </Link>
         </div>
 
@@ -68,7 +68,7 @@ export default function DealerListPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search dealers by name, email, or address..."
+              placeholder="Tìm kiếm đại lý theo tên, email hoặc địa chỉ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -79,9 +79,9 @@ export default function DealerListPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           >
-            <option value="all">All Status</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Chỉ Hoạt động</option>
+            <option value="inactive">Chỉ Không hoạt động</option>
           </select>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function DealerListPage() {
       {(loading || mutating) && (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <span className="ml-3 text-gray-600">Loading...</span>
+          <span className="ml-3 text-gray-600">Đang tải...</span>
         </div>
       )}
 
@@ -108,12 +108,12 @@ export default function DealerListPage() {
             <Building2 size={32} className="text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchTerm || statusFilter !== "all" ? "No dealers found" : "No dealers yet"}
+            {searchTerm || statusFilter !== "all" ? "Không tìm thấy đại lý" : "Chưa có đại lý"}
           </h3>
           <p className="text-gray-500 mb-6">
             {searchTerm || statusFilter !== "all" 
-              ? "Try adjusting your search or filter criteria" 
-              : "Get started by adding your first dealer"}
+              ? "Thử điều chỉnh tiêu chí tìm kiếm hoặc bộ lọc" 
+              : "Bắt đầu bằng cách thêm đại lý đầu tiên"}
           </p>
           {(!searchTerm && statusFilter === "all") && (
             <Link
@@ -121,7 +121,7 @@ export default function DealerListPage() {
               className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
             >
               <Plus size={16} className="mr-2" />
-              Add First Dealer
+              Thêm Đại lý Đầu tiên
             </Link>
           )}
         </div>
@@ -146,7 +146,7 @@ export default function DealerListPage() {
                         <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
                           dealer.isActive ? "bg-green-400" : "bg-red-400"
                         }`}></div>
-                        {dealer.isActive ? "Active" : "Inactive"}
+                        {dealer.isActive ? "Hoạt động" : "Không hoạt động"}
                       </span>
                     </div>
                   </div>
@@ -157,17 +157,17 @@ export default function DealerListPage() {
               <div className="p-6 space-y-3">
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin size={16} className="mr-3 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{dealer.address || "No address"}</span>
+                  <span className="truncate">{dealer.address || "Chưa có địa chỉ"}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
                   <Phone size={16} className="mr-3 text-gray-400 flex-shrink-0" />
-                  <span>{dealer.phone || "No phone"}</span>
+                  <span>{dealer.phone || "Chưa có SĐT"}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
                   <Mail size={16} className="mr-3 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{dealer.email || "No email"}</span>
+                  <span className="truncate">{dealer.email || "Chưa có email"}</span>
                 </div>
                 
                 <div className="flex items-center text-sm text-gray-600">
@@ -175,7 +175,7 @@ export default function DealerListPage() {
                   <span>
                     {dealer.establishedAt 
                       ? new Date(dealer.establishedAt).toLocaleDateString() 
-                      : "Not established"}
+                      : "Chưa thiết lập"}
                   </span>
                 </div>
               </div>
@@ -188,7 +188,7 @@ export default function DealerListPage() {
                     className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <Building2 size={16} className="mr-2" />
-                    View Details
+                    Xem Chi tiết
                   </Link>
                   <div className="flex gap-2">
                     <Link
@@ -196,14 +196,14 @@ export default function DealerListPage() {
                       className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm font-medium"
                     >
                       <Edit3 size={16} className="mr-2" />
-                      Edit
+                      Sửa
                     </Link>
                     <button
                       onClick={() => handleDelete(dealer.id)}
                       className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                     >
                       <Trash2 size={16} className="mr-2" />
-                      Delete
+                      Xóa
                     </button>
                   </div>
                 </div>

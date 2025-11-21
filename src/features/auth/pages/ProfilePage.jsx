@@ -77,7 +77,7 @@ const ProfilePage = () => {
       <div className="flex items-center justify-center min-h-[300px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
+          <p className="text-gray-600">Đang tải hồ sơ...</p>
         </div>
       </div>
     );
@@ -144,7 +144,7 @@ const ProfilePage = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">My Profile</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Hồ sơ của tôi</h1>
         <div className="flex gap-2">
           {!isEditing && (
             <>
@@ -155,7 +155,7 @@ const ProfilePage = () => {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Edit
+                Sửa
               </button>
               <button
                 onClick={handleChangePassword}
@@ -164,7 +164,7 @@ const ProfilePage = () => {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                 </svg>
-                Change Password
+                Đổi mật khẩu
               </button>
             </>
           )}
@@ -188,10 +188,10 @@ const ProfilePage = () => {
               {displayData?.fullName?.[0]?.toUpperCase() || "U"}
             </div>
             <div className="ml-5">
-              <h2 className="text-xl font-semibold text-gray-900">{displayData?.fullName || "Unnamed User"}</h2>
-              <p className="text-sm text-gray-600 mt-1">{authUser?.email || "No email"}</p>
+              <h2 className="text-xl font-semibold text-gray-900">{displayData?.fullName || "Người dùng chưa đặt tên"}</h2>
+              <p className="text-sm text-gray-600 mt-1">{authUser?.email || "Chưa có email"}</p>
               <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                {displayData?.account?.role || displayData?.role || "No Role"}
+                {displayData?.account?.role || displayData?.role || "Chưa có vai trò"}
               </div>
             </div>
           </div>
@@ -199,49 +199,49 @@ const ProfilePage = () => {
 
         {/* Profile Details */}
         <div className="p-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Profile Information</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-4">Thông tin hồ sơ</h3>
           
           {isEditing ? (
             <div className="space-y-4">
               {/* Full Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Full Name
+                  Họ và tên
                 </label>
                 <input
                   type="text"
                   value={editForm.fullName}
                   onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter full name"
+                  placeholder="Nhập họ và tên"
                 />
               </div>
 
               {/* Phone Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Phone Number
+                  Số điện thoại
                 </label>
                 <input
                   type="tel"
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter phone number"
+                  placeholder="Nhập số điện thoại"
                 />
               </div>
 
               {/* Card ID */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Card ID
+                  Số CCCD
                 </label>
                 <input
                   type="text"
                   value={editForm.cardId}
                   onChange={(e) => setEditForm({ ...editForm, cardId: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter card ID"
+                  placeholder="Nhập số CCCD"
                 />
               </div>
 
@@ -252,7 +252,7 @@ const ProfilePage = () => {
                   disabled={isLoading}
                   className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition disabled:opacity-50"
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   onClick={handleSaveEdit}
@@ -265,10 +265,10 @@ const ProfilePage = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Saving...
+                      Đang lưu...
                     </>
                   ) : (
-                    "Save Changes"
+                    "Lưu thay đổi"
                   )}
                 </button>
               </div>
@@ -277,7 +277,7 @@ const ProfilePage = () => {
             <div className="space-y-4">
               {/* Full Name */}
               <div className="border-b border-gray-200 pb-3">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Full Name</p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Họ và tên</p>
                 <p className="text-sm text-gray-900">
                   {displayData?.fullName || "—"}
                 </p>
@@ -285,7 +285,7 @@ const ProfilePage = () => {
 
               {/* Phone Number */}
               <div className="border-b border-gray-200 pb-3">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Phone Number</p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Số điện thoại</p>
                 <p className="text-sm text-gray-900">
                   {displayData?.phone || "—"}
                 </p>
@@ -293,7 +293,7 @@ const ProfilePage = () => {
 
               {/* Card ID */}
               <div className="pb-1">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Card ID</p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Số CCCD</p>
                 <p className="text-sm text-gray-900">
                   {displayData?.cardId || "—"}
                 </p>

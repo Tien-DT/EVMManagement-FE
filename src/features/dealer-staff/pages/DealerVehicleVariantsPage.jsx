@@ -241,7 +241,7 @@ const DealerVehicleVariantsPage = () => {
             Quay lại
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Vehicle Variants</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Danh sách Biến thể Xe</h1>
             <p className="text-gray-600 mt-1">Chọn biến thể xe để xem chi tiết</p>
           </div>
         </div>
@@ -274,7 +274,7 @@ const DealerVehicleVariantsPage = () => {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Spin size="large" />
-          <span className="ml-3 text-gray-600">Loading...</span>
+          <span className="ml-3 text-gray-600">Đang tải...</span>
         </div>
       ) : !dealerId ? (
         <div className="bg-white rounded-xl shadow-sm p-12 text-center">

@@ -348,7 +348,7 @@ const VehicleComparisonPage = () => {
   // Prepare comparison data
   const getComparisonData = () => {
     const specs = [
-      { key: "modelName", label: "Model" },
+      { key: "modelName", label: "Mẫu xe" },
       { key: "color", label: "Màu sắc" },
       { key: "price", label: "Giá", isPrice: true },
       { key: "engine", label: "Động cơ" },

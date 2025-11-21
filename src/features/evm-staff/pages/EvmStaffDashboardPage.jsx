@@ -47,18 +47,22 @@ const EvmStaffDashboardPage = () => {
           ? (handoverRes.value?.data?.items || handoverRes.value?.items || [])
           : [];
 
+        // Filter B2B orders only
+        const b2bOrders = orders.filter(o => o.orderType === 'B2B');
+
         console.log('📊 Dashboard data loaded:', {
           quotations: quotations.length,
-          orders: orders.length,
+          allOrders: orders.length,
+          b2bOrders: b2bOrders.length,
           handoverRecords: handoverRecords.length
         });
 
         setStats({
           totalQuotations: quotations.length,
           pendingQuotations: quotations.filter(q => q.status === 'DRAFT' || q.status === 'PENDING').length,
-          totalOrders: orders.length,
-          pendingOrders: orders.filter(o => o.status === 'PROCESSING' || o.status === 'CONFIRMED').length,
-          completedOrders: orders.filter(o => o.status === 'COMPLETED').length,
+          totalOrders: b2bOrders.length,
+          pendingOrders: b2bOrders.filter(o => o.status === 'PROCESSING' || o.status === 'CONFIRMED').length,
+          completedOrders: b2bOrders.filter(o => o.status === 'COMPLETED').length,
           totalHandoverRecords: handoverRecords.length,
           acceptedHandoverRecords: handoverRecords.filter(h => h.isAccepted).length
         });
@@ -100,8 +104,8 @@ const EvmStaffDashboardPage = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
       <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome to EVM Staff Portal</p>
+          <h1 className="text-2xl font-bold text-gray-900">Tổng quan</h1>
+          <p className="text-gray-600 mt-1">Chào mừng đến EVM Staff Portal</p>
         </div>
       </div>
 
@@ -109,36 +113,36 @@ const EvmStaffDashboardPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={FileText}
-          title="Quotations"
+          title="Báo giá"
           value={stats.totalQuotations}
-          subtitle={`${stats.pendingQuotations} pending`}
+          subtitle={`${stats.pendingQuotations} chờ xử lý`}
           color="bg-gradient-to-br from-blue-500 to-blue-600"
           link="/evm-staff/quotations"
         />
         
         <StatCard
           icon={Package}
-          title="Orders"
+          title="Đơn hàng (B2B)"
           value={stats.totalOrders}
-          subtitle={`${stats.completedOrders} completed`}
+          subtitle={`${stats.completedOrders} hoàn thành`}
           color="bg-gradient-to-br from-green-500 to-green-600"
           link="/evm-staff/orders"
         />
         
         <StatCard
           icon={Clock}
-          title="Pending Orders"
+          title="Đơn hàng chờ xử lý"
           value={stats.pendingOrders}
-          subtitle="Awaiting processing"
+          subtitle="Đang chờ xử lý"
           color="bg-gradient-to-br from-orange-500 to-orange-600"
           link="/evm-staff/orders"
         />
         
         <StatCard
           icon={Truck}
-          title="Handover Records"
+          title="Biên bản bàn giao"
           value={stats.totalHandoverRecords}
-          subtitle={`${stats.acceptedHandoverRecords} accepted`}
+          subtitle={`${stats.acceptedHandoverRecords} đã chấp nhận`}
           color="bg-gradient-to-br from-purple-500 to-purple-600"
           link="/evm-staff/handover-records"
         />
@@ -146,7 +150,7 @@ const EvmStaffDashboardPage = () => {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Thao tác nhanh</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             to="/evm-staff/quotations/new"
@@ -156,8 +160,8 @@ const EvmStaffDashboardPage = () => {
               <FileText size={20} className="text-blue-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Create Quotation</p>
-              <p className="text-xs text-gray-500">New quotation</p>
+              <p className="font-medium text-gray-900">Tạo báo giá</p>
+              <p className="text-xs text-gray-500">Báo giá mới</p>
           </div>
           </Link>
 
@@ -169,8 +173,8 @@ const EvmStaffDashboardPage = () => {
               <Package size={20} className="text-green-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Create Order</p>
-              <p className="text-xs text-gray-500">Process order</p>
+              <p className="font-medium text-gray-900">Tạo đơn hàng</p>
+              <p className="text-xs text-gray-500">Xử lý đơn hàng</p>
           </div>
           </Link>
 
@@ -182,8 +186,8 @@ const EvmStaffDashboardPage = () => {
               <Truck size={20} className="text-purple-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Handover Vehicle</p>
-              <p className="text-xs text-gray-500">New handover</p>
+              <p className="font-medium text-gray-900">Bàn giao xe</p>
+              <p className="text-xs text-gray-500">Bàn giao mới</p>
           </div>
           </Link>
 
@@ -195,8 +199,8 @@ const EvmStaffDashboardPage = () => {
               <Clock size={20} className="text-cyan-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">View Vehicles</p>
-              <p className="text-xs text-gray-500">Check inventory</p>
+              <p className="font-medium text-gray-900">Xem xe</p>
+              <p className="text-xs text-gray-500">Kiểm tra kho</p>
           </div>
           </Link>
         </div>
@@ -207,16 +211,16 @@ const EvmStaffDashboardPage = () => {
         {/* Orders Overview */}
         <div className="bg-white rounded-xl p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Orders Status</h2>
+            <h2 className="text-lg font-bold text-gray-900">Trạng thái đơn hàng</h2>
             <Link to="/evm-staff/orders" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View all →
+              Xem tất cả →
             </Link>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">Completed Orders</span>
+                <span className="text-sm font-medium text-gray-700">Đơn hàng hoàn thành</span>
               </div>
               <span className="text-lg font-bold text-green-700">
                 {loading ? '...' : stats.completedOrders}
@@ -225,7 +229,7 @@ const EvmStaffDashboardPage = () => {
             <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">Pending Orders</span>
+                <span className="text-sm font-medium text-gray-700">Đơn hàng chờ xử lý</span>
               </div>
               <span className="text-lg font-bold text-yellow-700">
                 {loading ? '...' : stats.pendingOrders}
@@ -237,16 +241,16 @@ const EvmStaffDashboardPage = () => {
         {/* Handover Records Overview */}
         <div className="bg-white rounded-xl p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Handover Status</h2>
+            <h2 className="text-lg font-bold text-gray-900">Trạng thái bàn giao</h2>
             <Link to="/evm-staff/handover-records" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View all →
+              Xem tất cả →
             </Link>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">Accepted Records</span>
+                <span className="text-sm font-medium text-gray-700">Biên bản đã chấp nhận</span>
                 </div>
               <span className="text-lg font-bold text-green-700">
                 {loading ? '...' : stats.acceptedHandoverRecords}
@@ -255,7 +259,7 @@ const EvmStaffDashboardPage = () => {
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">Total Records</span>
+                <span className="text-sm font-medium text-gray-700">Tổng số biên bản</span>
               </div>
               <span className="text-lg font-bold text-gray-700">
                 {loading ? '...' : stats.totalHandoverRecords}

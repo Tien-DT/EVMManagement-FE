@@ -9,8 +9,6 @@ import {
   XCircle,
   AlertCircle,
   Calendar,
-  User,
-  DollarSign,
   Send
 } from 'lucide-react';
 import useQuotations from '../hooks/useQuotations';
@@ -32,10 +30,7 @@ const EvmStaffQuotationsPage = () => {
   } = useQuotations();
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
+    return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
   };
 
   const getStatusColor = (status) => {
@@ -223,25 +218,19 @@ const EvmStaffQuotationsPage = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Báo giá
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Khách hàng
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Dealer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tổng giá trị
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ngày tạo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Thao tác
                   </th>
                 </tr>
@@ -255,27 +244,10 @@ const EvmStaffQuotationsPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <User size={16} className="text-emerald-600" />
-                        </div>
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{quotation.customerName || 'N/A'}</div>
-                          {quotation.customerEmail && <div className="text-sm text-gray-500">{quotation.customerEmail}</div>}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{quotation.dealerName || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
-                        <DollarSign size={14} className="text-emerald-600" />
-                        <div className="text-sm font-medium text-emerald-700">
-                          {quotation.total || quotation.Total || quotation.totalValue || quotation.totalAmount 
-                            ? formatCurrency(quotation.total || quotation.Total || quotation.totalValue || quotation.totalAmount) 
-                            : '-'}
-                        </div>
+                      <div className="text-sm font-medium text-emerald-700">
+                        {quotation.total || quotation.Total || quotation.totalValue || quotation.totalAmount 
+                          ? formatCurrency(quotation.total || quotation.Total || quotation.totalValue || quotation.totalAmount) 
+                          : '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

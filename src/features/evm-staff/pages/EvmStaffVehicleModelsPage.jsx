@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { useVehicles } from "../../vehicle/hooks/useVehicles";
 
 const columns = [
-  { key: "code", label: "Code" },
-  { key: "name", label: "Name" },
-  { key: "launchDate", label: "Launch Date" },
-  { key: "description", label: "Description" },
-  { key: "status", label: "Status" },
-  { key: "ranking", label: "Ranking" },
+  { key: "code", label: "Mã" },
+  { key: "name", label: "Tên" },
+  { key: "launchDate", label: "Ngày ra mắt" },
+  { key: "description", label: "Mô tả" },
+  { key: "status", label: "Trạng thái" },
+  { key: "ranking", label: "Xếp hạng" },
 ];
 
 export default function EvmStaffVehicleModelsPage() {
@@ -18,8 +18,8 @@ export default function EvmStaffVehicleModelsPage() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Vehicle Models</h1>
-          <p className="text-gray-600 mt-1">View electric vehicle models and specifications</p>
+          <h1 className="text-3xl font-bold text-gray-900">Danh sách Model Xe</h1>
+          <p className="text-gray-600 mt-1">Xem các model xe điện và thông số kỹ thuật</p>
         </div>
       </div>
 
@@ -32,7 +32,7 @@ export default function EvmStaffVehicleModelsPage() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <span className="ml-3 text-gray-600">Loading...</span>
+          <span className="ml-3 text-gray-600">Đang tải...</span>
         </div>
       )}
 
@@ -41,8 +41,8 @@ export default function EvmStaffVehicleModelsPage() {
           <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <span className="text-2xl">🚗</span>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No vehicle models</h3>
-          <p className="text-gray-500">There are no vehicle models in the system yet</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Không có model xe</h3>
+          <p className="text-gray-500">Chưa có model xe nào trong hệ thống</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -63,7 +63,7 @@ export default function EvmStaffVehicleModelsPage() {
                 <div className={`text-6xl opacity-20 ${v.imageUrl ? 'hidden' : 'flex'}`}>🚗</div>
                 <div className="absolute top-3 right-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${v.status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                    {v.status ? "Active" : "Inactive"}
+                    {v.status ? "Hoạt động" : "Không hoạt động"}
                   </span>
                 </div>
               </div>
@@ -81,12 +81,12 @@ export default function EvmStaffVehicleModelsPage() {
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Ranking:</span>
+                    <span className="text-gray-500">Xếp hạng:</span>
                     <span className="font-medium text-gray-900">{v.ranking}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Launch:</span>
-                    <span className="font-medium text-gray-900">{v.launchDate ? new Date(v.launchDate).toLocaleDateString() : "-"}</span>
+                    <span className="text-gray-500">Ra mắt:</span>
+                    <span className="font-medium text-gray-900">{v.launchDate ? new Date(v.launchDate).toLocaleDateString('vi-VN') : "-"}</span>
                   </div>
                 </div>
                 
@@ -95,7 +95,7 @@ export default function EvmStaffVehicleModelsPage() {
                     to={`/evm-staff/vehicles/${v.id}`}
                     className="w-full px-4 py-2 text-center block text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors"
                   >
-                    View Details
+                    Xem chi tiết
                   </Link>
                 </div>
               </div>
