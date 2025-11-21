@@ -819,10 +819,10 @@ const EvmStaffContractDetailPage = () => {
           <Col span={24}>
             <Card type="inner" title="📄 Tài liệu hợp đồng" style={{ borderRadius: "8px" }}>
               <Space direction="vertical" style={{ width: "100%" }} size={16}>
-                {!contract.contractLink && (
+                {order?.status === 'DEALER_SIGNED_CONTRACT' && (
                   <>
                     <Text>
-                      Sử dụng nút "Tải hợp đồng PDF" để tải bản nháp. Sau khi ký, tải file PDF đã ký lên đây để lưu trữ.
+                      Dealer đã ký hợp đồng. Vui lòng tải file hợp đồng có chữ ký EVM lên đây để hoàn tất.
                     </Text>
                     <Spin spinning={updatingContractLink} tip="Đang cập nhật tài liệu...">
                       <FileUpload
@@ -833,9 +833,11 @@ const EvmStaffContractDetailPage = () => {
                     </Spin>
                   </>
                 )}
-                {contract.contractLink ? (
+                {contract.contractLink && (
                   <Space direction="vertical" style={{ width: "100%" }}>
-                    {!contract.contractLink && <Divider style={{ margin: "8px 0" }} />}
+                    {order?.status === 'DEALER_SIGNED_CONTRACT' && (
+                      <Divider style={{ margin: "8px 0" }} />
+                    )}
                     <div
                       style={{
                         display: "flex",
@@ -845,7 +847,7 @@ const EvmStaffContractDetailPage = () => {
                         gap: 12,
                       }}
                     >
-                      <Text strong>File hợp đồng đã ký hiện tại:</Text>
+                      <Text strong>File hợp đồng hiện tại:</Text>
                       <Button
                         type="primary"
                         icon={<FilePdfOutlined />}
@@ -853,19 +855,18 @@ const EvmStaffContractDetailPage = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Xem hợp đồng đã ký
+                        Xem hợp đồng
                       </Button>
                     </div>
                     <Text ellipsis style={{ wordBreak: "break-all" }}>
                       {contract.contractLink}
                     </Text>
                   </Space>
-                ) : (
-                  !contract.contractLink && (
-                    <Text type="secondary">
-                      Chưa có tài liệu hợp đồng đã ký được tải lên.
-                    </Text>
-                  )
+                )}
+                {!contract.contractLink && order?.status !== 'DEALER_SIGNED_CONTRACT' && (
+                  <Text type="secondary">
+                    Nút upload sẽ xuất hiện khi đơn hàng ở trạng thái "Chờ EVM ký hợp đồng".
+                  </Text>
                 )}
               </Space>
             </Card>
