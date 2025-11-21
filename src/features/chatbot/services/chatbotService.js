@@ -7,7 +7,9 @@ const chatbotService = {
       const response = await axiosInstance.post(endpoints.chatbot.chat, {
         message: message,
       });
-      return response.data || response;
+      // API returns: { success: true, data: { response: "...", timestamp: "..." } }
+      // axiosInstance already unwraps to response.data, so we get data.data
+      return response.data?.data || response.data || response;
     } catch (error) {
       console.error("Error sending message to chatbot:", error);
       throw error;

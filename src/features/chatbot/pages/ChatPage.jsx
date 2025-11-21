@@ -48,10 +48,11 @@ const ChatPage = () => {
     try {
       const response = await chatbotService.sendMessage(inputMessage);
       
+      // API returns data.response containing the chatbot reply
       const botMessage = {
         id: Date.now() + 1,
         sender: "bot",
-        text: response.message || response.reply || "Xin lỗi, tôi không hiểu câu hỏi của bạn.",
+        text: response.response || response.message || "Xin lỗi, tôi không hiểu câu hỏi của bạn.",
         timestamp: new Date(),
       };
 
